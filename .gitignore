@@ -1,0 +1,39 @@
+# Secrets — NEVER commit
+.env
+.env.local
+.env.*.local
+
+# Dependencies (reinstalled with composer install / npm install)
+/vendor
+/node_modules
+
+# Local data & caches
+/database/database.sqlite
+/database/database.sqlite-journal
+/.phpunit.result.cache
+
+# Laravel runtime files
+/storage/*.key
+/storage/app/reports/*.pdf
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*.log
+!/storage/framework/cache/data/.gitignore
+!/storage/framework/sessions/.gitignore
+!/storage/framework/views/.gitignore
+
+# Build output (recreated with npm run build)
+/public/build
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+.idea
+.vscode
+*.swp
+
+# Python scanner
+__pycache__/
+*.pyc
+scanner/excluded_sites.txt
