@@ -126,7 +126,7 @@
                         <div class="finding-consequence">Impact: {{ $finding->consequence }}</div>
                     @endif
                     @if($finding->recommendation)
-                        <div class="finding-solution">✓ Recommended solution: {{ $finding->recommendation->solution }} ({{ $finding->recommendation->service_type }})</div>
+                        <div class="finding-solution"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1a7f37" stroke-width="3" style="vertical-align:-1px" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Recommended solution: {{ $finding->recommendation->solution }} ({{ $finding->recommendation->service_type }})</div>
                     @endif
                 </div>
             @endforeach
@@ -148,7 +148,7 @@
         <div class="cta">
             <h3>Ready to Improve Your Website?</h3>
             <p>Our team can help you address these issues and build a stronger digital presence.</p>
-            <div class="contact">📧 inf@oweru.com &nbsp;|&nbsp; 📞 +255 711 890 764 &nbsp;|&nbsp; 📍 Dar es Salaam, Tanzania</div>
+            <div class="contact">Email: inf@oweru.com &nbsp;|&nbsp; Phone: +255 711 890 764 &nbsp;|&nbsp; Dar es Salaam, Tanzania</div>
         </div>
 
         {{-- Footer --}}

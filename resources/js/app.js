@@ -9,7 +9,80 @@ document.addEventListener('DOMContentLoaded', () => {
     initPipelineFilters();
     initEnquiryForm();
     initCurrencyToggle();
+    initHeroCarousel();
 });
+
+/**
+ * Hero image carousel (Tailwind, no library)
+ * - Auto-advances every [data-interval] ms, pauses on hover and when off-screen
+ * - Prev/next arrows, dot navigation, keyboard support
+ */
+function initHeroCarousel() {
+    const carousel = document.getElementById('hero-carousel');
+    if (!carousel) return;
+
+    const slides = [...carousel.querySelectorAll('[data-hero-slide]')];
+    const dots = [...carousel.querySelectorAll('[data-hero-dot]')];
+    if (!slides.length) return;
+
+    const interval = parseInt(carousel.dataset.interval || '6000', 10);
+    let index = 0;
+    let timer = null;
+
+    function render() {
+        slides.forEach((slide, i) => {
+            slide.classList.toggle('is-active', i === index);
+            slide.setAttribute('aria-hidden', i === index ? 'false' : 'true');
+        });
+        dots.forEach((dot, i) => {
+            dot.classList.toggle('is-active', i === index);
+            dot.setAttribute('aria-selected', i === index ? 'true' : 'false');
+        });
+    }
+
+    function goTo(next) {
+        index = (next + slides.length) % slides.length;
+        render();
+    }
+
+    function start() {
+        stop();
+        timer = setInterval(() => goTo(index + 1), interval);
+    }
+
+    function stop() {
+        if (timer) {
+            clearInterval(timer);
+            timer = null;
+        }
+    }
+
+    carousel.querySelector('[data-hero-prev]')?.addEventListener('click', () => { goTo(index - 1); start(); });
+    carousel.querySelector('[data-hero-next]')?.addEventListener('click', () => { goTo(index + 1); start(); });
+    dots.forEach((dot, i) => dot.addEventListener('click', () => { goTo(i); start(); }));
+
+    carousel.addEventListener('mouseenter', stop);
+    carousel.addEventListener('mouseleave', start);
+    carousel.addEventListener('focusin', stop);
+    carousel.addEventListener('focusout', start);
+
+    carousel.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') goTo(index - 1);
+        if (e.key === 'ArrowRight') goTo(index + 1);
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') start();
+    });
+
+    // Pause auto-play while the carousel is not visible (keeps scans/animations smooth)
+    if ('IntersectionObserver' in window) {
+        new IntersectionObserver(([entry]) => {
+            entry.isIntersecting ? start() : stop();
+        }, { threshold: 0.25 }).observe(carousel);
+    } else {
+        start();
+    }
+
+    render();
+}
 
 /**
  * Public Scanner - Handles URL submission and result display
@@ -54,7 +127,7 @@ function initScanner() {
             }
         } finally {
             scanBtn.disabled = false;
-            scanBtn.innerHTML = '🔍 Scan Website';
+            scanBtn.innerHTML = '<svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg> Scan Website';
             loader.classList.add('hidden');
         }
     });
@@ -85,7 +158,7 @@ function displayScanResults(data) {
                 <div class="space-y-3">
                     ${data.findings.map(f => `
                         <div class="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
-                            <span class="text-red-500 mt-0.5">⚠</span>
+                            <svg class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                             <div>
                                 <p class="font-medium text-gray-800">${f.check_name}</p>
                                 <p class="text-sm text-gray-600 mt-1">${f.finding_text}</p>

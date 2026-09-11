@@ -99,42 +99,42 @@
     <h3 class="font-bold text-gray-900 mb-4">Default Mapping Reference</h3>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
         <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-            <span class="text-black">⚠</span>
+            <span class="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></span>
             <div>
                 <p class="font-medium text-gray-900">Slow mobile performance</p>
                 <p class="text-xs text-gray-500">→ Performance optimization / Web development</p>
             </div>
         </div>
         <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-            <span class="text-black">⚠</span>
+            <span class="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></span>
             <div>
                 <p class="font-medium text-gray-900">Broken links</p>
                 <p class="text-xs text-gray-500">→ Website maintenance / Development</p>
             </div>
         </div>
         <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-            <span class="text-black">⚠</span>
+            <span class="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></span>
             <div>
                 <p class="font-medium text-gray-900">Missing contact path</p>
                 <p class="text-xs text-gray-500">→ Website redesign / Contact integration</p>
             </div>
         </div>
         <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-            <span class="text-black">⚠</span>
+            <span class="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></span>
             <div>
                 <p class="font-medium text-gray-900">Missing privacy/terms</p>
                 <p class="text-xs text-gray-500">→ Website improvement / Advisory</p>
             </div>
         </div>
         <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-            <span class="text-black">⚠</span>
+            <span class="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></span>
             <div>
                 <p class="font-medium text-gray-900">Poor mobile layout</p>
                 <p class="text-xs text-gray-500">→ Responsive web development</p>
             </div>
         </div>
         <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-            <span class="text-black">⚠</span>
+            <span class="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></span>
             <div>
                 <p class="font-medium text-gray-900">No payment/booking path</p>
                 <p class="text-xs text-gray-500">→ E-commerce / Booking integration</p>

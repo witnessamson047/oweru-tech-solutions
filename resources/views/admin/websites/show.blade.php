@@ -118,7 +118,8 @@
                     Run Internal Scan
                 </button>
                 <a href="{{ $website->url }}" target="_blank" class="btn-outline text-sm w-full justify-center">
-                    🌐 Visit Website
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                    Visit Website
                 </a>
                 @if($website->exclusion_status !== 'excluded')
                     <form method="POST" action="{{ route('admin.websites.exclude', $website) }}">
@@ -126,7 +127,8 @@
                         @method('PATCH')
                         <button type="submit" class="btn-danger text-sm w-full justify-center"
                             onclick="return confirm('Exclude this website from scanning?')">
-                            🚫 Exclude from Scanning
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728A9 9 0 015.636 5.636"/></svg>
+                            Exclude from Scanning
                         </button>
                     </form>
                 @endif

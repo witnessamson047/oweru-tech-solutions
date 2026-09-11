@@ -27,10 +27,16 @@
                     placeholder="https://yourbusiness.co.tz"
                     required>
                 <button type="submit" id="scan-btn" class="btn-accent text-base px-6 py-3 whitespace-nowrap">
-                    🔍 Scan Website
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    Scan Website
                 </button>
             </div>
             <p class="text-xs text-gray-400 mt-2">We only scan publicly accessible pages. No login or private data is accessed.</p>
+            <div class="flex flex-wrap items-center justify-center gap-4 mt-3 text-[11px] text-gray-500">
+                <span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg> No signup required</span>
+                <span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Results in about 60 seconds</span>
+                <span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg> 23 checks across 8 areas</span>
+            </div>
         </form>
 
         {{-- Loading State --}}
@@ -102,49 +108,65 @@
         <h2 class="text-2xl font-bold text-gray-900 text-center mb-10">What We Check</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="card p-4">
-                <div class="text-2xl mb-2">🔒</div>
+                <div class="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center mb-2">
+                    <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                </div>
                 <h4 class="font-semibold text-gray-900 text-sm">Security</h4>
                 <p class="text-xs text-gray-500 mt-1">SSL certificate, secure loading, no mixed content</p>
                 <span class="badge badge-gray text-[10px] mt-2">20 points</span>
             </div>
             <div class="card p-4">
-                <div class="text-2xl mb-2">📱</div>
+                <div class="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center mb-2">
+                    <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                </div>
                 <h4 class="font-semibold text-gray-900 text-sm">Mobile Experience</h4>
                 <p class="text-xs text-gray-500 mt-1">Responsive layout, readable text, tap-friendly buttons</p>
                 <span class="badge badge-gray text-[10px] mt-2">20 points</span>
             </div>
             <div class="card p-4">
-                <div class="text-2xl mb-2">⚡</div>
+                <div class="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center mb-2">
+                    <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </div>
                 <h4 class="font-semibold text-gray-900 text-sm">Speed</h4>
                 <p class="text-xs text-gray-500 mt-1">Load time, page size, image optimization</p>
                 <span class="badge badge-gray text-[10px] mt-2">15 points</span>
             </div>
             <div class="card p-4">
-                <div class="text-2xl mb-2">⚙️</div>
+                <div class="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center mb-2">
+                    <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
                 <h4 class="font-semibold text-gray-900 text-sm">Functionality</h4>
                 <p class="text-xs text-gray-500 mt-1">Working links, contact forms, tappable phone/email</p>
                 <span class="badge badge-gray text-[10px] mt-2">15 points</span>
             </div>
             <div class="card p-4">
-                <div class="text-2xl mb-2">🔍</div>
+                <div class="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center mb-2">
+                    <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
                 <h4 class="font-semibold text-gray-900 text-sm">Findability</h4>
                 <p class="text-xs text-gray-500 mt-1">Page titles, meta descriptions, search presence</p>
                 <span class="badge badge-gray text-[10px] mt-2">12 points</span>
             </div>
             <div class="card p-4">
-                <div class="text-2xl mb-2">🛡️</div>
+                <div class="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center mb-2">
+                    <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                </div>
                 <h4 class="font-semibold text-gray-900 text-sm">Trust Signals</h4>
                 <p class="text-xs text-gray-500 mt-1">Company name, address, privacy policy, terms</p>
                 <span class="badge badge-gray text-[10px] mt-2">10 points</span>
             </div>
             <div class="card p-4">
-                <div class="text-2xl mb-2">🛒</div>
+                <div class="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center mb-2">
+                    <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
                 <h4 class="font-semibold text-gray-900 text-sm">Commerce</h4>
                 <p class="text-xs text-gray-500 mt-1">Online payment or booking functionality</p>
                 <span class="badge badge-gray text-[10px] mt-2">5 points</span>
             </div>
             <div class="card p-4">
-                <div class="text-2xl mb-2">🕐</div>
+                <div class="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center mb-2">
+                    <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
                 <h4 class="font-semibold text-gray-900 text-sm">Freshness</h4>
                 <p class="text-xs text-gray-500 mt-1">Recent content updates, current copyright year</p>
                 <span class="badge badge-gray text-[10px] mt-2">3 points</span>
