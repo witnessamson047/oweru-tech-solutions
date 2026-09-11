@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\ScanController;
 use App\Http\Controllers\Admin\RecommendationController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ScannerCheckController;
+use App\Http\Controllers\Admin\HeroSlideController;
 use App\Http\Controllers\Auth\LoginController;
 
 /*
@@ -122,5 +123,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     // Scanner Checks Management
     Route::resource('scanner-checks', ScannerCheckController::class)->except(['show']);
+
+    // Homepage Hero Slides Management
+    Route::resource('hero-slides', HeroSlideController::class)->except(['show']);
 });
 

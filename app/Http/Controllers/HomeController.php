@@ -6,6 +6,7 @@ use App\Models\ServicePackage;
 use App\Models\CarePlan;
 use App\Models\PackageExclusion;
 use App\Models\DeliveryCommitment;
+use App\Models\HeroSlide;
 
 class HomeController extends Controller
 {
@@ -15,6 +16,7 @@ class HomeController extends Controller
         $carePlans = CarePlan::active()->get();
         $exclusions = PackageExclusion::where('active', true)->orderBy('sort_order')->get();
         $commitments = DeliveryCommitment::where('active', true)->orderBy('sort_order')->get();
+        $heroSlides = HeroSlide::active()->orderBy('sort_order')->orderBy('id')->get();
 
         $currency = request()->cookie('currency', 'TZS');
 
@@ -25,6 +27,7 @@ class HomeController extends Controller
             'carePlans' => $carePlans,
             'exclusions' => $exclusions,
             'commitments' => $commitments,
+            'heroSlides' => $heroSlides,
             'currency' => $currency,
         ]);
     }
