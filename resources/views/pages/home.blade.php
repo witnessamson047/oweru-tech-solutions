@@ -4,14 +4,45 @@
 
 @section('content')
 
-<section class="relative bg-black text-white overflow-hidden">
-    <div class="absolute inset-0">
-        <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjA1Ij48cGF0aCBkPSJNMzYgMzRoLTJ2LTRoMnYtMmgtNHY2aDJ2Mmgydi0yem0wLTRoLTJ2Mmgydi0yek0yMCAyNGgtMnYtMmgydjJ6bTAtNGgtMnYtMmgzdjJIMjB6bTE2IDBoLTJ2MmgyVjIwem0wLTRoLTJ2MmgzdjJIMzZ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
-        <div class="absolute top-20 left-10 w-72 h-72 bg-yellow-400/10 rounded-full blur-3xl animate-pulse-slow"></div>
-        <div class="absolute bottom-10 right-10 w-96 h-96 bg-yellow-500/5 rounded-full blur-3xl animate-pulse-slow" style="animation-delay: 1s;"></div>
+<section class="relative min-h-[calc(100vh-4rem)] flex items-center bg-black text-white overflow-hidden">
+    <!-- Full-bleed background carousel -->
+    <div id="hero-carousel" data-interval="6000" aria-roledescription="carousel" aria-label="Showcase highlights" class="group absolute inset-0">
+        @php
+            $slides = $heroSlides->isNotEmpty() ? $heroSlides : collect([
+                (object) ['image_path' => 'images/hero/scanner-analytics.jpg', 'title' => 'Website Health Scanner — real diagnostics, instant score', 'subtitle' => null, 'alt_text' => 'Analytics charts on a laptop screen showing a website performance report'],
+                (object) ['image_path' => 'images/hero/developer-coding.jpg', 'title' => 'Custom Software — designed, built and shipped by us', 'subtitle' => null, 'alt_text' => 'Developer writing code on a laptop in an office'],
+                (object) ['image_path' => 'images/hero/team-collaboration.jpg', 'title' => 'The Oweru Team — real people, real results', 'subtitle' => null, 'alt_text' => 'Our team collaborating around a table in the office'],
+            ]);
+        @endphp
+        @foreach($slides as $slide)
+            <figure data-hero-slide class="absolute inset-0 opacity-0 transition-opacity duration-1000 ease-in-out [&.is-active]:opacity-100 {{ $loop->first ? 'is-active' : '' }}" aria-hidden="{{ $loop->first ? 'false' : 'true' }}">
+                <img src="{{ asset($slide['image_path']) }}" alt="{{ $slide['alt_text'] }}" class="h-full w-full object-cover transition-transform duration-[8000ms] ease-out [.is-active_&]:scale-105" loading="eager" />
+                <figcaption class="pointer-events-none absolute inset-x-0 bottom-16 bg-gradient-to-t from-black/55 to-transparent py-6">
+                    <span class="mx-auto block max-w-7xl px-4 text-sm font-medium text-yellow-300 sm:px-6 lg:px-8 [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]">{{ $slide['title'] }}</span>
+                </figcaption>
+            </figure>
+        @endforeach
+
+        <div class="pointer-events-none absolute inset-0 bg-black/25"></div>
+        <div class="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent"></div>
+
+        <button type="button" data-hero-prev aria-label="Previous slide" class="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white opacity-60 backdrop-blur transition hover:bg-yellow-500 hover:text-black focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-yellow-400 md:opacity-0 md:group-hover:opacity-100">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <button type="button" data-hero-next aria-label="Next slide" class="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white opacity-60 backdrop-blur transition hover:bg-yellow-500 hover:text-black focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-yellow-400 md:opacity-0 md:group-hover:opacity-100">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+        </button>
+
+        <div class="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 gap-2" role="tablist" aria-label="Choose slide">
+            @foreach($slides as $i => $slide)
+                <button type="button" data-hero-dot role="tab" aria-label="Go to slide {{ $loop->iteration }}" class="h-2.5 w-2.5 rounded-full bg-white/40 transition-all duration-300 hover:bg-white/70 [&.is-active]:w-6 [&.is-active]:bg-yellow-400"></button>
+            @endforeach
+        </div>
     </div>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 relative">
-        <div class="text-center max-w-4xl mx-auto">
+
+    <!-- Overlay copy -->
+    <div class="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+            <div class="text-center lg:text-left max-w-2xl lg:mx-0 [text-shadow:0_1px_2px_rgba(0,0,0,0.65),0_2px_10px_rgba(0,0,0,0.35)]">
             <div class="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-4 py-1.5 text-sm font-medium text-yellow-300 mb-6">
                 <span class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
                 Trusted by 50+ Businesses Across East Africa
@@ -34,14 +65,13 @@
                     Services & Pricing
                 </a>
             </div>
-            <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs text-gray-400">
-                <span class="flex items-center gap-1"><svg class="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Free Consultation</span>
-                <span class="flex items-center gap-1"><svg class="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> No Hidden Fees</span>
-                <span class="flex items-center gap-1"><svg class="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> 24/7 Support</span>
+                <div class="mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs text-gray-400">
+                    <span class="flex items-center gap-1"><svg class="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Free Consultation</span>
+                    <span class="flex items-center gap-1"><svg class="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> No Hidden Fees</span>
+                    <span class="flex items-center gap-1"><svg class="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> 24/7 Support</span>
+                </div>
             </div>
-        </div>
     </div>
-    <div class="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent"></div>
 </section>
 
 <section class="bg-white border-b border-black">
@@ -122,7 +152,10 @@
                             <div class="group relative bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 border border-gray-200 hover:border-yellow-300 overflow-hidden">
                                 @if($package->is_featured)
                                     <div class="absolute -top-2 left-1/2 -translate-x-1/2 z-10">
-                                        <span class="bg-gradient-to-r from-yellow-600 to-yellow-500 text-white text-xs font-bold px-3 py-0.5 rounded-full shadow">★ Recommended</span>
+                                        <span class="bg-gradient-to-r from-yellow-600 to-yellow-500 text-white text-xs font-bold px-3 py-0.5 rounded-full shadow inline-flex items-center gap-1">
+                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                            Recommended
+                                        </span>
                                     </div>
                                 @endif
                                 <div class="p-4">
@@ -202,7 +235,7 @@
                 <a href="{{ route('enquiry.create', ['package' => 'digital-transformation']) }}" class="btn-accent text-sm">Get CRM Solution →</a>
             </div>
             <div class="relative">
-                <div class="bg-gray-900 rounded-xl shadow-2xl p-4 border border-gray-700">
+                <div class="bg-gray-900 rounded-xl shadow-2xl p-4 border border-yellow-500/20">
                     <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-700">
                         <div class="w-2.5 h-2.5 bg-yellow-500 rounded-full"></div>
                         <div class="w-2.5 h-2.5 bg-yellow-600 rounded-full"></div>
@@ -224,7 +257,10 @@
                         <div class="text-center"><p class="text-xl font-bold text-yellow-500">8.2K</p><p class="text-xs text-gray-400">Revenue</p></div>
                     </div>
                 </div>
-                <div class="absolute -bottom-3 -right-3 bg-yellow-500 text-black px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">⭐ From TZS 1.5M</div>
+                <div class="absolute -bottom-3 -right-3 bg-yellow-500 text-black px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    From TZS 1.5M
+                </div>
             </div>
         </div>
     </div>
@@ -244,7 +280,10 @@
                     <div class="group relative bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 border border-gray-200 hover:border-yellow-300 {{ $plan->is_featured ? 'ring-2 ring-yellow-500 ring-offset-2' : '' }}">
                         @if($plan->is_featured)
                             <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                                <span class="bg-gradient-to-r from-yellow-500 to-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full shadow">⭐ Best Value</span>
+                                <span class="bg-gradient-to-r from-yellow-500 to-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full shadow inline-flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                Best Value
+                            </span>
                             </div>
                         @endif
                         <div class="p-4 pt-6">
@@ -285,7 +324,7 @@
                     <p class="text-xs text-gray-500 mb-3">Not included in any standard package. Custom pricing available.</p>
                     <ul class="space-y-2">
                         @forelse($exclusions as $exclusion)
-                            <li class="flex items-start gap-2 p-2 bg-gray-50 rounded text-sm"><span class="w-5 h-5 bg-black rounded-full flex items-center justify-center text-white text-xs flex-shrink-0">✕</span><span>{{ $exclusion->description }}</span></li>
+                            <li class="flex items-start gap-2 p-2 bg-gray-50 rounded text-sm"><span class="w-5 h-5 bg-black rounded-full flex items-center justify-center flex-shrink-0"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></span><span>{{ $exclusion->description }}</span></li>
                         @empty
                             <li class="text-xs text-gray-400 hidden">No exclusions configured.</li>
                         @endforelse
@@ -303,7 +342,7 @@
                     <p class="text-xs text-gray-500 mb-3">Every engagement comes with these guarantees.</p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         @forelse($commitments as $commitment)
-                            <div class="flex items-start gap-2 p-2 bg-yellow-50 rounded text-sm"><span class="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center text-black text-xs flex-shrink-0">✓</span><div><p class="font-medium text-black text-xs">{{ $commitment->title }}</p><p class="text-gray-500 text-xs mt-0.5">{{ $commitment->description }}</p></div></div>
+                            <div class="flex items-start gap-2 p-2 bg-yellow-50 rounded text-sm"><span class="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0"><svg class="w-3 h-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></span><div><p class="font-medium text-black text-xs">{{ $commitment->title }}</p><p class="text-gray-500 text-xs mt-0.5">{{ $commitment->description }}</p></div></div>
                         @empty
                             <div class="text-xs text-gray-400 col-span-2 hidden">No commitments configured.</div>
                         @endforelse
@@ -350,13 +389,60 @@
     </div>
 </section>
 
-<section class="py-10 bg-black text-white">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 class="text-2xl md:text-3xl font-bold mb-3">Ready to Transform Your Digital Presence?</h2>
-        <p class="text-gray-300 text-sm mb-4">Start with a free website check or discuss your project.</p>
+<section class="py-10 bg-black text-white relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-96 h-96 bg-yellow-500/5 rounded-full blur-3xl"></div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+        <div class="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-4 py-1.5 text-xs font-medium text-yellow-300 mb-4">
+            <span class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+            Free · No commitment · Results in 60 seconds
+        </div>
+        <h2 class="text-2xl md:text-3xl font-bold mb-3">Is Your Website Losing You <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500">Customers?</span></h2>
+        <p class="text-gray-300 text-sm mb-5 max-w-xl mx-auto">Most business sites quietly leak leads every day. Find out exactly what yours is costing you — before your competitors do.</p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
-            <a href="{{ route('scanner.index') }}" class="btn-accent text-sm px-6 py-2.5">🔍 Free Website Check</a>
-            <a href="{{ route('enquiry.create') }}" class="btn-outline text-sm px-6 py-2.5">📧 Contact Us</a>
+            <a href="{{ route('scanner.index') }}" class="btn-accent text-sm px-6 py-2.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                Free Website Check
+            </a>
+            <a href="{{ route('enquiry.create') }}" class="btn-outline text-sm px-6 py-2.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                Contact Us
+            </a>
+        </div>
+        <p class="text-xs text-gray-500 mt-4 flex items-center justify-center gap-4">
+            <span class="flex items-center gap-1"><svg class="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg> No signup required</span>
+            <span class="flex items-center gap-1"><svg class="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Honest scoring, no scare tactics</span>
+        </p>
+    </div>
+</section>
+
+<section class="py-12 bg-white border-t border-black/10" id="how-it-works">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-10">
+            <span class="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full mb-3">How It Works</span>
+            <h2 class="text-2xl md:text-3xl font-bold text-black">From First Scan to Working With Us</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
+            <div class="hidden md:block absolute top-6 left-[12%] right-[12%] h-0.5 bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-200"></div>
+            @foreach([
+                ['icon' => 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', 'title' => 'Scan Your Site', 'desc' => 'Run the free check — 23 automated checks across 8 areas score your site out of 100.'],
+                ['icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', 'title' => 'Get Your Scorecard', 'desc' => 'See every finding, what it means for your business, and the exact fix it needs.'],
+                ['icon' => 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z', 'title' => 'Talk It Through', 'desc' => 'A free consultation maps the fixes to your goals and budget — zero pressure.'],
+                ['icon' => 'M13 10V3L4 14h7v7l9-11h-7z', 'title' => 'Watch It Grow', 'desc' => 'We implement the improvements and you track the score climb on every re-scan.'],
+            ] as $step)
+                <div class="text-center relative">
+                    <div class="w-12 h-12 mx-auto mb-3 bg-yellow-500 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-500/30 ring-4 ring-white">
+                        <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $step['icon'] }}"/></svg>
+                    </div>
+                    <h3 class="font-bold text-black text-sm mb-1">{{ $loop->iteration }}. {{ $step['title'] }}</h3>
+                    <p class="text-gray-500 text-xs leading-relaxed">{{ $step['desc'] }}</p>
+                </div>
+            @endforeach
+        </div>
+        <div class="text-center mt-8">
+            <a href="{{ route('scanner.index') }}" class="btn-accent text-sm">
+                Start With Step 1 — It's Free
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
         </div>
     </div>
 </section>
