@@ -13,6 +13,30 @@
             <div class="flex-1">
                 <h2 class="text-xl font-bold text-white mb-1">Welcome to Oweru Admin</h2>
                 <p class="text-sm text-gray-400">Manage your clients, scans, and pipeline all in one place.</p>
+                <div class="mt-3 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium {{ ($scannerHealth['online'] ?? false) ? 'bg-green-500/10 text-green-400 border border-green-500/30' : 'bg-red-500/10 text-red-400 border border-red-500/30' }}"
+                    title="Scanner engine: {{ config('services.scanner.url', 'http://localhost:5000') }} (checked {{ \Illuminate\Support\Carbon::parse($scannerHealth['checked_at'] ?? now())->diffForHumans() }})">
+                    <span class="relative flex h-2 w-2">
+                        @if($scannerHealth['online'] ?? false)
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        @endif
+                        <span class="relative inline-flex rounded-full h-2 w-2 {{ ($scannerHealth['online'] ?? false) ? 'bg-green-400' : 'bg-red-500' }}"></span>
+                    </span>
+                    @if($scannerHealth['online'] ?? false)
+                        Scanner engine online
+                    @else
+                        Scanner engine offline — start it with C:\python312\python.exe scanner\scanner.py
+                    @endif
+                </div>
+
+                @if(!($scannerHealth['online'] ?? false) && !empty($scannerHealth['log_tail']))
+                    <div class="mt-3 max-w-2xl rounded-lg border border-red-500/30 bg-black/60 overflow-hidden">
+                        <div class="flex items-center justify-between px-3 py-1.5 border-b border-red-500/20">
+                            <span class="text-[11px] uppercase tracking-wider text-red-400/80">scanner-service.log — last {{ count($scannerHealth['log_tail']) }} lines</span>
+                            <span class="text-[11px] text-gray-500">newest last</span>
+                        </div>
+                        <pre class="px-3 py-2 text-[11px] leading-relaxed text-gray-300 max-h-48 overflow-y-auto whitespace-pre-wrap font-mono">{{ implode("\n", $scannerHealth['log_tail']) }}</pre>
+                    </div>
+                @endif
             </div>
             <div class="w-20 h-20 bg-yellow-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
                 <svg class="w-10 h-10 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

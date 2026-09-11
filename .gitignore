@@ -37,3 +37,8 @@ Thumbs.db
 __pycache__/
 *.pyc
 scanner/excluded_sites.txt
+
+# Scanner engine runtime logs & flags (project root)
+/scanner-service.log
+/scanner.log
+/scanner-stop.flag

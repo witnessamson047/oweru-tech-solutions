@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Enquiry;
 use App\Models\Scan;
 use App\Models\Website;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 class DashboardController extends Controller
@@ -63,6 +65,7 @@ class DashboardController extends Controller
                 ->get();
 
             return view('admin.dashboard.index', [
+                'scannerHealth' => $this->scannerHealth(),
                 'stats' => $stats,
                 'showAllStats' => $showAllStats,
                 'recentEnquiries' => $recentEnquiries,
@@ -83,6 +86,52 @@ class DashboardController extends Controller
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * Check whether the Python scanner engine is reachable, cached briefly so the
+     * dashboard never stalls waiting on a dead service. When it is offline, the
+     * last lines of its log file are included to aid diagnosis.
+     */
+    private function scannerHealth(): array
+    {
+        return Cache::remember('scanner.health', 30, function () {
+            try {
+                $url = config('services.scanner.url', 'http://localhost:5000');
+                $online = Http::timeout(3)->get("{$url}/health")->successful();
+            } catch (\Throwable) {
+                $online = false;
+            }
+
+            return [
+                'online' => $online,
+                'checked_at' => now()->toIso8601String(),
+                ...($online ? [] : ['log_tail' => $this->scannerLogTail()]),
+            ];
+        });
+    }
+
+    /**
+     * Last ~25 non-empty lines of the watchdog/engine log, newest last.
+     */
+    private function scannerLogTail(int $lines = 25): ?array
+    {
+        $paths = [
+            base_path('scanner-service.log'),
+            base_path('scanner.log'),
+        ];
+
+        foreach ($paths as $path) {
+            if (!is_file($path)) {
+                continue;
+            }
+
+            $all = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+            return array_slice(is_array($all) ? $all : [], -$lines);
+        }
+
+        return null;
     }
 
     private static function countScannedWebsitesBelow(int $threshold): int
