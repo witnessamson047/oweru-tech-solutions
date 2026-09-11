@@ -6,7 +6,7 @@
 
 <section class="relative min-h-[calc(100vh-4rem)] flex items-center bg-black text-white overflow-hidden">
     <!-- Full-bleed background carousel -->
-    <div id="hero-carousel" data-interval="6000" aria-roledescription="carousel" aria-label="Showcase highlights" class="group absolute inset-0">
+    <div id="hero-carousel" data-carousel data-interval="6000" aria-roledescription="carousel" aria-label="Showcase highlights" class="group absolute inset-0">
         @php
             $slides = $heroSlides->isNotEmpty() ? $heroSlides : collect([
                 (object) ['image_path' => 'images/hero/scanner-analytics.jpg', 'title' => 'Website Health Scanner — real diagnostics, instant score', 'subtitle' => null, 'alt_text' => 'Analytics charts on a laptop screen showing a website performance report'],
@@ -18,13 +18,13 @@
             <figure data-hero-slide class="absolute inset-0 opacity-0 transition-opacity duration-1000 ease-in-out [&.is-active]:opacity-100 {{ $loop->first ? 'is-active' : '' }}" aria-hidden="{{ $loop->first ? 'false' : 'true' }}">
                 <img src="{{ asset($slide['image_path']) }}" alt="{{ $slide['alt_text'] }}" class="h-full w-full object-cover transition-transform duration-[8000ms] ease-out [.is-active_&]:scale-105" loading="eager" />
                 <figcaption class="pointer-events-none absolute inset-x-0 bottom-16 bg-gradient-to-t from-black/55 to-transparent py-6">
-                    <span class="mx-auto block max-w-7xl px-4 text-sm font-medium text-yellow-300 sm:px-6 lg:px-8 [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]">{{ $slide['title'] }}</span>
+                    <span class="mx-auto block max-w-7xl px-4 text-sm font-medium text-yellow-300 sm:px-6 lg:px-8 text-on-photo">{{ $slide['title'] }}</span>
                 </figcaption>
             </figure>
         @endforeach
 
-        <div class="pointer-events-none absolute inset-0 bg-black/25"></div>
-        <div class="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent"></div>
+        <div class="pointer-events-none absolute inset-0 bg-black/45"></div>
+        <div class="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/75 via-black/40 to-black/10"></div>
 
         <button type="button" data-hero-prev aria-label="Previous slide" class="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white opacity-60 backdrop-blur transition hover:bg-yellow-500 hover:text-black focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-yellow-400 md:opacity-0 md:group-hover:opacity-100">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
@@ -42,7 +42,7 @@
 
     <!-- Overlay copy -->
     <div class="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-            <div class="text-center lg:text-left max-w-2xl lg:mx-0 [text-shadow:0_1px_2px_rgba(0,0,0,0.65),0_2px_10px_rgba(0,0,0,0.35)]">
+            <div class="text-center lg:text-left max-w-2xl lg:mx-0 text-on-photo">
             <div class="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-4 py-1.5 text-sm font-medium text-yellow-300 mb-6">
                 <span class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
                 Trusted by 50+ Businesses Across East Africa

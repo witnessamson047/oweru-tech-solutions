@@ -7,8 +7,8 @@
 {{-- Page Header --}}
 <section class="relative bg-black text-white py-16 overflow-hidden">
     <img src="{{ asset('images/services/header-consultation.jpg') }}" alt="Oweru team reviewing a client project together"
-        class="absolute inset-0 h-full w-full object-cover opacity-30" loading="eager" />
-    <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/70 to-black"></div>
+        class="absolute inset-0 h-full w-full object-cover opacity-25" loading="eager" />
+    <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/80 to-black"></div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
         <h1 class="text-3xl md:text-4xl font-bold mb-3">Services & Pricing</h1>
         <p class="text-gray-300 max-w-2xl mx-auto">Transparent pricing for every business size. Select the package that matches your needs.</p>
@@ -52,8 +52,8 @@
                 <div class="relative h-44 md:h-56 rounded-2xl overflow-hidden mb-6 shadow-lg">
                     <img src="{{ asset($lineImage['image']) }}" alt="{{ $lineImage['alt'] }}"
                         class="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.03]" loading="lazy" />
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-                    <div class="absolute bottom-4 left-5 right-5">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent"></div>
+                    <div class="absolute bottom-4 left-5 right-5 text-on-photo">
                         <h2 class="text-2xl font-bold text-white mb-1">{{ $line->name }}</h2>
                         <p class="text-gray-200 text-sm max-w-3xl">{{ $line->description }}</p>
                     </div>
@@ -129,8 +129,8 @@
             <div class="relative h-44 md:h-56 rounded-2xl overflow-hidden mb-6 shadow-lg">
                 <img src="{{ asset('images/hero/scanner-analytics.jpg') }}" alt="Analyst monitoring website performance charts on a laptop"
                     class="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.03]" loading="lazy" />
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-                <div class="absolute bottom-4 left-5 right-5">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent"></div>
+                <div class="absolute bottom-4 left-5 right-5 text-on-photo">
                     <h2 class="text-2xl font-bold text-white mb-1">Monthly Care Plans</h2>
                     <p class="text-gray-200 text-sm max-w-3xl">We keep your systems updated, secure and fast — so you never think about it.</p>
                 </div>

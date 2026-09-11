@@ -9,17 +9,21 @@ document.addEventListener('DOMContentLoaded', () => {
     initPipelineFilters();
     initEnquiryForm();
     initCurrencyToggle();
-    initHeroCarousel();
+    initCarousels();
 });
 
 /**
- * Hero image carousel (Tailwind, no library)
- * - Auto-advances every [data-interval] ms, pauses on hover and when off-screen
- * - Prev/next arrows, dot navigation, keyboard support
+ * Image carousels (Tailwind, no library). Any element with [data-carousel]
+ * becomes a carousel; [data-interval] sets the autoplay delay per instance.
+ * Auto-advance pauses on hover/focus and when off-screen.
  */
-function initHeroCarousel() {
-    const carousel = document.getElementById('hero-carousel');
-    if (!carousel) return;
+function initCarousels() {
+    document.querySelectorAll('[data-carousel]').forEach(initCarousel);
+}
+
+function initCarousel(carousel) {
+    if (carousel.dataset.carouselReady) return;
+    carousel.dataset.carouselReady = '1';
 
     const slides = [...carousel.querySelectorAll('[data-hero-slide]')];
     const dots = [...carousel.querySelectorAll('[data-hero-dot]')];

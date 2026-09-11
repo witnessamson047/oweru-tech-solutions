@@ -95,12 +95,51 @@
                 <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <span class="text-yellow-600 font-bold text-lg">3</span>
                 </div>
-                <h3 class="font-semibold text-gray-900 mb-1">Get Your Score</h3>
-                <p class="text-sm text-gray-500">Receive a score out of 100 with actionable findings and recommendations.</p>
+                <h3 class="font-semibold text-gray-900 mb-1">Get Your Score</h3>                <p class="text-sm text-gray-500">Receive a score out of 100 with actionable findings and recommendations.</p>
             </div>
         </div>
     </div>
 </section>
+
+{{-- Work Showcase Carousel --}}
+<section class="pb-4 pt-2 bg-gray-50">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div data-carousel data-interval="5000" aria-roledescription="carousel" aria-label="Examples of our work"
+            class="group relative overflow-hidden rounded-2xl border border-gray-200 shadow-xl">
+            <div class="relative aspect-[16/9]">
+                @foreach([
+                    ['src' => asset('images/hero/scanner-analytics.jpg'), 'alt' => 'Website performance report with charts on a laptop screen', 'caption' => 'Real diagnostics — a sample of the scorecard you will receive'],
+                    ['src' => asset('images/hero/developer-coding.jpg'), 'alt' => 'Oweru developer writing code on a laptop', 'caption' => 'Fixes implemented by our own developers, not outsourced'],
+                    ['src' => asset('images/services/mobile-web-development.jpg'), 'alt' => 'Responsive website shown on laptop and phone', 'caption' => 'We make sites work beautifully on every screen'],
+                    ['src' => asset('images/services/crm-solutions.jpg'), 'alt' => 'Sales analytics dashboard on a monitor', 'caption' => 'From findings to tools that grow your revenue'],
+                    ['src' => asset('images/hero/team-collaboration.jpg'), 'alt' => 'Oweru team collaborating around a table', 'caption' => 'A local team that explains everything in plain language'],
+                ] as $slide)
+                    <figure data-hero-slide class="absolute inset-0 opacity-0 transition-opacity duration-700 ease-in-out [&.is-active]:opacity-100 {{ $loop->first ? 'is-active' : '' }}" aria-hidden="{{ $loop->first ? 'false' : 'true' }}">
+                        <img src="{{ $slide['src'] }}" alt="{{ $slide['alt'] }}" class="h-full w-full object-cover" loading="lazy" />
+                        <figcaption class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent pt-10 pb-4 px-5">
+                            <span class="block text-sm font-semibold text-yellow-300 text-on-photo">{{ $slide['caption'] }}</span>
+                        </figcaption>
+                    </figure>
+                @endforeach
+
+                <button type="button" data-hero-prev aria-label="Previous slide" class="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white opacity-60 backdrop-blur transition hover:bg-yellow-500 hover:text-black focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-yellow-400 md:opacity-0 md:group-hover:opacity-100">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <button type="button" data-hero-next aria-label="Next slide" class="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white opacity-60 backdrop-blur transition hover:bg-yellow-500 hover:text-black focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-yellow-400 md:opacity-0 md:group-hover:opacity-100">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                </button>
+
+                <div class="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-2" role="tablist" aria-label="Choose slide">
+                    @foreach(range(1, 5) as $i)
+                        <button type="button" data-hero-dot role="tab" aria-label="Go to slide {{ $i }}" class="h-2 w-2 rounded-full bg-white/40 transition-all duration-300 hover:bg-white/70 [&.is-active]:w-5 [&.is-active]:bg-yellow-400"></button>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+        <p class="text-center text-xs text-gray-400 mt-3">A peek at the team and work behind every scan.</p>
+    </div>
+</section>
+
 
 {{-- What We Check --}}
 <section class="py-16 bg-gray-50">
