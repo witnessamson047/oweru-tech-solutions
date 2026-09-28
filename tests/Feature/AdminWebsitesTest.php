@@ -38,9 +38,10 @@ class AdminWebsitesTest extends TestCase
         ]);
 
         $response->assertRedirect(route('admin.websites.index'));
-        $this->assertDatabaseHas('websites', ['url' => $url, 'business_name' => 'Test Store Co']);
+        // Stored canonical form carries a trailing slash on bare roots
+        $this->assertDatabaseHas('websites', ['url' => $url . '/', 'business_name' => 'Test Store Co']);
 
-        Website::where('url', $url)->delete();
+        Website::where('url', $url . '/')->delete();
     }
 
     public function test_store_validates_url(): void
@@ -55,30 +56,39 @@ class AdminWebsitesTest extends TestCase
 
     public function test_edit_page_returns_200(): void
     {
-        $website = Website::firstOrFail();
+        // Create our own record instead of assuming seeded data exists
+        $website = Website::create([
+            'business_name' => 'Edit Fixture Co',
+            'url' => 'https://edit-fixture-' . uniqid() . '.example.com',
+            'sector' => 'Retail',
+        ]);
 
         $response = $this->get(route('admin.websites.edit', $website));
 
         $response->assertStatus(200);
         $response->assertSee('Edit Website');
         $response->assertSee($website->business_name);
+
+        $website->delete();
     }
 
     public function test_update_changes_website(): void
     {
-        $website = Website::firstOrFail();
-        $originalSector = $website->sector;
-        $originalUrl = $website->url;
+        $website = Website::create([
+            'business_name' => 'Update Fixture Co',
+            'url' => 'https://update-fixture-' . uniqid() . '.example.com',
+            'sector' => 'Retail',
+        ]);
 
         $response = $this->put(route('admin.websites.update', $website), [
             'business_name' => $website->business_name,
-            'url' => $originalUrl,
+            'url' => $website->url,
             'sector' => 'Testing Sector',
         ]);
 
         $response->assertRedirect(route('admin.websites.show', $website));
         $this->assertDatabaseHas('websites', ['id' => $website->id, 'sector' => 'Testing Sector']);
 
-        $website->refresh()->update(['sector' => $originalSector]);
+        $website->delete();
     }
 }

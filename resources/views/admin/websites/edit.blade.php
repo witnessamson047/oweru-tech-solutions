@@ -20,9 +20,9 @@
 
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Website URL *</label>
-            <input type="url" name="url" value="{{ old('url', $website->url) }}" required
+            <input type="text" name="url" inputmode="url" value="{{ old('url', $website->url) }}" required
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-            <p class="text-xs text-gray-400 mt-1">Include https:// — must remain unique.</p>
+            <p class="text-xs text-gray-400 mt-1">https:// is optional — the address must remain unique.</p>
             @error('url')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
         </div>
 

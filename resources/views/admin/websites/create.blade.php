@@ -20,8 +20,8 @@
 
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Website URL *</label>
-            <input type="url" name="url" value="{{ old('url') }}" required
-                placeholder="e.g. https://example.com"
+            <input type="text" name="url" inputmode="url" value="{{ old('url') }}" required
+                placeholder="e.g. abc.co.tz — https:// is optional"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
             <p class="text-xs text-gray-400 mt-1">Include https:// — must be a unique, valid URL.</p>
             @error('url')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror

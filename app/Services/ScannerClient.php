@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\PostScanJob;
 use App\Models\Scan;
 use App\Models\ScanResult;
 use App\Models\ScannerCheck;
@@ -25,12 +26,66 @@ class ScannerClient
     }
 
     /**
+     * Get the admin-configurable check configuration sent to the Python
+     * scanner with every scan request. Weights live in the scanner_checks
+     * table (editable at /admin/scanner-checks); disabled checks are omitted
+     * so the scanner never runs them.
+     *
+     * @return array<int, array{name: string, weight: int, enabled: bool}>
+     */
+    public static function checksPayload(): array
+    {
+        return ScannerCheck::query()
+            ->orderBy('id')
+            ->get(['name', 'weight', 'enabled'])
+            ->map(fn (ScannerCheck $check) => [
+                'check_name' => $check->name,
+                'weight' => (int) $check->weight,
+                'enabled' => (bool) $check->enabled,
+            ])
+        ->all();
+    }
+
+    /**
+     * Is the Python scanner engine reachable right now?
+     * Used as a fast pre-flight before a scan so staff get an actionable
+     * message ("start the engine") instead of a bare connection error.
+     */
+    public function engineOnline(): bool
+    {
+        try {
+            return Http::timeout(4)
+                ->withHeaders(['X-API-Key' => $this->apiKey, 'Accept' => 'application/json'])
+                ->get("{$this->baseUrl}/health")
+                ->successful();
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
      * Trigger a scan on the Python scanner service and persist the results.
      *
      * @return array{ok: bool, message: string, scan: Scan}
      */
     public function runScan(Scan $scan): array
     {
+        // Pre-flight: fail fast with a helpful hint when the engine is down.
+        // (Skipped under testing: keep tests hermetic — no real network calls.)
+        if (! app()->environment('testing') && ! $this->engineOnline()) {
+            $scan->update([
+                'status' => 'failed',
+                'error_message' => 'Scanner engine offline (no response from ' . $this->baseUrl . ')',
+                'completed_at' => now(),
+            ]);
+
+            return [
+                'ok' => false,
+                'message' => 'Scanner engine is OFFLINE — start it with start.bat (or C:\\python312\\python.exe scanner\\scanner.py), then run the scan again.',
+                'scan' => $scan,
+            ];
+        }
+
         $scan->update([
             'status' => 'running',
             'started_at' => now(),
@@ -47,6 +102,7 @@ class ScannerClient
                 ->post("{$this->baseUrl}/api/scanner/scan", [
                     'scan_id' => $scan->id,
                     'url' => $scan->url,
+                    'checks' => self::checksPayload(),
                 ]);
         } catch (\Throwable $e) {
             Log::warning('Scanner service unreachable', ['scan_id' => $scan->id, 'error' => $e->getMessage()]);
@@ -86,6 +142,9 @@ class ScannerClient
         foreach ($data['results'] ?? [] as $result) {
             $this->storeResult($scan, $result);
         }
+
+        // Dispatch post-scan automation (PDF generation, email, notifications)
+        PostScanJob::dispatch($scan);
 
         return ['ok' => true, 'message' => "Scan completed with score {$score}.", 'scan' => $scan];
     }

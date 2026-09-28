@@ -71,6 +71,43 @@
             <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{{ $enquiry->problem_description }}</p>
         </div>
 
+        {{-- Invoices --}}
+        <div class="card">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-gray-900">Invoices</h3>
+                <a href="{{ route('admin.invoices.create', ['enquiry' => $enquiry->id]) }}" class="text-xs font-medium text-yellow-600 hover:text-yellow-700">＋ New Invoice</a>
+            </div>
+            @if($enquiry->invoices->count())
+                <div class="space-y-3">
+                    @foreach($enquiry->invoices as $invoice)
+                        <div class="border border-gray-100 rounded-xl p-4">
+                            <div class="flex items-center justify-between gap-2">
+                                <a href="{{ route('admin.invoices.show', $invoice) }}" class="font-mono text-xs font-bold text-gray-900 hover:text-yellow-600">{{ $invoice->number }}</a>
+                                <span class="badge {{ $invoice->status === \App\Models\Invoice::STATUS_PAID ? 'badge-success' : ($invoice->status === \App\Models\Invoice::STATUS_PART_PAID ? 'badge-info' : 'badge-gray') }} text-[10px] uppercase">{{ $invoice->status_label }}</span>
+                            </div>
+                            <div class="mt-2 grid grid-cols-3 gap-2 text-xs">
+                                <div><span class="text-gray-500">Total:</span> <span class="font-semibold">TZS {{ number_format($invoice->total) }}</span></div>
+                                <div><span class="text-gray-500">Deposit ({{ $invoice->deposit_percent }}%):</span> <span class="font-semibold">TZS {{ number_format($invoice->deposit_due) }}</span></div>
+                                <div><span class="text-gray-500">Paid:</span> <span class="font-semibold text-green-600">TZS {{ number_format($invoice->amount_paid) }}</span></div>
+                            </div>
+                            <div class="mt-2 flex items-center gap-3 text-xs">
+                                <a href="{{ route('admin.invoices.pdf', $invoice) }}" class="text-gray-600 hover:text-gray-900">PDF</a>
+                                @if($invoice->receipt_path)
+                                    <a href="{{ route('admin.invoices.receipt', $invoice) }}" class="text-green-600 hover:text-green-700">Receipt</a>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="text-xs text-gray-400">
+                    No invoice yet. One is created automatically when the stage moves to <strong>proposal_sent</strong>
+                    ({{ config('owers.invoice.deposit_percent') }}% deposit required before work starts), or
+                    <a href="{{ route('admin.invoices.create', ['enquiry' => $enquiry->id]) }}" class="text-yellow-600 hover:text-yellow-700">create one now</a>.
+                </p>
+            @endif
+        </div>
+
         {{-- Notes --}}
         <div class="card">
             <h3 class="font-bold text-gray-900 mb-4">Internal Notes</h3>

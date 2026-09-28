@@ -19,14 +19,14 @@
                     <input type="email" name="email" id="email" value="{{ old('email') }}"
                         class="w-full px-4 py-2.5 border border-gray-600 rounded-lg text-white bg-gray-800 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
                         placeholder="admin@example.com" required>
-                    @error('email') <p class="text-black text-xs mt-1">{{ $message }}</p> @enderror
+                    @error('email') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label for="password" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
                     <input type="password" name="password" id="password"
                         class="w-full px-4 py-2.5 border border-gray-600 rounded-lg text-white bg-gray-800 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
                         placeholder="Enter your password" required>
-                    @error('password') <p class="text-black text-xs mt-1">{{ $message }}</p> @enderror
+                    @error('password') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <button type="submit" class="btn-accent w-full justify-center text-base py-3">
                     Sign In

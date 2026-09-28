@@ -34,6 +34,14 @@
         .finding-consequence { font-size: 9px; color: #b91c1c; font-style: italic; margin-top: 2px; }
         .finding-solution { font-size: 9px; color: #065f46; margin-top: 3px; font-weight: 600; }
 
+        .psi-box { background: #f0fdf4; padding: 8px 15px; border-radius: 6px; margin-bottom: 15px; }
+        .psi-box h4 { font-size: 10px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
+        .psi-score { font-size: 20px; font-weight: 800; }
+        .psi-metric { display: flex; justify-content: space-between; font-size: 9px; color: #555; border-bottom: 1px solid #dcfce7; padding: 1px 0; }
+        .ai-box { background: #eff6ff; padding: 8px 15px; box-sizing: border-box; border-radius: 6px; margin-bottom: 15px; }
+        .ai-box h4 { font-size: 10px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
+        .ai-summary { font-size: 9px; color: #555; }
+        .ai-actions { font-size: 9px; color: #555; margin-top: 4px; padding-left: 14px; }
         .scoring-explanation { background: #f0f9ff; padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; }
         .scoring-explanation h4 { font-size: 10px; font-weight: 700; color: #1a1a1a; margin-bottom: 5px; }
         .scoring-explanation p { font-size: 9px; color: #555; }
@@ -89,7 +97,7 @@
         {{-- Score --}}
         @php
             $score = $scan->score ?? 0;
-            $bandColor = $score < 40 ? '#dc2626' : ($score < 60 ? '#f59e0b' : ($score < 80 ? '#3b82f6' : '#10b981'));
+            $bandColor = $score < 40 ? '#dc2626' : ($score < 60 ? '#f59e0b' : ($score < 80 ? '#D4AF37' : '#10b981'));
             $bandBg = $score < 40 ? '#fef2f2' : ($score < 60 ? '#fffbeb' : ($score < 80 ? '#eff6ff' : '#ecfdf5'));
             $bandText = $score < 40 ? '#991b1b' : ($score < 60 ? '#92400e' : ($score < 80 ? '#1e40af' : '#065f46'));
         @endphp
@@ -131,6 +139,49 @@
                 </div>
             @endforeach
         </div>
+
+        {{-- Real-world performance (component 4: External API) --}}
+        @if(!empty($scan->pagespeed))
+            @php
+                $psi = $scan->pagespeed;
+                $psiScore = $psi['performance_score'] ?? null;
+                $psiBand = \App\Services\PageSpeedService::band(is_numeric($psiScore) ? (int) $psiScore : null);
+            @endphp
+            <div class="psi-box">
+                <h4>Real-World Mobile Performance (Google PageSpeed Insights)</h4>
+                <div style="display:flex; gap:20px; align-items:center;">
+                    <div style="text-align:center;">
+                        <div class="psi-score" style="color: {{ $psiBand === 'Good' ? '#065f46' : ($psiBand === 'Poor' ? '#991b1b' : '#92400e') }}">{{ $psiScore ?? '—' }}</div>
+                        <div style="font-size:8px; color:#666;">PSI score</div>
+                    </div>
+                    <div style="flex:1;">
+                        @foreach(['fcp_s' => 'First Contentful Paint', 'lcp_s' => 'Largest Contentful Paint', 'tbt_s' => 'Total Blocking Time', 'cls' => 'Layout Shift'] as $key => $label)
+                            @if(isset($psi['metrics'][$key]))
+                                <div class="psi-metric">
+                                    <span>{{ $label }}</span>
+                                    <span>{{ $psi['metrics'][$key] }}{{ $key !== 'cls' ? 's' : '' }}</span>
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- AI interpretation (component 5: AI API) --}}
+        @if(!empty($scan->ai_insight['summary']))
+            <div class="ai-box">
+                <h4>What This Means For Your Business</h4>
+                <p class="ai-summary">{{ $scan->ai_insight['summary'] }}</p>
+                @if(!empty($scan->ai_insight['next_actions']))
+                    <ul class="ai-actions">
+                        @foreach(array_slice($scan->ai_insight['next_actions'], 0, 4) as $action)
+                            <li>{{ $action }}</li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+        @endif
 
         {{-- Scoring Explanation --}}
         <div class="scoring-explanation">

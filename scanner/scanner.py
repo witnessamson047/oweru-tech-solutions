@@ -47,6 +47,52 @@ app = Flask(__name__)
 _rate_limit_cache: dict[str, float] = {}
 
 # ---------------------------------------------------------------------------
+# Default check weights (built-in fallback)
+# ---------------------------------------------------------------------------
+# The authoritative weights live in the Laravel "scanner_checks" table and are
+# admin-editable at /admin/scanner-checks. Laravel passes the enabled checks and
+# their weights with every /api/scanner/scan request. These built-in defaults are
+# only used in CLI mode (python scanner.py scan) or when a request omits checks.
+
+DEFAULT_WEIGHTS: dict[str, int] = {
+    # Security (20)
+    "SSL Certificate Valid": 10,
+    "SSL Certificate >30 Days to Expiry": 5,
+    "No Insecure Items on Secure Page": 5,
+    # Mobile (20)
+    "Responsive Layout": 8,
+    "Readable Body Text": 6,
+    "Tap-Friendly Buttons/Links": 6,
+    # Speed (15)
+    "Page Loads Within 3s on Mobile": 5,
+    "Total Page <2 MB": 5,
+    "Images Compressed/Sized": 5,
+    # Function (15)
+    "No Broken Links": 5,
+    "Contact/Enquiry Form Exists": 5,
+    "Phone/Email Are Tappable": 5,
+    # Findability (12)
+    "Unique Page Title": 3,
+    "Meta Description Present": 3,
+    "Appears for Business Name Search": 3,
+    "Google Business Profile Points to Site": 3,
+    # Trust (10)
+    "Registered Company Name": 3,
+    "Physical Address Listed": 3,
+    "Privacy Policy Page": 2,
+    "Terms of Service Page": 2,
+    # Commerce (5)
+    "Online Payment/Booking Path": 5,
+    # Freshness (3)
+    "Content Changed Within 12 Months": 2,
+    "Current Copyright Year": 1,
+}
+
+# Per-request weight/enable configuration is held on each WebsiteScanner
+# instance (see WebsiteScanner.__init__), not in module globals, so
+# concurrent scans can't leak configuration into each other.
+
+# ---------------------------------------------------------------------------
 # helpers
 # ---------------------------------------------------------------------------
 
@@ -237,9 +283,11 @@ class WebsiteScanner:
     Oweru Tech Solutions brief.
     """
 
-    def __init__(self, url: str, scan_id: Optional[int] = None):
+    def __init__(self, url: str, scan_id: Optional[int] = None,
+                 checks_config: Optional[list[dict[str, Any]]] = None):
         self.url = url if url.startswith(("http://", "https://")) else f"https://{url}"
         self.scan_id = scan_id
+        self.check_weights, self.check_enabled = self._resolve_checks(checks_config)
         self.session = requests.Session()
         self.session.headers.update({"User-Agent": USER_AGENT})
         self.robot_parser: Optional[urllib.robotparser.RobotFileParser] = None
@@ -250,6 +298,62 @@ class WebsiteScanner:
         self.pages_scanned: list[str] = []
         self.all_links: list[str] = []
         self.internal_links: list[str] = []
+
+    @staticmethod
+    def _resolve_checks(config: Optional[list[dict[str, Any]]]) -> tuple[dict[str, int], Optional[set]]:
+        """
+        Resolve per-check weights and the enabled set from a Laravel
+        scanner_checks payload: [{"check_name": ..., "weight": ..., "enabled": ...}, ...].
+
+        Returns (weights, enabled) where `enabled` is None when the payload is
+        absent (CLI mode / legacy callers) meaning every check runs with its
+        built-in default weight.
+        """
+        if not config:
+            return dict(DEFAULT_WEIGHTS), None
+
+        weights: dict[str, int] = {}
+        enabled: set[str] = set()
+        for entry in config:
+            name = str(entry.get("check_name") or "").strip()
+            if not name:
+                continue
+            weight = entry.get("weight")
+            weights[name] = int(weight) if weight is not None else DEFAULT_WEIGHTS.get(name, 1)
+            if entry.get("enabled", True):
+                enabled.add(name)
+        return weights, enabled
+
+    def _weight_for(self, check_name: str) -> int:
+        """Active weight for a check (>=1), from config or built-in defaults."""
+        return self.check_weights.get(check_name, DEFAULT_WEIGHTS.get(check_name, 1))
+
+    def _is_enabled(self, check_name: str) -> bool:
+        """Checks absent from the configured payload run enabled with default weight."""
+        if self.check_enabled is None or check_name not in self.check_weights:
+            return True
+        return check_name in self.check_enabled
+
+    def _result(self, check_name: str, area: str, passed: bool, *, evidence: str,
+                finding_text: str, consequence: Optional[str]) -> Optional[dict[str, Any]]:
+        """
+        Build one check result using the configured weight, or None when the
+        check is disabled via the scanner_checks configuration. Disabled checks
+        are omitted from results entirely so reports never show them as failures.
+        """
+        if not self._is_enabled(check_name):
+            return None
+        weight = self._weight_for(check_name)
+        return {
+            "check_name": check_name,
+            "area": area,
+            "weight": weight,
+            "passed": bool(passed),
+            "points": weight if passed else 0,
+            "evidence": evidence,
+            "finding_text": finding_text,
+            "consequence": consequence,
+        }
 
     # ------------------------------------------------------------------
     # Robots.txt
@@ -405,14 +509,17 @@ class WebsiteScanner:
 
     def _run_all_checks(self) -> list[dict[str, Any]]:
         results = []
-        results.extend(self._check_security())
-        results.extend(self._check_mobile())
-        results.extend(self._check_speed())
-        results.extend(self._check_function())
-        results.extend(self._check_findability())
-        results.extend(self._check_trust())
-        results.extend(self._check_commerce())
-        results.extend(self._check_freshness())
+        for group in (
+            self._check_security(),
+            self._check_mobile(),
+            self._check_speed(),
+            self._check_function(),
+            self._check_findability(),
+            self._check_trust(),
+            self._check_commerce(),
+            self._check_freshness(),
+        ):
+            results.extend(r for r in group if r is not None)
         return results
 
     # --- Security (20 points) ---
@@ -423,43 +530,37 @@ class WebsiteScanner:
         cert_valid = self._check_ssl_certificate()
         mixed_content = self._check_mixed_content()
 
-        # SSL Certificate Valid (10 pts)
-        results.append({
-            "check_name": "SSL Certificate Valid",
-            "area": "Security",
-            "weight": 10,
-            "passed": cert_valid,
-            "points": 10 if cert_valid else 0,
-            "evidence": f"HTTPS: {https}, Certificate valid: {cert_valid}",
-            "finding_text": "The website does not use HTTPS or has an invalid SSL certificate. Visitors see security warnings and may leave immediately." if not cert_valid else "The website uses HTTPS with a valid SSL certificate, ensuring secure communication.",
-            "consequence": "Visitors see security warnings and may leave immediately" if not cert_valid else None,
-        })
+        # SSL Certificate Valid
+        r = self._result(
+            "SSL Certificate Valid", "Security", cert_valid,
+            evidence=f"HTTPS: {https}, Certificate valid: {cert_valid}",
+            finding_text="The website does not use HTTPS or has an invalid SSL certificate. Visitors see security warnings and may leave immediately." if not cert_valid else "The website uses HTTPS with a valid SSL certificate, ensuring secure communication.",
+            consequence="Visitors see security warnings and may leave immediately" if not cert_valid else None,
+        )
+        if r:
+            results.append(r)
 
-        # SSL Certificate >30 Days to Expiry (5 pts)
+        # SSL Certificate >30 Days to Expiry
         cert_days = self._get_cert_days_to_expiry()
         cert_ok = cert_days > 30 if cert_days else False
-        results.append({
-            "check_name": "SSL Certificate >30 Days to Expiry",
-            "area": "Security",
-            "weight": 5,
-            "passed": cert_ok,
-            "points": 5 if cert_ok else 0,
-            "evidence": f"Days to expiry: {cert_days}" if cert_days else "Could not check certificate expiry",
-            "finding_text": f"The SSL certificate expires in {cert_days} days. An expiring certificate will cause security warnings for visitors." if (cert_days and cert_days <= 30) else "The SSL certificate has more than 30 days before expiry.",
-            "consequence": "Security warnings will appear when certificate expires" if (cert_days and cert_days <= 30) else None,
-        })
+        r = self._result(
+            "SSL Certificate >30 Days to Expiry", "Security", cert_ok,
+            evidence=f"Days to expiry: {cert_days}" if cert_days else "Could not check certificate expiry",
+            finding_text=f"The SSL certificate expires in {cert_days} days. An expiring certificate will cause security warnings for visitors." if (cert_days and cert_days <= 30) else "The SSL certificate has more than 30 days before expiry.",
+            consequence="Security warnings will appear when certificate expires" if (cert_days and cert_days <= 30) else None,
+        )
+        if r:
+            results.append(r)
 
-        # No Insecure Items on Secure Page (5 pts)
-        results.append({
-            "check_name": "No Insecure Items on Secure Page",
-            "area": "Security",
-            "weight": 5,
-            "passed": not mixed_content,
-            "points": 5 if not mixed_content else 0,
-            "evidence": f"Mixed content found: {mixed_content}" if mixed_content else "No mixed content detected",
-            "finding_text": "The secure page loads resources over HTTP, which can expose visitor data to interception." if mixed_content else "No insecure (HTTP) resources were found on the secure page.",
-            "consequence": "Visitor data may be exposed to interception" if mixed_content else None,
-        })
+        # No Insecure Items on Secure Page
+        r = self._result(
+            "No Insecure Items on Secure Page", "Security", not mixed_content,
+            evidence=f"Mixed content found: {mixed_content}" if mixed_content else "No mixed content detected",
+            finding_text="The secure page loads resources over HTTP, which can expose visitor data to interception." if mixed_content else "No insecure (HTTP) resources were found on the secure page.",
+            consequence="Visitor data may be exposed to interception" if mixed_content else None,
+        )
+        if r:
+            results.append(r)
 
         return results
 
@@ -515,44 +616,38 @@ class WebsiteScanner:
         results = []
         html = self.home_html
 
-        # Responsive Layout (8 pts)
+        # Responsive Layout
         responsive = self.checker.check_responsive(html) if self.checker else False
-        results.append({
-            "check_name": "Responsive Layout",
-            "area": "Mobile",
-            "weight": 8,
-            "passed": responsive,
-            "points": 8 if responsive else 0,
-            "evidence": "Viewport meta tag found" if responsive else "No viewport meta tag found",
-            "finding_text": "The page requires horizontal scrolling on mobile devices, making it difficult for visitors to view content." if not responsive else "The page uses a responsive layout that adapts to mobile screens without horizontal scrolling.",
-            "consequence": "Mobile visitors may struggle to use the site" if not responsive else None,
-        })
+        r = self._result(
+            "Responsive Layout", "Mobile", responsive,
+            evidence="Viewport meta tag found" if responsive else "No viewport meta tag found",
+            finding_text="The page requires horizontal scrolling on mobile devices, making it difficult for visitors to view content." if not responsive else "The page uses a responsive layout that adapts to mobile screens without horizontal scrolling.",
+            consequence="Mobile visitors may struggle to use the site" if not responsive else None,
+        )
+        if r:
+            results.append(r)
 
-        # Readable Body Text (6 pts)
+        # Readable Body Text
         readable = self.checker.check_minimum_font_size(html) if self.checker else True
-        results.append({
-            "check_name": "Readable Body Text",
-            "area": "Mobile",
-            "weight": 6,
-            "passed": readable,
-            "points": 6 if readable else 0,
-            "evidence": "Minimum font size ≥ 14px" if readable else "Body text smaller than 14px detected",
-            "finding_text": "Body text is too small to read comfortably on mobile devices without zooming." if not readable else "Body text is at least 14px, readable on mobile without zooming.",
-            "consequence": "Visitors may struggle to read content on mobile" if not readable else None,
-        })
+        r = self._result(
+            "Readable Body Text", "Mobile", readable,
+            evidence="Minimum font size ≥ 14px" if readable else "Body text smaller than 14px detected",
+            finding_text="Body text is too small to read comfortably on mobile devices without zooming." if not readable else "Body text is at least 14px, readable on mobile without zooming.",
+            consequence="Visitors may struggle to read content on mobile" if not readable else None,
+        )
+        if r:
+            results.append(r)
 
-        # Tap-Friendly Buttons/Links (6 pts)
+        # Tap-Friendly Buttons/Links
         tap_friendly = self.checker.check_tap_targets(html) if self.checker else True
-        results.append({
-            "check_name": "Tap-Friendly Buttons/Links",
-            "area": "Mobile",
-            "weight": 6,
-            "passed": tap_friendly,
-            "points": 6 if tap_friendly else 0,
-            "evidence": "Touch targets ≥ 44px" if tap_friendly else "Touch targets smaller than 44px detected",
-            "finding_text": "Buttons and links are too small to tap easily on mobile, causing frustration for visitors." if not tap_friendly else "Interactive elements are large enough (44px+) for easy tapping on mobile.",
-            "consequence": "Mobile visitors may have difficulty interacting with the site" if not tap_friendly else None,
-        })
+        r = self._result(
+            "Tap-Friendly Buttons/Links", "Mobile", tap_friendly,
+            evidence="Touch targets ≥ 44px" if tap_friendly else "Touch targets smaller than 44px detected",
+            finding_text="Buttons and links are too small to tap easily on mobile, causing frustration for visitors." if not tap_friendly else "Interactive elements are large enough (44px+) for easy tapping on mobile.",
+            consequence="Mobile visitors may have difficulty interacting with the site" if not tap_friendly else None,
+        )
+        if r:
+            results.append(r)
 
         return results
 
@@ -561,46 +656,40 @@ class WebsiteScanner:
     def _check_speed(self) -> list[dict[str, Any]]:
         results = []
 
-        # Page Loads Within 3s on Mobile (5 pts)
+        # Page Loads Within 3s on Mobile
         load_time = self._measure_load_time()
         load_ok = load_time <= 3.0
-        results.append({
-            "check_name": "Page Loads Within 3s on Mobile",
-            "area": "Speed",
-            "weight": 5,
-            "passed": load_ok,
-            "points": 5 if load_ok else 0,
-            "evidence": f"Page load time: {load_time:.2f}s",
-            "finding_text": f"The page takes {load_time:.1f} seconds to become usable on mobile, which is slower than the 3-second threshold." if not load_ok else f"The page loads in {load_time:.1f} seconds, within the 3-second target.",
-            "consequence": "Visitors may leave before the page becomes usable" if not load_ok else None,
-        })
+        r = self._result(
+            "Page Loads Within 3s on Mobile", "Speed", load_ok,
+            evidence=f"Page load time: {load_time:.2f}s",
+            finding_text=f"The page takes {load_time:.1f} seconds to become usable on mobile, which is slower than the 3-second threshold." if not load_ok else f"The page loads in {load_time:.1f} seconds, within the 3-second target.",
+            consequence="Visitors may leave before the page becomes usable" if not load_ok else None,
+        )
+        if r:
+            results.append(r)
 
-        # Total Page <2 MB (5 pts)
+        # Total Page <2 MB
         page_size = len(self.home_content) if self.home_content else 0
         page_size_ok = page_size < 2 * 1024 * 1024
-        results.append({
-            "check_name": "Total Page <2 MB",
-            "area": "Speed",
-            "weight": 5,
-            "passed": page_size_ok,
-            "points": 5 if page_size_ok else 0,
-            "evidence": f"Page size: {page_size / 1024 / 1024:.2f} MB ({page_size} bytes)",
-            "finding_text": f"The page weighs {page_size / 1024 / 1024:.1f} MB, which is over the 2 MB limit and slows loading on mobile networks." if not page_size_ok else f"The page is {page_size / 1024 / 1024:.2f} MB, well under the 2 MB limit.",
-            "consequence": "Slow loading on mobile networks, higher bounce rates" if not page_size_ok else None,
-        })
+        r = self._result(
+            "Total Page <2 MB", "Speed", page_size_ok,
+            evidence=f"Page size: {page_size / 1024 / 1024:.2f} MB ({page_size} bytes)",
+            finding_text=f"The page weighs {page_size / 1024 / 1024:.1f} MB, which is over the 2 MB limit and slows loading on mobile networks." if not page_size_ok else f"The page is {page_size / 1024 / 1024:.2f} MB, well under the 2 MB limit.",
+            consequence="Slow loading on mobile networks, higher bounce rates" if not page_size_ok else None,
+        )
+        if r:
+            results.append(r)
 
-        # Images Compressed/Sized (5 pts)
+        # Images Compressed/Sized
         images_ok = self._check_images()
-        results.append({
-            "check_name": "Images Compressed/Sized",
-            "area": "Speed",
-            "weight": 5,
-            "passed": images_ok,
-            "points": 5 if images_ok else 0,
-            "evidence": self._get_image_evidence(),
-            "finding_text": "Images are not optimized - oversized images slow down page loading significantly." if not images_ok else "Images appear to be reasonably sized and optimized for web.",
-            "consequence": "Slow page loading due to large images" if not images_ok else None,
-        })
+        r = self._result(
+            "Images Compressed/Sized", "Speed", images_ok,
+            evidence=self._get_image_evidence(),
+            finding_text="Images are not optimized - oversized images slow down page loading significantly." if not images_ok else "Images appear to be reasonably sized and optimized for web.",
+            consequence="Slow page loading due to large images" if not images_ok else None,
+        )
+        if r:
+            results.append(r)
 
         return results
 
@@ -651,44 +740,38 @@ class WebsiteScanner:
         results = []
         html = self.home_html
 
-        # No Broken Links (5 pts)
+        # No Broken Links
         broken = self._check_broken_links()
-        results.append({
-            "check_name": "No Broken Links",
-            "area": "Function",
-            "weight": 5,
-            "passed": len(broken) == 0,
-            "points": 5 if len(broken) == 0 else 0,
-            "evidence": f"Broken links found: {broken}" if broken else "All links resolve successfully",
-            "finding_text": f"Some links on the page return errors ({len(broken)} broken links found), leading visitors to dead pages." if broken else "All tested links on the page resolve successfully.",
-            "consequence": "Visitors may reach dead pages and lose confidence" if broken else None,
-        })
+        r = self._result(
+            "No Broken Links", "Function", len(broken) == 0,
+            evidence=f"Broken links found: {broken}" if broken else "All links resolve successfully",
+            finding_text=f"Some links on the page return errors ({len(broken)} broken links found), leading visitors to dead pages." if broken else "All tested links on the page resolve successfully.",
+            consequence="Visitors may reach dead pages and lose confidence" if broken else None,
+        )
+        if r:
+            results.append(r)
 
-        # Contact/Enquiry Form Exists (5 pts)
+        # Contact/Enquiry Form Exists
         has_form = self.checker.has_contact_form() if self.checker else False
-        results.append({
-            "check_name": "Contact/Enquiry Form Exists",
-            "area": "Function",
-            "weight": 5,
-            "passed": has_form,
-            "points": 5 if has_form else 0,
-            "evidence": "Contact form detected" if has_form else "No contact form found",
-            "finding_text": "No contact or enquiry form was found on the website. Potential customers may struggle to get in touch." if not has_form else "A contact or enquiry form is present and accessible.",
-            "consequence": "Potential customers may struggle to enquire" if not has_form else None,
-        })
+        r = self._result(
+            "Contact/Enquiry Form Exists", "Function", has_form,
+            evidence="Contact form detected" if has_form else "No contact form found",
+            finding_text="No contact or enquiry form was found on the website. Potential customers may struggle to get in touch." if not has_form else "A contact or enquiry form is present and accessible.",
+            consequence="Potential customers may struggle to enquire" if not has_form else None,
+        )
+        if r:
+            results.append(r)
 
-        # Phone/Email Are Tappable (5 pts)
+        # Phone/Email Are Tappable
         tappable = self._check_tappable_contact()
-        results.append({
-            "check_name": "Phone/Email Are Tappable",
-            "area": "Function",
-            "weight": 5,
-            "passed": tappable,
-            "points": 5 if tappable else 0,
-            "evidence": "Clickable phone/email links found" if tappable else "Phone/email not in clickable format",
-            "finding_text": "Phone numbers and email addresses are not clickable, forcing visitors to manually copy them." if not tappable else "Phone numbers and email addresses are clickable links for easy contact.",
-            "consequence": "Visitors may find it harder to contact the business" if not tappable else None,
-        })
+        r = self._result(
+            "Phone/Email Are Tappable", "Function", tappable,
+            evidence="Clickable phone/email links found" if tappable else "Phone/email not in clickable format",
+            finding_text="Phone numbers and email addresses are not clickable, forcing visitors to manually copy them." if not tappable else "Phone numbers and email addresses are clickable links for easy contact.",
+            consequence="Visitors may find it harder to contact the business" if not tappable else None,
+        )
+        if r:
+            results.append(r)
 
         return results
 
@@ -730,60 +813,52 @@ class WebsiteScanner:
     def _check_findability(self) -> list[dict[str, Any]]:
         results = []
 
-        # Unique Page Title (3 pts)
+        # Unique Page Title
         title = self.checker.title if self.checker else ""
         has_title = bool(title and len(title) > 5)
-        results.append({
-            "check_name": "Unique Page Title",
-            "area": "Findability",
-            "weight": 3,
-            "passed": has_title,
-            "points": 3 if has_title else 0,
-            "evidence": f"Title: '{title[:80]}'" if title else "No title tag found",
-            "finding_text": "The page is missing a descriptive title tag, making it hard for search engines and visitors to understand the page." if not has_title else f"The page has a descriptive title: '{title[:60]}...'",
-            "consequence": "Poor search visibility and unclear page purpose" if not has_title else None,
-        })
+        r = self._result(
+            "Unique Page Title", "Findability", has_title,
+            evidence=f"Title: '{title[:80]}'" if title else "No title tag found",
+            finding_text="The page is missing a descriptive title tag, making it hard for search engines and visitors to understand the page." if not has_title else f"The page has a descriptive title: '{title[:60]}...'",
+            consequence="Poor search visibility and unclear page purpose" if not has_title else None,
+        )
+        if r:
+            results.append(r)
 
-        # Meta Description Present (3 pts)
+        # Meta Description Present
         desc = self.checker.description if self.checker else ""
         has_desc = bool(desc and len(desc) > 20)
-        results.append({
-            "check_name": "Meta Description Present",
-            "area": "Findability",
-            "weight": 3,
-            "passed": has_desc,
-            "points": 3 if has_desc else 0,
-            "evidence": f"Description: '{desc[:80]}'" if desc else "No meta description found",
-            "finding_text": "The page is missing a meta description, which means search engines may show unfavourable snippets." if not has_desc else "A meta description is present to improve search result snippets.",
-            "consequence": "Search engines may show poor snippets" if not has_desc else None,
-        })
+        r = self._result(
+            "Meta Description Present", "Findability", has_desc,
+            evidence=f"Description: '{desc[:80]}'" if desc else "No meta description found",
+            finding_text="The page is missing a meta description, which means search engines may show unfavourable snippets." if not has_desc else "A meta description is present to improve search result snippets.",
+            consequence="Search engines may show poor snippets" if not has_desc else None,
+        )
+        if r:
+            results.append(r)
 
-        # Appears for Business Name Search (3 pts) - Simplified check
+        # Appears for Business Name Search
         business_name = self._extract_business_name()
         appears_in_search = self._check_search_presence(business_name)
-        results.append({
-            "check_name": "Appears for Business Name Search",
-            "area": "Findability",
-            "weight": 3,
-            "passed": appears_in_search,
-            "points": 3 if appears_in_search else 0,
-            "evidence": f"Business name '{business_name}' found on page" if appears_in_search else f"Business name '{business_name}' not prominently found",
-            "finding_text": f"The website does not prominently feature the business name '{business_name}', which may hurt search visibility for branded searches." if not appears_in_search else f"The business name '{business_name}' is prominently displayed on the page.",
-            "consequence": "May not appear in searches for the business name" if not appears_in_search else None,
-        })
+        r = self._result(
+            "Appears for Business Name Search", "Findability", appears_in_search,
+            evidence=f"Business name '{business_name}' found on page" if appears_in_search else f"Business name '{business_name}' not prominently found",
+            finding_text=f"The website does not prominently feature the business name '{business_name}', which may hurt search visibility for branded searches." if not appears_in_search else f"The business name '{business_name}' is prominently displayed on the page.",
+            consequence="May not appear in searches for the business name" if not appears_in_search else None,
+        )
+        if r:
+            results.append(r)
 
-        # Google Business Profile Points to Site (3 pts) - Simplified check
+        # Google Business Profile Points to Site
         gbp_linked = self._check_gbp_link()
-        results.append({
-            "check_name": "Google Business Profile Points to Site",
-            "area": "Findability",
-            "weight": 3,
-            "passed": gbp_linked,
-            "points": 3 if gbp_linked else 0,
-            "evidence": "Google Business Profile link detected" if gbp_linked else "No Google Business Profile link found",
-            "finding_text": "No link to a Google Business Profile was found. Adding one improves local search visibility." if not gbp_linked else "A Google Business Profile link is present.",
-            "consequence": "Missed local search visibility opportunities" if not gbp_linked else None,
-        })
+        r = self._result(
+            "Google Business Profile Points to Site", "Findability", gbp_linked,
+            evidence="Google Business Profile link detected" if gbp_linked else "No Google Business Profile link found",
+            finding_text="No link to a Google Business Profile was found. Adding one improves local search visibility." if not gbp_linked else "A Google Business Profile link is present.",
+            consequence="Missed local search visibility opportunities" if not gbp_linked else None,
+        )
+        if r:
+            results.append(r)
 
         return results
 
@@ -826,105 +901,91 @@ class WebsiteScanner:
     def _check_trust(self) -> list[dict[str, Any]]:
         results = []
 
-        # Registered Company Name (3 pts)
+        # Registered Company Name
         has_company = self.checker.has_company_name() if self.checker else False
-        results.append({
-            "check_name": "Registered Company Name",
-            "area": "Trust",
-            "weight": 3,
-            "passed": has_company,
-            "points": 3 if has_company else 0,
-            "evidence": "Company name indicator found" if has_company else "No company name indicator found",
-            "finding_text": "The website does not display a registered company name, which may reduce visitor trust." if not has_company else "A registered company name is visible on the site.",
-            "consequence": "Reduced trust from visitors" if not has_company else None,
-        })
+        r = self._result(
+            "Registered Company Name", "Trust", has_company,
+            evidence="Company name indicator found" if has_company else "No company name indicator found",
+            finding_text="The website does not display a registered company name, which may reduce visitor trust." if not has_company else "A registered company name is visible on the site.",
+            consequence="Reduced trust from visitors" if not has_company else None,
+        )
+        if r:
+            results.append(r)
 
-        # Physical Address Listed (3 pts)
+        # Physical Address Listed
         has_address = self.checker.has_physical_address() if self.checker else False
-        results.append({
-            "check_name": "Physical Address Listed",
-            "area": "Trust",
-            "weight": 3,
-            "passed": has_address,
-            "points": 3 if has_address else 0,
-            "evidence": "Physical address found" if has_address else "No physical address found",
-            "finding_text": "No physical business address is listed on the website, which may make visitors question the business's legitimacy." if not has_address else "A physical business address is provided.",
-            "consequence": "Visitors may question business legitimacy" if not has_address else None,
-        })
+        r = self._result(
+            "Physical Address Listed", "Trust", has_address,
+            evidence="Physical address found" if has_address else "No physical address found",
+            finding_text="No physical business address is listed on the website, which may make visitors question the business's legitimacy." if not has_address else "A physical business address is provided.",
+            consequence="Visitors may question business legitimacy" if not has_address else None,
+        )
+        if r:
+            results.append(r)
 
-        # Privacy Policy Page (2 pts)
+        # Privacy Policy Page
         has_privacy = self.checker.has_privacy_policy() if self.checker else False
-        results.append({
-            "check_name": "Privacy Policy Page",
-            "area": "Trust",
-            "weight": 2,
-            "passed": has_privacy,
-            "points": 2 if has_privacy else 0,
-            "evidence": "Privacy policy page found" if has_privacy else "No privacy policy page found",
-            "finding_text": "No privacy policy page exists. This may raise compliance concerns and reduce visitor trust." if not has_privacy else "A privacy policy page is accessible on the site.",
-            "consequence": "Reduced trust and possible compliance concerns" if not has_privacy else None,
-        })
+        r = self._result(
+            "Privacy Policy Page", "Trust", has_privacy,
+            evidence="Privacy policy page found" if has_privacy else "No privacy policy page found",
+            finding_text="No privacy policy page exists. This may raise compliance concerns and reduce visitor trust." if not has_privacy else "A privacy policy page is accessible on the site.",
+            consequence="Reduced trust and possible compliance concerns" if not has_privacy else None,
+        )
+        if r:
+            results.append(r)
 
-        # Terms of Service Page (2 pts)
+        # Terms of Service Page
         has_terms = self.checker.has_terms_of_service() if self.checker else False
-        results.append({
-            "check_name": "Terms of Service Page",
-            "area": "Trust",
-            "weight": 2,
-            "passed": has_terms,
-            "points": 2 if has_terms else 0,
-            "evidence": "Terms of service page found" if has_terms else "No terms of service page found",
-            "finding_text": "No terms of service page exists. This may create legal ambiguity for the business." if not has_terms else "A terms of service page is accessible on the site.",
-            "consequence": "Legal ambiguity and reduced professional credibility" if not has_terms else None,
-        })
+        r = self._result(
+            "Terms of Service Page", "Trust", has_terms,
+            evidence="Terms of service page found" if has_terms else "No terms of service page found",
+            finding_text="No terms of service page exists. This may create legal ambiguity for the business." if not has_terms else "A terms of service page is accessible on the site.",
+            consequence="Legal ambiguity and reduced professional credibility" if not has_terms else None,
+        )
+        if r:
+            results.append(r)
 
         return results
 
     # --- Commerce (5 points) ---
 
-    def _check_commerce(self) -> list[dict[str, Any]]:
+    def _check_commerce(self) -> list[Optional[dict[str, Any]]]:
         has_payment = self.checker.has_payment_path() if self.checker else False
-        return [{
-            "check_name": "Online Payment/Booking Path",
-            "area": "Commerce",
-            "weight": 5,
-            "passed": has_payment,
-            "points": 5 if has_payment else 0,
-            "evidence": "Payment/booking path detected" if has_payment else "No payment or booking path found",
-            "finding_text": "No online payment or booking functionality was detected. Customers may have no direct way to make purchases digitally." if not has_payment else "An online payment or booking path exists for customer transactions.",
-            "consequence": "Customers may have no direct digital conversion route" if not has_payment else None,
-        }]
+        return [
+            self._result(
+                "Online Payment/Booking Path", "Commerce", has_payment,
+                evidence="Payment/booking path detected" if has_payment else "No payment or booking path found",
+                finding_text="No online payment or booking functionality was detected. Customers may have no direct way to make purchases digitally." if not has_payment else "An online payment or booking path exists for customer transactions.",
+                consequence="Customers may have no direct digital conversion route" if not has_payment else None,
+            )
+        ]
 
     # --- Freshness (3 points) ---
 
     def _check_freshness(self) -> list[dict[str, Any]]:
         results = []
 
-        # Content Changed Within 12 Months (2 pts)
+        # Content Changed Within 12 Months
         freshness_ok = self._check_content_freshness()
-        results.append({
-            "check_name": "Content Changed Within 12 Months",
-            "area": "Freshness",
-            "weight": 2,
-            "passed": freshness_ok,
-            "points": 2 if freshness_ok else 0,
-            "evidence": "Content appears recently updated" if freshness_ok else "Content may be outdated",
-            "finding_text": "Website content appears to be outdated and may not reflect the current state of the business." if not freshness_ok else "Website content appears to be regularly updated.",
-            "consequence": "Visitors may see outdated information" if not freshness_ok else None,
-        })
+        r = self._result(
+            "Content Changed Within 12 Months", "Freshness", freshness_ok,
+            evidence="Content appears recently updated" if freshness_ok else "Content may be outdated",
+            finding_text="Website content appears to be outdated and may not reflect the current state of the business." if not freshness_ok else "Website content appears to be regularly updated.",
+            consequence="Visitors may see outdated information" if not freshness_ok else None,
+        )
+        if r:
+            results.append(r)
 
-        # Current Copyright Year (1 pt)
+        # Current Copyright Year
         copyright_ok = self._check_copyright_year()
-        results.append({
-            "check_name": "Current Copyright Year",
-            "area": "Freshness",
-            "weight": 1,
-            "passed": copyright_ok,
-            "points": 1 if copyright_ok else 0,
-            "evidence": f"Copyright year: current" if copyright_ok else "Copyright year may be outdated",
-            "finding_text": "The copyright year in the footer is outdated, suggesting the website is not being maintained." if not copyright_ok else "The footer shows the current copyright year.",
-            "consequence": "May suggest the website is not actively maintained" if not copyright_ok else None,
-        })
+        r = self._result(
+            "Current Copyright Year", "Freshness", copyright_ok,
+            evidence="Copyright year: current" if copyright_ok else "Copyright year may be outdated",
+            finding_text="The copyright year in the footer is outdated, suggesting the website is not being maintained." if not copyright_ok else "The footer shows the current copyright year.",
+            consequence="May suggest the website is not actively maintained" if not copyright_ok else None,
+        )
+        if r:
+            results.append(r)
 
         return results
 
@@ -975,6 +1036,10 @@ def api_scan():
     url = data.get("url", "").strip()
     scan_id = data.get("scan_id")
 
+    # Admin-configurable checks from the Laravel scanner_checks table:
+    # [{"check_name": ..., "weight": ..., "enabled": ...}, ...]
+    checks_config = data.get("checks") or []
+
     if not url:
         return jsonify({"success": False, "message": "URL is required"}), 422
 
@@ -999,7 +1064,11 @@ def api_scan():
         return jsonify({"success": False, "message": "Unauthorized"}), 401
 
     try:
-        scanner = WebsiteScanner(url, scan_id=int(scan_id) if scan_id else None)
+        scanner = WebsiteScanner(
+            url,
+            scan_id=int(scan_id) if scan_id else None,
+            checks_config=checks_config,
+        )
         result = scanner.scan()
 
         if not result["success"]:
@@ -1018,6 +1087,7 @@ def api_scan():
                 {
                     "check_name": r["check_name"],
                     "area": r["area"],
+                    "weight": r["weight"],
                     "passed": r["passed"],
                     "points": r["points"],
                     "evidence": r["evidence"],
@@ -1066,6 +1136,31 @@ def api_callback():
         "success": True,
         "message": f"Callback received for scan {scan_id}",
     })
+
+
+# ---------------------------------------------------------------------------
+# Scraper V1 — business information scraping (Laravel calls this endpoint)
+# ---------------------------------------------------------------------------
+
+from business_scraper import scrape_url  # noqa: E402  (same directory)
+
+
+@app.route("/api/scraper/scrape", methods=["POST"])
+def api_scraper_scrape():
+    """Scrape public business info from one website. Called by Laravel."""
+    data = request.get_json() or {}
+    url = (data.get("url") or "").strip()
+
+    if not url:
+        return jsonify({"success": False, "message": "URL is required"}), 422
+
+    # Check API key if configured (same scheme as the scanner endpoints)
+    api_key = os.environ.get("SCANNER_API_KEY", "")
+    if api_key and request.headers.get("X-API-Key") != api_key:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+
+    result = scrape_url(url)
+    return jsonify(result), (200 if result.get("success") else 422)
 
 
 @app.route("/health", methods=["GET"])
@@ -1155,4 +1250,6 @@ if __name__ == "__main__":
         port = int(os.environ.get("SCANNER_PORT", 5000))
         debug = os.environ.get("SCANNER_DEBUG", "false").lower() == "true"
         print(f"Starting {APP_NAME} on port {port}...")
-        app.run(host="0.0.0.0", port=port, debug=debug)
+        # threaded=True: scrapes/scans take up to ~2 min each, and Laravel's
+        # scheduler + admin both hit this service — requests must not queue.
+        app.run(host="0.0.0.0", port=port, debug=debug, threaded=True)

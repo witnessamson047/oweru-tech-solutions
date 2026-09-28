@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Website;
+use App\Support\UrlInput;
 use Illuminate\Http\Request;
 
 class WebsiteController extends Controller
@@ -41,14 +42,35 @@ class WebsiteController extends Controller
     {
         $validated = $request->validate([
             'business_name' => 'required|string|max:255',
-            'url' => 'required|url|unique:websites,url',
+            'url' => 'required|string|max:2048',
             'sector' => 'nullable|string|max:255',
         ]);
 
-        $validated['status'] = 'active';
-        $validated['exclusion_status'] = 'active';
+        // Forgiving input: "abc.co.tz" works just like "https://abc.co.tz"
+        $url = UrlInput::normalize($validated['url']);
 
-        Website::create($validated);
+        if (! $url) {
+            return redirect()
+                ->route('admin.websites.create')
+                ->with('error', UrlInput::friendlyError())
+                ->withErrors(['url' => UrlInput::friendlyError()])
+                ->withInput();
+        }
+
+        if (Website::where('url', $url)->exists()) {
+            return redirect()
+                ->route('admin.websites.create')
+                ->with('error', 'A website with this address already exists.')
+                ->withInput();
+        }
+
+        Website::create([
+            'business_name' => $validated['business_name'],
+            'url' => $url,
+            'sector' => $validated['sector'] ?? null,
+            'status' => 'active',
+            'exclusion_status' => 'active',
+        ]);
 
         return redirect()->route('admin.websites.index')->with('success', 'Website added successfully.');
     }
@@ -71,11 +93,33 @@ class WebsiteController extends Controller
     {
         $validated = $request->validate([
             'business_name' => 'required|string|max:255',
-            'url' => 'required|url|unique:websites,url,' . $website->id,
+            'url' => 'required|string|max:2048',
             'sector' => 'nullable|string|max:255',
         ]);
 
-        $website->update($validated);
+        // Forgiving input: "abc.co.tz" works just like "https://abc.co.tz"
+        $url = UrlInput::normalize($validated['url']);
+
+        if (! $url) {
+            return redirect()
+                ->route('admin.websites.edit', $website)
+                ->with('error', UrlInput::friendlyError())
+                ->withErrors(['url' => UrlInput::friendlyError()])
+                ->withInput();
+        }
+
+        if (Website::where('url', $url)->where('id', '!=', $website->id)->exists()) {
+            return redirect()
+                ->route('admin.websites.edit', $website)
+                ->with('error', 'A website with this address already exists.')
+                ->withInput();
+        }
+
+        $website->update([
+            'business_name' => $validated['business_name'],
+            'url' => $url,
+            'sector' => $validated['sector'] ?? null,
+        ]);
 
         return redirect()->route('admin.websites.show', $website)->with('success', 'Website updated successfully.');
     }

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Enquiry;
+use App\Models\Invoice;
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
@@ -103,6 +104,74 @@ class NotificationService
         }
 
         return $count;
+    }
+
+    /**
+     * Alert staff that a customer's invoice deposit is overdue and needs a
+     * phone follow-up. Fired alongside the customer reminder email so the
+     * team knows when to call. Records one notification per recipient.
+     */
+    public function overdueDeposit(Invoice $invoice): void
+    {
+        $enquiry = $invoice->enquiry;
+
+        $subject = "Overdue deposit: {$enquiry->business_name} — "
+            . config('owers.company.tagline', 'Oweru') . " invoice {$invoice->number} ("
+            . $invoice->days_overdue . " days) — call " . ($enquiry->phone ?: 'customer') ;
+
+        $message = sprintf(
+            "The deposit for invoice %s (%s) is %d day(s) overdue.\n\n" .
+            "Customer: %s (%s)\nPhone: %s\nEmail: %s\n\n" .
+            "Outstanding deposit: TZS %s of TZS %s total (%d%% due before work starts)\n" .
+            "Reminders emailed to customer so far: %d\n\n" .
+            "Action: give %s a call to confirm payment intent and unblock the project start.",
+            $invoice->number,
+            $invoice->title,
+            $invoice->days_overdue,
+            $enquiry->name,
+            $enquiry->business_name ?: '-',
+            $enquiry->phone ?: '—',
+            $enquiry->email,
+            number_format((float) $invoice->next_payment_amount),
+            number_format((float) $invoice->total),
+            $invoice->deposit_percent,
+            $invoice->reminders_sent,
+            $enquiry->name,
+        );
+
+        foreach ($this->recipients($enquiry) as $email) {
+            $this->dispatchNotification(
+                enquiryId: $enquiry->id,
+                type: 'overdue_deposit',
+                recipientEmail: $email,
+                subject: $subject,
+                message: $message,
+            );
+        }
+    }
+
+    /**
+     * Internal staff alert not tied to a specific enquiry (e.g. scraper
+     * watchdog events: site down, rating drop, new review).
+     */
+    public function alertStaff(string $subject, string $message, $subjectModel = null): void
+    {
+        $admins = User::where('role', 'admin')->pluck('email')->all();
+
+        // Fallback so alerts are never silently dropped
+        if (empty($admins)) {
+            $admins = [config('mail.from.address', 'info@oweru.co.tz')];
+        }
+
+        foreach ($admins as $email) {
+            $this->dispatchNotification(
+                enquiryId: $subjectModel?->enquiry_id ?? null,
+                type: 'watchdog_alert',
+                recipientEmail: $email,
+                subject: $subject,
+                message: $message,
+            );
+        }
     }
 
     /**

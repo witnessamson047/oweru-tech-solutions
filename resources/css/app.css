@@ -3,6 +3,8 @@
 /* ============================================
    OWERU TECH SOLUTIONS - Global Styles
    Black, Gold & White Color Scheme
+   Palette single source of truth: the :root block
+   below — component rules only reference these vars.
    ============================================ */
 
 :root {
@@ -17,7 +19,7 @@
     --gray-light: #e5e5e5;
 }
 
-/* Base */
+/* Body defaults */
 body {
     font-family: 'Inter', 'system-ui', -apple-system, sans-serif;
     color: var(--black);
@@ -85,6 +87,27 @@ h1, h2, h3, h4, h5, h6 {
 .btn-outline:hover {
     background-color: var(--gold);
     color: var(--black);
+}
+
+/* Outline button for use on dark/photo backgrounds (gold text is unreadable there) */
+.btn-outline-light {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--white);
+    padding: 0.625rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.btn-outline-light:hover {
+    background-color: var(--white);
+    color: var(--black);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
 .btn-danger {
@@ -163,8 +186,9 @@ h1, h2, h3, h4, h5, h6 {
     width: 100%;
     transition: border-color 0.2s;
     outline: none;
-    background: var(--white);
-    color: var(--black);      /* visible on the dark hero section */
+    background: var(--white);  /* the hero behind it is dark, so the
+                                  input carries its own white surface */
+    color: var(--black);       /* readable on that white surface */
     caret-color: var(--black); /* visible text cursor while typing */
 }
 .scanner-input:focus {
@@ -255,24 +279,6 @@ h1, h2, h3, h4, h5, h6 {
     background-clip: text;
 }
 
-/* Card Enhancements */
-.card {
-    background: var(--white);
-    border-radius: 0.75rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
-    padding: 1.5rem;
-    transition: all 0.3s ease;
-}
-.card:hover {
-    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
-    border-color: var(--gold);
-}
-
-.card-featured {
-    border: 2px solid var(--gold);
-    position: relative;
-}
-
 /* Pricing Card Enhancements */
 .pricing-card {
     transition: all 0.3s ease;
@@ -305,28 +311,146 @@ h1, h2, h3, h4, h5, h6 {
     height: 200%;
 }
 
-/* Table Styles */
-.data-table {
+/* Table Styles — the ONE admin table recipe: black header + gold rule.
+   .admin-table is an alias so every admin list shares the same look.
+   th has NO text-align here on purpose: alignment comes from the
+   text-left / text-right utilities on each column header. */
+.data-table,
+.admin-table {
     width: 100%;
     border-collapse: collapse;
 }
-.data-table th {
+.data-table th,
+.admin-table th {
     background-color: var(--black);
     color: var(--white);
     padding: 0.75rem 1rem;
-    text-align: left;
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    white-space: nowrap;
     border-bottom: 2px solid var(--gold);
 }
-.data-table td {
+.data-table td,
+.admin-table td {
     padding: 0.75rem 1rem;
     border-bottom: 1px solid var(--gray-light);
+    vertical-align: middle;
 }
-.data-table tr:hover td {
+.data-table tr:hover td,
+.admin-table tr:hover td {
     background-color: var(--white-off);
+}
+
+/* ============================================
+   ADMIN UI SYSTEM — one consistent kit
+   (black · gold · white) used by every page of
+   /admin so the panel reads as a single product.
+   Lives in @layer components so Tailwind
+   utilities (p-4, text-xs, hover:…) still win
+   where a page needs to vary size/spacing.
+   ============================================ */
+@layer components {
+    /* The ONE surface recipe for panels, lists, forms */
+    .admin-card {
+        background-color: var(--white);
+        border: 1px solid var(--gray-light);
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Buttons: dark = primary action, gold = brand action,
+       ghost = secondary/cancel. Size utilities may be appended. */
+    .admin-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background-color: var(--black);
+        color: var(--white);
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    .admin-btn:hover { background-color: var(--black-light); }
+
+    .admin-btn-gold {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background-color: var(--gold);
+        color: var(--black);
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    .admin-btn-gold:hover {
+        background-color: var(--gold-light);
+        box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+    }
+
+    .admin-btn-ghost {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background-color: var(--white);
+        color: var(--black-light);
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border: 1px solid var(--gray-light);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    .admin-btn-ghost:hover {
+        border-color: var(--gold);
+        color: var(--black);
+    }
+
+    /* Sidebar chrome (black) — moved out of the layout so it
+       lives with the rest of the admin kit */
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.625rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #9ca3af;
+        border-left: 3px solid transparent;
+        transition: all 0.15s;
+    }
+    .sidebar-link svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.06); color: #ffffff; }
+    .sidebar-link.active {
+        background: linear-gradient(90deg, rgba(212, 175, 55, 0.18), rgba(212, 175, 55, 0.04));
+        color: #F4D03F;
+        border-left-color: var(--gold);
+        font-weight: 600;
+    }
+
+    /* Topbar: white with the signature gold hairline (echoes the
+       public navbar so staff and visitors see the same brand) */
+    .admin-topbar {
+        background-color: var(--white);
+        border-bottom: 2px solid var(--gold);
+    }
 }
 
 /* Badge */
@@ -344,6 +468,14 @@ h1, h2, h3, h4, h5, h6 {
 .badge-info { background-color: var(--gray-light); color: var(--black); }
 .badge-gray { background-color: var(--white-off); color: var(--black-light); }
 
+/* Fallback for browsers without scroll-snap support */
+@supports not (scroll-snap-type: y mandatory) {
+    .slide-deck {
+        height: auto;
+        overflow-y: visible;
+    }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .score-circle {
@@ -352,4 +484,96 @@ h1, h2, h3, h4, h5, h6 {
         font-size: 1.5rem;
         border-width: 4px;
     }
+}
+
+/* ============================================
+   HOME SLIDE DECK — full-screen scroll snapping
+   Each .slide fills the viewport and scroll snaps
+   to the next one, like a slideshow. Desktop only;
+   mobile falls back to normal scrolling.
+   ============================================ */
+@media (min-width: 768px) and (min-height: 560px) {
+    .slide-deck {
+        height: 100vh;
+        overflow-y: auto;
+        scroll-snap-type: y mandatory;
+        scroll-behavior: smooth;
+        scrollbar-width: none; /* Firefox — position is shown by the dots */
+    }
+    .slide-deck::-webkit-scrollbar {
+        display: none; /* Chrome/Safari/Edge */
+    }
+    .slide-deck > .slide {
+        min-height: 100vh;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    /* Slides taller than the viewport (e.g. services) read from the top
+       so content never clips above the fold */
+    .slide-deck > .slide.slide-tall {
+        justify-content: flex-start;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .slide-deck {
+        scroll-snap-type: none;
+        scroll-behavior: auto;
+    }
+}
+
+/* Slide progress dots */
+.slide-dots {
+    position: fixed;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 30;
+    display: none; /* mobile: hidden, page scrolls normally */
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+@media (min-width: 768px) {
+    .slide-dots {
+        display: flex;
+    }
+}
+
+.slide-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 9999px;
+    background-color: #d1d5db; /* gray-300 */
+    transition: all 0.25s ease;
+    display: block;
+}
+.slide-dot:hover {
+    background-color: var(--gold-dark);
+    transform: scale(1.25);
+}
+.slide-dot.active {
+    background-color: var(--gold);
+    height: 24px;
+}
+
+/* Deep-linked service-line section on the pricing page:
+   gold flash so users land on the right group of packages */
+@keyframes service-line-flash {
+    0%, 60% {
+        background-color: rgba(212, 175, 55, 0.14);
+        box-shadow: 0 0 0 6px rgba(212, 175, 55, 0.14);
+    }
+    100% {
+        background-color: transparent;
+        box-shadow: 0 0 0 6px transparent;
+    }
+}
+.service-line-target:target {
+    animation: service-line-flash 1.6s ease-out 1;
+    border-radius: 1rem;
 }

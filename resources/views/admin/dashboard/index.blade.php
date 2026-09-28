@@ -37,6 +37,14 @@
                         <pre class="px-3 py-2 text-[11px] leading-relaxed text-gray-300 max-h-48 overflow-y-auto whitespace-pre-wrap font-mono">{{ implode("\n", $scannerHealth['log_tail']) }}</pre>
                     </div>
                 @endif
+
+                {{-- Quick actions — where to find the scraper & friends --}}
+                <div class="mt-4 flex flex-wrap items-center gap-2">
+                    <a href="{{ route('admin.scraped-businesses.index') }}" class="inline-flex items-center gap-1.5 rounded-lg bg-yellow-500 px-3 py-1.5 text-xs font-semibold text-black hover:bg-yellow-400 transition">🔍 Business Scraper</a>
+                    <a href="{{ route('admin.discovery.index') }}" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-600 px-3 py-1.5 text-xs font-medium text-gray-300 hover:border-yellow-500 hover:text-yellow-400 transition">🗺 Website Discovery</a>
+                    <a href="{{ route('admin.scrape-targets.index') }}" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-600 px-3 py-1.5 text-xs font-medium text-gray-300 hover:border-yellow-500 hover:text-yellow-400 transition">⏱ Auto-Scraper Queue</a>
+                    <a href="{{ route('admin.websites.index') }}" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-600 px-3 py-1.5 text-xs font-medium text-gray-300 hover:border-yellow-500 hover:text-yellow-400 transition">🌐 Websites & Health Scans</a>
+                </div>
             </div>
             <div class="w-20 h-20 bg-yellow-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
                 <svg class="w-10 h-10 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,7 +56,7 @@
 
     {{-- Stats Cards with Mini Illustrations --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white rounded-lg border border-gray-200 p-5">
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
             <div class="flex items-start justify-between mb-3">
                 <div class="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
                     <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,7 +69,7 @@
             <div class="text-xs text-gray-400 mt-1">Enquiries</div>
         </div>
 
-        <div class="bg-white rounded-lg border border-gray-200 p-5">
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
             <div class="flex items-start justify-between mb-3">
                 <div class="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
                     <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,7 +82,7 @@
             <div class="text-xs text-gray-400 mt-1">This month</div>
         </div>
 
-        <div class="bg-white rounded-lg border border-gray-200 p-5">
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
             <div class="flex items-start justify-between mb-3">
                 <div class="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
                     <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,7 +95,7 @@
             <div class="text-xs text-gray-400 mt-1">Total performed</div>
         </div>
 
-        <div class="bg-white rounded-lg border border-gray-200 p-5">
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
             <div class="flex items-start justify-between mb-3">
                 <div class="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
                     <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,7 +168,7 @@
 
     {{-- Primary Stats Row --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white rounded-lg border border-gray-200 p-5">
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
             <div class="flex items-center gap-3 mb-3">
                 <div class="w-9 h-9 bg-yellow-50 rounded-lg flex items-center justify-center">
                     <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
@@ -171,7 +179,7 @@
             <div class="text-xs text-gray-400 mt-1">Enquiries</div>
         </div>
 
-        <div class="bg-white rounded-lg border border-gray-200 p-5">
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
             <div class="flex items-center gap-3 mb-3">
                 <div class="w-9 h-9 bg-yellow-50 rounded-lg flex items-center justify-center">
                     <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -182,7 +190,7 @@
             <div class="text-xs text-gray-400 mt-1">Enquiries</div>
         </div>
 
-        <div class="bg-white rounded-lg border border-gray-200 p-5">
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
             <div class="flex items-center gap-3 mb-3">
                 <div class="w-9 h-9 bg-yellow-50 rounded-lg flex items-center justify-center">
                     <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
@@ -193,7 +201,7 @@
             <div class="text-xs text-gray-400 mt-1">Total</div>
         </div>
 
-        <div class="bg-white rounded-lg border border-gray-200 p-5">
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
             <div class="flex items-center gap-3 mb-3">
                 <div class="w-9 h-9 bg-yellow-50 rounded-lg flex items-center justify-center">
                     <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03 3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
@@ -244,7 +252,7 @@
     {{-- Two Column Layout --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {{-- Score Distribution with Visual Bars --}}
-        <div class="bg-white rounded-lg border border-gray-200 p-5">
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -287,7 +295,7 @@
         </div>
 
         {{-- Priority Prospects with Icons --}}
-        <div class="bg-white rounded-lg border border-gray-200 p-5">
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,7 +332,7 @@
     {{-- Second Row --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {{-- Sectors with Icons --}}
-        <div class="bg-white rounded-lg border border-gray-200 p-5">
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -364,7 +372,7 @@
         </div>
 
         {{-- Pipeline Visual --}}
-        <div class="bg-white rounded-lg border border-gray-200 p-5">
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -410,10 +418,60 @@
         </div>
     </div>
 
+    {{-- Watchdog Activity Feed (all watched businesses) --}}
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                <h3 class="font-semibold text-black">Watchdog Activity</h3>
+                @if(($watchdogHotWeek ?? 0) > 0)
+                    <span class="px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 text-[10px] font-semibold uppercase tracking-wider">
+                        {{ $watchdogHotWeek }} hot this week
+                    </span>
+                @endif
+            </div>
+            <a href="{{ route('admin.scraped-businesses.index') }}" class="text-xs text-yellow-600 hover:text-yellow-700">All Businesses</a>
+        </div>
+        <div class="divide-y divide-gray-100">
+            @forelse($watchEvents ?? [] as $event)
+                @php $biz = $event->business; @endphp
+                <a href="{{ $biz ? route('admin.scraped-businesses.show', $biz) : '#' }}" class="block px-5 py-3 hover:bg-gray-50 transition">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap {{ $event->style }}">
+                            {{ $event->label }}
+                        </span>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-medium text-black truncate">
+                                {{ $biz->business_name ?: ($biz->website_url ?? 'Deleted business') }}
+                                @if($event->notified_at)
+                                    <span class="text-[10px] text-gray-400" title="Staff alerted {{ $event->notified_at->format('d M H:i') }}">🔔</span>
+                                @endif
+                            </div>
+                            @if($event->summary)
+                                <div class="text-xs text-gray-400 truncate">{{ $event->summary }}</div>
+                            @endif
+                        </div>
+                        <span class="text-[11px] text-gray-400 whitespace-nowrap">{{ $event->created_at->diffForHumans(short: true) }}</span>
+                    </div>
+                </a>
+            @empty
+                <div class="px-5 py-8 text-center">
+                    <svg class="w-12 h-12 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p class="text-gray-400 text-sm">No watchdog events yet — changes appear here as the 24/7 scraper re-visits targets.</p>
+                </div>
+            @endforelse
+        </div>
+    </div>
+
     {{-- Tables Row --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {{-- Recent Enquiries --}}
-        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div class="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
                 <h3 class="font-semibold text-black">Recent Enquiries</h3>
                 <a href="{{ route('admin.enquiries.index') }}" class="text-xs text-yellow-600 hover:text-yellow-700">See All</a>
@@ -446,7 +504,7 @@
         </div>
 
         {{-- Recent Scans --}}
-        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div class="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
                 <h3 class="font-semibold text-black">Recent Scans</h3>
                 <a href="{{ route('admin.scans.index') }}" class="text-xs text-yellow-600 hover:text-yellow-700">See All</a>
@@ -473,6 +531,61 @@
                     </tr>
                 @endforelse
             </div>
+        </div>
+    </div>
+
+    {{-- Website Discovery (OSM) — discovered this week + no-website outreach --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div class="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="font-semibold text-black">Website Discovery</h3>
+                <a href="{{ route('admin.discovery.index') }}" class="text-xs text-yellow-600 hover:text-yellow-700">Open Discovery</a>
+            </div>
+            <div class="p-5">
+                <div class="flex flex-wrap gap-8">
+                    <div>
+                        <div class="text-2xl font-bold text-black">{{ number_format($stats['discovered_week'] ?? 0) }}</div>
+                        <div class="text-xs text-gray-400 mt-1">Websites discovered this week</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-black">{{ number_format(($stats['no_website_leads'] ?? 0) + ($stats['discovery_leads_contacted'] ?? 0)) }}</div>
+                        <div class="text-xs text-gray-400 mt-1">Businesses with NO website found</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-black">{{ number_format($stats['discovery_leads_contacted'] ?? 0) }}</div>
+                        <div class="text-xs text-gray-400 mt-1">Leads contacted</div>
+                    </div>
+                </div>
+                <div class="mt-4 space-y-2">
+                    @forelse($discoveryRuns ?? [] as $run)
+                        <div class="flex items-center justify-between gap-3 text-sm border-t border-gray-50 pt-2">
+                            <div class="flex-1 min-w-0 truncate">
+                                <span class="font-medium text-black">{{ $run->city }}</span>
+                                <span class="text-xs text-gray-400"> · {{ $run->category }} · {{ $run->created_at->diffForHumans() }}</span>
+                            </div>
+                            @if($run->status === App\Models\DiscoveryRun::STATUS_COMPLETED)
+                                <span class="text-xs text-gray-600 whitespace-nowrap">{{ $run->stats['unique_websites'] ?? 0 }} sites · {{ $run->queued_count }} queued · {{ $run->leads_count }} leads</span>
+                            @elseif($run->status === App\Models\DiscoveryRun::STATUS_FAILED)
+                                <span class="text-xs text-red-600 whitespace-nowrap">failed — {{ \Illuminate\Support\Str::limit($run->error, 60) }}</span>
+                            @else
+                                <span class="text-xs text-yellow-600 whitespace-nowrap">running…</span>
+                            @endif
+                        </div>
+                    @empty
+                        <p class="text-gray-400 text-sm border-t border-gray-50 pt-2">No discovery runs yet — <a href="{{ route('admin.discovery.index') }}" class="text-yellow-600 hover:text-yellow-700">find business websites by city</a>.</p>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-black rounded-lg p-5 flex flex-col justify-between">
+            <div>
+                <h3 class="font-semibold text-white">No-Website Outreach</h3>
+                <p class="text-xs text-gray-400 mt-1">Businesses discovery found that have no website at all — the warmest “we'll build you one” conversations.</p>
+                <div class="text-3xl font-bold text-yellow-500 mt-3">{{ number_format($stats['no_website_leads'] ?? 0) }}</div>
+                <div class="text-xs text-gray-400">waiting to be called</div>
+            </div>
+            <a href="{{ route('admin.discovery.leads') }}" class="mt-4 inline-flex items-center justify-center rounded-lg bg-yellow-500 px-3 py-2 text-xs font-semibold text-black hover:bg-yellow-400 transition">📞 Open the outreach list</a>
         </div>
     </div>
 </div>

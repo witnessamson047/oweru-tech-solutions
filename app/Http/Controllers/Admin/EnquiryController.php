@@ -43,7 +43,7 @@ class EnquiryController extends Controller
 
     public function show(Enquiry $enquiry)
     {
-        $enquiry->load(['package', 'owner', 'scan']);
+        $enquiry->load(['package', 'owner', 'scan', 'invoices.completedPayments']);
         $staff = User::all();
 
         return view('admin.enquiries.show', compact('enquiry', 'staff'));

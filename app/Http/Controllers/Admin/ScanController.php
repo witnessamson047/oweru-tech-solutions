@@ -37,7 +37,7 @@ class ScanController extends Controller
 
     public function show(Scan $scan)
     {
-        $scan->load(['website', 'results.check', 'enquiry', 'report']);
+        $scan->load(['website', 'results.check', 'results.recommendation', 'enquiry', 'report']);
 
         return view('admin.scans.show', compact('scan'));
     }

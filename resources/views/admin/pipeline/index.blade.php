@@ -8,7 +8,7 @@
 
 {{-- Stage Filters --}}
 <div class="flex flex-wrap gap-2 mb-6">
-    <button class="pipeline-filter px-4 py-2 rounded-lg text-sm font-medium bg-yellow-600 text-black" data-stage="all">All</button>
+    <button class="pipeline-filter px-4 py-2 rounded-lg text-sm font-medium bg-yellow-500 text-black" data-stage="all">All</button>
     @foreach(['new', 'qualified', 'diagnostic_paid', 'proposal_sent', 'won', 'lost'] as $stage)
         <button class="pipeline-filter px-4 py-2 rounded-lg text-sm font-medium stage-{{ $stage === 'diagnostic_paid' ? 'diagnostic' : $stage }}" data-stage="{{ $stage }}">
             {{ str_replace('_', ' ', ucfirst($stage)) }}

@@ -107,6 +107,13 @@ function initScanner() {
             return;
         }
 
+        // Forgiving input: add https:// when the visitor typed just the domain,
+        // and drop stray copy-paste quotes/punctuation around it.
+        urlInput.value = urlInput.value.trim().replace(/^[\s"'<]+/, '').replace(/[\s"'<>]+$/, '');
+        if (urlInput.value && !/^https?:\/\//i.test(urlInput.value)) {
+            urlInput.value = 'https://' + urlInput.value;
+        }
+
         // Show loading state
         scanBtn.disabled = true;
         scanBtn.innerHTML = '<svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Scanning...';
@@ -175,10 +182,15 @@ function displayScanResults(data) {
 
             <div class="text-center p-6 bg-blue-50 rounded-xl">
                 <h4 class="font-bold text-gray-800 mb-2">Get Your Full Report</h4>
-                <p class="text-sm text-gray-600 mb-4">Request a detailed report with all findings, business impact analysis, and recommendations.</p>
-                <button onclick="showReportRequestForm()" class="btn-primary">
-                    Request Full Report
-                </button>
+                <p class="text-sm text-gray-600 mb-4">A comprehensive one-page PDF with all findings, business impact analysis, and recommendations.</p>
+                <div class="flex gap-3 justify-center">
+                    <a href="/pay/scan/${data.scan_id}" class="btn-accent text-sm px-5 py-2.5">
+                        Pay TZS 10,000 → Get PDF
+                    </a>
+                    <button onclick="showReportRequestForm()" class="btn-outline text-sm px-5 py-2.5">
+                        Request Free Report
+                    </button>
+                </div>
             </div>
         </div>
     `;

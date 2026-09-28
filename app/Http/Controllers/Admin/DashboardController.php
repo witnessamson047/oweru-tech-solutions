@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\DiscoveryLead;
+use App\Models\DiscoveryRun;
 use App\Models\Enquiry;
 use App\Models\Scan;
+use App\Models\ScrapeTarget;
+use App\Models\ScrapeWatchEvent;
 use App\Models\Website;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +31,13 @@ class DashboardController extends Controller
                 'priority_prospects' => self::countScannedWebsitesBelow(40),
                 'prospects' => self::countScannedWebsitesBelow(60) - self::countScannedWebsitesBelow(40),
                 'excluded_websites' => Website::where('exclusion_status', 'excluded')->count(),
+
+                // Discovery funnel: websites + no-website leads found by the
+                // OSM discovery runs this week / in total.
+                'discovered_week' => ScrapeTarget::whereNotNull('discovery_run_id')
+                    ->where('created_at', '>=', now()->subDays(7))->count(),
+                'no_website_leads' => DiscoveryLead::new()->count(),
+                'discovery_leads_contacted' => DiscoveryLead::where('status', DiscoveryLead::STATUS_CONTACTED)->count(),
             ];
 
             $recentEnquiries = Enquiry::with('package', 'owner')
@@ -64,6 +75,20 @@ class DashboardController extends Controller
                 ->take(5)
                 ->get();
 
+            // Scraper watchdog feed: latest change-detection events across all
+            // watched businesses + count of hot alerts in the last 7 days.
+            $watchEvents = ScrapeWatchEvent::with('business')
+                ->latest('id')
+                ->take(8)
+                ->get();
+
+            $watchdogHotWeek = ScrapeWatchEvent::hot()
+                ->where('created_at', '>=', now()->subDays(7))
+                ->count();
+
+            // Discovery: recent runs for the dashboard surface.
+            $discoveryRuns = DiscoveryRun::latest()->take(5)->get();
+
             return view('admin.dashboard.index', [
                 'scannerHealth' => $this->scannerHealth(),
                 'stats' => $stats,
@@ -74,6 +99,9 @@ class DashboardController extends Controller
                 'websitesBySector' => $websitesBySector,
                 'scansByBand' => $scansByBand,
                 'lowScoreScans' => $lowScoreScans,
+                'watchEvents' => $watchEvents,
+                'watchdogHotWeek' => $watchdogHotWeek,
+                'discoveryRuns' => $discoveryRuns,
             ]);
         } catch (\Exception $e) {
             Log::error('Dashboard error: ' . $e->getMessage(), [

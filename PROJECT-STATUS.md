@@ -2,9 +2,9 @@
 
 **Project:** Oweru Tech Solutions — website health scanner + lead pipeline
 **Owner:** Witness (GitHub: witnessamson047)
-**Last updated:** 2026-09-25 (OSM/Overpass discovery source PROVEN live — 262 Dar websites in one query; Step 3–6 wiring plan in the top section)
+**Last updated:** 2026-09-25 (Steps 3+6 DONE: Website Discovery fully wired — 96 Dar websites queued + 91 no-website outreach leads captured live through the admin form; see top section)
 
-## Website discovery via OpenStreetMap (NEW 2026-09-25) — source PROVEN live, wiring plan agreed
+## Website discovery via OpenStreetMap (NEW 2026-09-25) — Steps 1-3 DONE, live end-to-end
 Direction agreed: the client has zero technical exposure, so nobody should ever type a URL — staff
 pick a city + category, and discovered business websites feed the EXISTING scrape → auto-scan
 pipeline. CSV export and payments are explicitly OUT of scope for this module.
@@ -35,20 +35,83 @@ regencymedicalcentre.com, epidor.co.tz …
   The script then self-recovered from live 504s twice. Public Overpass is shared infrastructure:
   one query per run, never loop it (etiquette mirrors the scraper's 2s/host rate limit).
 
-**Step 3–6 plan (agreed; NOTHING wired into Laravel yet):**
-1. Step 3 — Laravel/MySQL: `DiscoveryService` runs the probe and parses its --json contract
-   {query, stats, websites:[{name,url,host,lat,lon,osm_type}], no_website_sample}; artisan
-   `discovery:run --city= --category= --limit=`; every URL passes ScrapeTarget::normalizeUrl +
-   hostKey dedupe into scrape_targets as STATUS_ACTIVE; add a nullable source marker (notes or a
-   column) so OSM-discovered rows are visibly sourced; admin form = the wireframe (Location /
-   Category / Max → DISCOVER). OPEN DECISION: shell out to python.exe directly vs a Flask
-   /api/discovery/osm endpoint wrapping the same script (ScraperClient-style).
-2. Step 4 — scraper: FREE — discovered targets are just scrape_targets rows; scrape:run's 24/7
-   queue + directory harvesting pick them up unchanged.
-3. Step 5 — scanner: FREE — AutoScanJob already chains scrape → health scan → mapped
-   recommendations for every newly scraped business.
-4. Step 6 — dashboard/reports: LAST — discovery history, a "N new sites discovered" surface, and
-   the no-website outreach list as a first-class view.
+**Step 3 DONE (2026-09-25) — wired into Laravel (decision: SHELL-OUT, not Flask):** DiscoveryService
+runs the probe via Symfony Process with the python path in config — discovery is an occasional
+admin-triggered public-Overpass query, not part of the 24/7 engine loop, so it must not depend on
+Flask being up. Pieces:
+- `discovery_runs` table + `scrape_targets.discovery_run_id` provenance column (migration
+  2026_09_25_000001); DiscoveryRun model (status running/completed/failed, stats+result JSON
+  snapshots, error text, queued/skipped counters).
+- `DiscoveryService::make()` (ScraperClient-style scalar-params trap honored: command + controller
+  call make(), NOT method injection; make() honors swapped instances so tests stay network-free).
+  run(): creates the run row → executes the probe → queues every URL through
+  ScrapeTarget::normalizeUrl + hostKey dedupe (host keys loaded ONCE per run) with
+  discovery_run_id attached. Failures never throw: they land on run.status=failed + run.error.
+- `php artisan discovery:run --city="Dar es Salaam" [--category=hotel] [--limit=200] [--stats]`.
+- Admin UI: /admin/discovery — the client wireframe (Location with TZ-city suggestions /
+  Category dropdown / Max records → 🔍 DISCOVER, button disables itself while running) + stats
+  cards + full run history. Sidebar: "Website Discovery" above Scraper. POST runs synchronously
+  (probe is 30-120s) like the scan actions do.
+- `DiscoveryJob` (queued variant for future scheduler/batch use; clamps config timeout ≤270s
+  inside its own 280s queue timeout so a killed job cannot strand a run row).
+- Config `owers.discovery.*` (python_bin C:\python312\python.exe, script path, timeout 480s =
+  worst-case geocode + 2 endpoints × 2 attempts × 100s, default/max limit, category + city
+  suggestion lists) + OWERU_DISCOVERY_* in .env.example.
+- **Contract fix in the probe:** --json mode now emits progress to STDERR and PURE JSON on
+  stdout (Laravel parses stdout; the "Geocoding…" lines were corrupting the payload — found by
+  the live shell-out test).
+- Tests: tests/Feature/DiscoveryTest.php (8 — queue+provenance, dedupe skip, existing-target
+  skip, failure recording, artisan command, admin form render+store+validation, queueable job).
+  Suite now at **107 passed (426 assertions)**.
+- VERIFIED LIVE end-to-end: `discovery:run --city="Dar es Salaam" --limit=100` → probe ran →
+  run #3 completed → 96 unique websites → 96 scrape_targets rows created with
+  discovery_run_id=3, status=active (0 skipped). scrape:run's normal passes now scrape them
+  (batch 10/pass) and AutoScanJob health-scans the new businesses (cap 5/pass) — with the
+  engine + scheduler running via start.bat.
+
+**Step 4 (scraper) + Step 5 (scanner): FREE as planned — discovered targets are ordinary
+scrape_targets rows; the existing 24/7 queue + directory harvesting + auto-scan absorb them
+unchanged. (The 96 run-#3 targets process at the normal cadence: scrape:run batch 10/pass or
+the Check All Now button.)**
+
+**Step 6 DONE (2026-09-25) — dashboard surface + the no-website outreach list:**
+- **`discovery_leads` table** (migration 2026_09_25_000002): businesses found by discovery with
+  NO website at all — the "we'll build you one" outreach list. Deduped by (business_name, city)
+  so repeated runs extend/refresh the list, never duplicate it; attribution follows the freshest
+  run; status new/contacted + contacted_at + notes; lat/lon kept for a 📍 Google Maps link.
+  `discovery_runs.leads_count` records each run's contribution.
+- **Probe upgrade:** `no_website` now collects up to 500 records WITH coordinates (was a 100-row
+  name-only sample; category="all" runs only ever return website-carrying records, so no-website
+  leads come from category runs like restaurants: 249 hotels / 124 restaurants in Dar alone).
+- **/admin/discovery/leads** (sidebar "No-Website Leads"): outreach list with search/status
+  filter, 📍 map links, "✓ Mark contacted" per row, stats cards. Runs page shows lead counts.
+- **Dashboard:** "Website Discovery" panel — websites discovered this week, businesses with NO
+  website found, leads contacted, last 5 runs (city/category/queued/leads or failure reason) —
+  plus a navy "No-Website Outreach" card with the call-to-action count. Sidebar + dashboard
+  quick-links include Discovery.
+- **WINDOWS DNS QUIRK (important operational finding):** python spawned from the long-running
+  `php artisan serve` process cannot resolve DNS — "[Errno 11003] getaddrinfo failed" for every
+  host (Nominatim AND Overpass), while the same probe from a fresh terminal/queue-worker lineage
+  works fine. WinSock per-process quirk; NOT proxy env (none set). Fixes layered in:
+  (1) built-in bbox table for all 12 suggested TZ cities (no geocoding call at all);
+  (2) probe geocode retries once after 5s; (3) probe ignores inherited proxy vars (ProxyHandler({}));
+  (4) probe accepts OWERU_DNS_OVERRIDES host=ip pairs and patches socket.getaddrinfo
+  (TLS/SNI unaffected); (5) **the real fix: the admin form now QUEUES the run** — run row created
+  instantly (0.5s form response, status=running visible), DiscoveryJob executes on the queue
+  worker whose lineage resolves DNS fine (same worker as every scrape/scan; failed() hook marks
+  the run failed if the job dies so nothing sticks on 'running'). Artisan discovery:run stays
+  synchronous (works fine from terminals/scheduler).
+- **Error reporting hardened:** failed runs keep stderr head AND the final traceback line (the
+  diagnosis used to be truncated away); flash shows first line, full text on the run row.
+- Tests: +3 (leads persistence/dedupe/attribution, outreach page render + mark-contacted,
+  dashboard stats/runs render; form now asserts DiscoveryJob dispatch). Suite at **110 passed
+  (453 assertions)**.
+- **VERIFIED LIVE through the real UI (curl session, admin login → discovery form):**
+  Dar es Salaam + Restaurants, limit 200 → form 302 in 0.5s → run #9 'running' → queue worker
+  drained backlog + ran DiscoveryJob (7s) → completed: 200 OSM restaurants, 4 websites (all
+  correctly skipped as already-queued from run #3), **91 no-website leads created** (Lumumba
+  Garden Restourant, The Cholla Authetic Indian, Ladha Halisi, …) → dashboard + outreach list
+  populated. The discovery → outreach loop is fully closed for the non-technical client.
 
 ## URL identity, watchdog button, headless rendering, full mapping (2026-09-24)
 **URL-identity rules — one site = one record.** ScrapeTarget::canonicalizeUrl() stores every URL as
@@ -458,9 +521,11 @@ block in resources/css/app.css.
 3. User #1 admin@oweru.com was deleted from DB intentionally.
 4. ~~Test data exists~~ CLEANED 2026-09-24 (see "Demo data cleanup" above). Remaining: 14 orphan
    test-*.example.com scans with website_id NULL — confirm then delete.
-5. Discovery module: OSM/Overpass source PROVEN live (see top section). Next action = Step 3:
-   DiscoveryService + `discovery:run` feeding scrape_targets (one open decision: shell python.exe
-   directly vs Flask /api/discovery/osm endpoint).
+5. Discovery module: Steps 1-3+6 DONE, verified live end-to-end through the admin UI (see top
+   section). The crawler plan is COMPLETE. Operational notes: public Overpass must be treated
+   gently (one run at a time); the queued 96 Dar targets process at the normal scrape:run cadence
+   (batch 10); remember the Windows DNS quirk — discovery runs MUST go through the queue worker,
+   never expect the serve lineage to reach the internet.
 
 ## What was verified working today (2026-09-22)
 - Python scraper CLI live against example.com + modewjifoundation.org (clean extraction, no nav junk)

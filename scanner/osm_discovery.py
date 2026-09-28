@@ -12,8 +12,9 @@ What it does:
   3. Extract the official website URL (website / contact:website / url /
      contact:url tags), normalize it, skip social/directory links.
   4. Dedupe by host (one site = one record, mirrors the project's hostKey rule).
-  5. Print the URLs - and, on purpose, ALSO count the businesses that have NO
-     website at all: for Oweru those are the "we build you a website" leads.
+  5. Print the URLs - and, on purpose, ALSO collect the businesses that have
+     NO website at all (up to 500, with coordinates): for Oweru those are the
+     "we build you a website" leads.
 
 Usage:
     C:/python312/python.exe scanner/osm_discovery.py --city "Dar es Salaam" --category hotel
@@ -33,7 +34,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+import socket
 import sys
 import time
 import urllib.error
@@ -51,7 +54,28 @@ OVERPASS_ENDPOINTS = [
     "https://overpass.kumi.systems/api/interpreter",
 ]
 GEOCODE_TIMEOUT = 30  # seconds
-OVERPASS_TIMEOUT = 120  # seconds
+
+# Built-in bounding boxes for the cities the admin UI suggests. Used BEFORE
+# Nominatim (fewer calls to shared infrastructure) and as a FALLBACK when
+# geocoding fails (DNS blips must not break a client's discovery click).
+# Order: S, W, N, E.
+CITY_BBOXES: dict[str, tuple[float, float, float, float]] = {
+    "dar es salaam": (-7.00, 39.00, -6.60, 39.45),
+    "arusha": (-3.55, 36.55, -3.25, 36.90),
+    "mwanza": (-2.65, 32.80, -2.40, 33.00),
+    "dodoma": (-6.35, 35.65, -6.05, 35.95),
+    "mbeya": (-8.99, 33.35, -8.80, 33.55),
+    "tanga": (-5.15, 39.00, -5.00, 39.20),
+    "morogoro": (-6.90, 37.55, -6.70, 37.75),
+    "zanzibar": (-6.25, 39.15, -6.05, 39.30),
+    "moshi": (-3.45, 37.25, -3.30, 37.40),
+    "iringa": (-7.85, 35.60, -7.65, 35.80),
+    "musoma": (-1.60, 33.75, -1.40, 33.95),
+    "songea": (-10.75, 35.50, -10.60, 35.70),
+}
+# 100s per attempt: Overpass kills runaway queries server-side at ~90s
+# ([timeout:90] in the QL), so waiting longer than that is pure waste.
+OVERPASS_TIMEOUT = 100
 
 # OSM tags that can carry a business's official website.
 WEBSITE_TAGS = ("website", "contact:website", "url", "contact:url")
@@ -95,13 +119,54 @@ CATEGORIES: dict[str, list[str]] = {
 # ---------------------------------------------------------------------------
 
 
+# Direct-connection opener: urllib honors http_proxy/https_proxy environment
+# variables, and a stale/wrong proxy inherited from a parent process makes
+# every request die with "getaddrinfo failed". The probe always talks to the
+# public APIs directly — never through an inherited proxy.
+_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+# Windows hosts occasionally break DNS for SOME process lineages only (seen
+# 2026-09-25: the probe resolved fine from a terminal but got "[Errno 11003]
+# getaddrinfo failed" when spawned by the long-running `php artisan serve`).
+# Laravel resolves the API hostnames with PHP's gethostbyname() (which works)
+# and passes them here as "host=ip,host=ip"; we patch getaddrinfo to connect
+# to those IPs while keeping the original URL hostname — TLS/SNI and
+# certificate verification are unaffected.
+
+
+def _install_dns_overrides() -> None:
+    raw = (os.environ.get("OWERU_DNS_OVERRIDES") or "").strip()
+    if not raw:
+        return
+    mapping: dict[str, str] = {}
+    for pair in raw.split(","):
+        host, _, ip = pair.partition("=")
+        if host.strip() and ip.strip():
+            mapping[host.strip().lower()] = ip.strip()
+    if not mapping:
+        return
+
+    original = socket.getaddrinfo
+
+    def patched(host: object, *args: object, **kwargs: object):
+        if isinstance(host, str) and host.lower() in mapping:
+            host = mapping[host.lower()]
+        return original(host, *args, **kwargs)  # type: ignore[arg-type]
+
+    socket.getaddrinfo = patched  # type: ignore[assignment]
+    print(f"  using DNS overrides: {', '.join(sorted(mapping))}", file=sys.stderr)
+
+
+_install_dns_overrides()
+
+
 def _http_json(url: str, timeout: int, data: bytes | None = None) -> dict:
     req = urllib.request.Request(
         url,
         data=data,
         headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
     )
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
+    with _opener.open(req, timeout=timeout) as resp:
         return json.loads(resp.read().decode("utf-8", "replace"))
 
 
@@ -141,7 +206,7 @@ def run_overpass(query: str) -> dict:
                         "Content-Type": "application/x-www-form-urlencoded",
                     },
                 )
-                with urllib.request.urlopen(req, timeout=OVERPASS_TIMEOUT) as resp:
+                with _opener.open(req, timeout=OVERPASS_TIMEOUT) as resp:
                     return json.loads(resp.read().decode("utf-8", "replace"))
             except Exception as exc:  # noqa: BLE001 - retry once, then next mirror
                 last_error = exc
@@ -217,8 +282,14 @@ def extract(elements: list[dict]) -> dict:
         if not raw_site:
             if name:
                 stats["without_website"] += 1
-                if len(no_website) < 100:  # sample only, keeps output small
-                    no_website.append({"name": name, "osm_type": record["osm_type"]})
+                # Collect up to 500: these ARE the "we build you a website"
+                # leads, so they are output, not just counted.
+                if len(no_website) < 500:
+                    entry = {"name": name, "osm_type": record["osm_type"]}
+                    if center and center.get("lat") is not None:
+                        entry["lat"] = round(center["lat"], 6)
+                        entry["lon"] = round(center["lon"], 6)
+                    no_website.append(entry)
             continue
 
         stats["with_website_tag"] += 1
@@ -239,7 +310,7 @@ def extract(elements: list[dict]) -> dict:
         websites.append(record)
 
     stats["unique_websites"] = len(websites)
-    return {"stats": stats, "websites": websites, "no_website_sample": no_website}
+    return {"stats": stats, "websites": websites, "no_website": no_website}
 
 
 # ---------------------------------------------------------------------------
@@ -280,18 +351,43 @@ def main() -> None:
         tag_regex = "|".join(re.escape(t) for t in WEBSITE_TAGS)
         filters = [f'[name][~"^{tag_regex}$"~"."]']
 
+    # Progress goes to STDERR so --json keeps STDOUT pure JSON — that is the
+    # machine contract Laravel consumes (DiscoveryService parses stdout).
+    def _progress(msg: str) -> None:
+        print(msg, file=sys.stderr)
+
     if args.bbox:
         try:
             south, west, north, east = (float(x) for x in args.bbox.split(","))
         except ValueError:
             raise SystemExit("--bbox must be south,west,north,east (decimal degrees)")
         bbox = (south, west, north, east)
+    elif CITY_BBOXES.get(args.city.strip().lower()):
+        bbox = CITY_BBOXES[args.city.strip().lower()]
+        _progress(f"Using built-in map area for '{args.city}' (no geocoding needed).")
     else:
-        print(f"Geocoding '{args.city}' ...")
-        bbox = geocode(args.city)
+        _progress(f"Geocoding '{args.city}' ...")
+        try:
+            bbox = geocode(args.city)
+        except SystemExit:
+            raise
+        except Exception as exc:
+            # DNS/network blips are momentary; one quick retry rescues most of
+            # them without any extra load on happy-path runs.
+            _progress(f"  lookup failed ({exc}) - retrying once in 5s ...")
+            time.sleep(5)
+            try:
+                bbox = geocode(args.city)
+            except SystemExit:
+                raise
+            except Exception as exc2:
+                raise SystemExit(
+                    f"Could not look up the map area for '{args.city}' ({exc2}). "
+                    "Check the internet connection, or try one of the suggested city names."
+                )
 
     label = args.city or f"bbox {args.bbox}"
-    print(f"Searching {label} for: {args.category} ...")
+    _progress(f"Searching {label} for: {args.category} ...")
     query = build_query(filters, bbox, args.limit)
     data = run_overpass(query)
     result = extract(data.get("elements", []))
@@ -330,7 +426,7 @@ def main() -> None:
     print(f"  Social/directory links:  {stats['skipped_non_business_links']} (skipped)")
     print(f"  Duplicate hosts merged:  {stats['duplicate_hosts_merged']}")
 
-    sample = result["no_website_sample"]
+    sample = result["no_website"]
     if sample:
         names = ", ".join(w["name"] for w in sample[:10])
         more = f" ... (+{stats['without_website'] - 10} more)" if stats["without_website"] > 10 else ""

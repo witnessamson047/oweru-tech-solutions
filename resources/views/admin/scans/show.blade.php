@@ -26,6 +26,21 @@
                         <span class="badge {{ $score >= 80 ? 'badge-success' : ($score >= 60 ? 'badge-info' : ($score >= 40 ? 'badge-warning' : 'badge-danger')) }} text-sm">
                             {{ $scan->band }} ({{ $score }}/100)
                         </span>
+                        @php $change = $scan->scoreChange(); @endphp
+                        @if($change !== null)
+                            <span class="inline-flex items-center gap-1 text-sm font-semibold {{ $change > 0 ? 'text-green-600' : ($change < 0 ? 'text-red-600' : 'text-gray-500') }}">
+                                @if($change > 0)
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                                    +{{ $change }} pts
+                                @elseif($change < 0)
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+                                    {{ $change }} pts
+                                @else
+                                    No change
+                                @endif
+                                <span class="text-xs text-gray-400 font-normal">vs previous scan</span>
+                            </span>
+                        @endif
                         <span class="text-xs text-gray-400">{{ $scan->started_at?->format('d M Y H:i') ?? $scan->created_at->format('d M Y H:i') }}</span>
                     </div>
                 </div>
@@ -41,6 +56,70 @@
                 </div>
             </div>
         </div>
+
+        {{-- Real-world performance (component 4: External API) --}}
+        @if($scan->pagespeed)
+            @php
+                $psi = $scan->pagespeed;
+                $psiScore = $psi['performance_score'] ?? null;
+                $psiBand = \App\Services\PageSpeedService::band(is_numeric($psiScore) ? (int) $psiScore : null);
+                $psiColor = $psiBand === 'Good' ? 'text-green-600' : ($psiBand === 'Poor' ? 'text-red-600' : 'text-yellow-600');
+            @endphp
+            <div class="card">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-bold text-gray-900">Real-World Mobile Performance</h3>
+                    <span class="text-xs text-gray-400">Google PageSpeed Insights • {{ \Carbon\Carbon::parse($psi['measured_at'] ?? now())->format('d M Y H:i') }}</span>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div class="text-center">
+                        <div class="text-4xl font-extrabold {{ $psiColor }}">{{ $psiScore ?? '—' }}</div>
+                        <div class="text-xs text-gray-500">PSI score</div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm flex-1">
+                        @foreach([
+                            'fcp_s' => 'First Contentful Paint',
+                            'lcp_s' => 'Largest Contentful Paint',
+                            'tbt_s' => 'Total Blocking Time',
+                            'cls' => 'Layout Shift (CLS)',
+                        ] as $key => $label)
+                            <div class="flex justify-between border-b border-gray-50 py-0.5">
+                                <span class="text-gray-500">{{ $label }}</span>
+                                <span class="font-medium text-gray-800">{{ $psi['metrics'][$key] ?? '—' }}{{ isset($psi['metrics'][$key]) && $key !== 'cls' ? 's' : '' }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- AI interpretation (component 5: AI API) --}}
+        @if($scan->ai_insight)
+            <div class="card">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-bold text-gray-900">What This Means (AI Insight)</h3>
+                    <span class="badge {{ ($scan->ai_insight['source'] ?? '') === 'ai' ? 'badge-success' : 'badge-info' }} text-[10px]">
+                        {{ ($scan->ai_insight['source'] ?? 'fallback') === 'ai' ? 'AI-generated' : 'Auto-summary' }}
+                    </span>
+                </div>
+                <p class="text-sm text-gray-700">{{ $scan->ai_insight['summary'] ?? '' }}</p>
+                @if(!empty($scan->ai_insight['next_actions']))
+                    <div class="mt-3">
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Next actions</p>
+                        <ul class="list-disc list-inside text-sm text-gray-700 space-y-0.5">
+                            @foreach($scan->ai_insight['next_actions'] as $action)
+                                <li>{{ $action }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+                @if(!empty($scan->ai_insight['pitch_email']))
+                    <details class="mt-3">
+                        <summary class="text-xs font-semibold text-yellow-700 cursor-pointer">View pitch email draft</summary>
+                        <pre class="mt-2 p-3 bg-gray-50 rounded text-xs text-gray-700 whitespace-pre-wrap">{{ $scan->ai_insight['pitch_email'] }}</pre>
+                    </details>
+                @endif
+            </div>
+        @endif
 
         {{-- Individual Check Results --}}
         <div class="card">

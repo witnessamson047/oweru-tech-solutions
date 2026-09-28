@@ -4,7 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
-return Application::configure(basePath: dirname(__DIR__))
+$app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
@@ -24,7 +24,31 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })->create();
 
-// Fallback to file sessions if database is unavailable
-if (env('DB_FALLBACK_TO_SQLITE', false) && env('DB_CONNECTION') === 'mysql') {
-    Config::set('session.driver', 'file');
-}
+/*
+ * Database fallback — web, console AND scheduler.
+ *
+ * The web middleware (EnsureDatabaseConnection) only covers HTTP requests.
+ * Scheduled commands (scrape:run, invoices:send-overdue-reminders, queue:work)
+ * boot without that middleware, so when MySQL is down they crashed with a
+ * connection error and the 24/7 auto-scraper silently did nothing.
+ *
+ * The `booted` callback runs after env/config are loaded, in every context.
+ * If MySQL is configured but unreachable, flip the default connection to the
+ * local SQLite file so everything keeps working.
+ */
+$app->booted(function ($app) {
+    if (env('DB_FALLBACK_TO_SQLITE', false) && config('database.default') === 'mysql') {
+        try {
+            $app['db']->connection()->getPdo();
+        } catch (\Throwable $e) {
+            if (file_exists(database_path('database.sqlite'))) {
+                $app['db']->setDefaultConnection('sqlite');
+
+                // Database-backed session store follows the connection
+                config()->set('session.driver', 'file');
+            }
+        }
+    }
+});
+
+return $app;

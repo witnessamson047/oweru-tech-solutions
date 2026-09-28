@@ -26,28 +26,23 @@
     <link rel="stylesheet" href="/build/{{ $cssFile }}">
     <script type="module" src="/build/{{ $jsFile }}"></script>
 @endif
-    <style>
-        .sidebar-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.625rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; transition: all 0.15s; }
-        .sidebar-link.active { background-color: #fefce8; color: #ca8a04; }
-        .sidebar-link:not(.active) { color: #6b7280; }
-        .sidebar-link:not(.active):hover { background-color: #f3f4f6; color: #111827; }
-        .sidebar-link svg { width: 20px; height: 20px; flex-shrink: 0; }
-    </style>
+    {{-- Sidebar/nav/button/card styling lives in app.css (@layer components) so
+         every admin page shares one kit: .sidebar-link, .admin-card, .admin-btn* --}}
     @stack('styles')
 </head>
 <body class="bg-gray-50 min-h-screen">
 
     <div class="flex min-h-screen">
 
-        <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform -translate-x-full lg:translate-x-0 transition-transform">
-            <div class="h-16 flex items-center px-5 border-b border-gray-100">
+        <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-black transform -translate-x-full lg:translate-x-0 transition-transform">
+            <div class="h-16 flex items-center px-5 border-b border-white/10">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2">
                     <div class="w-9 h-9 bg-yellow-600 rounded-lg flex items-center justify-center">
                         <span class="text-black font-bold">O</span>
                     </div>
                     <div>
-                        <span class="font-bold text-gray-900 leading-tight block text-sm">OWERU</span>
-                        <span class="text-[10px] text-gray-500 uppercase tracking-wider leading-tight block">Admin Panel</span>
+                        <span class="font-bold text-white leading-tight block text-sm">OWERU</span>
+                        <span class="text-[10px] text-yellow-600 uppercase tracking-wider leading-tight block">Admin Panel</span>
                     </div>
                 </a>
                 @auth
@@ -61,13 +56,13 @@
             </div>
 
             <nav class="p-3 space-y-1 overflow-y-auto h-[calc(100vh-4rem)]">
-                <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Main</div>
+                <div class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Main</div>
                 <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                     Dashboard
                 </a>
 
-                <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mt-4">Build 1</div>
+                <div class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4">Build 1</div>
                 <a href="{{ route('admin.packages.index') }}" class="sidebar-link {{ request()->routeIs('admin.packages.*') ? 'active' : '' }}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     Service Packages
@@ -77,7 +72,7 @@
                     Care Plans
                 </a>
 
-                <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mt-4">Build 2</div>
+                <div class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4">Build 2</div>
                 <a href="{{ route('admin.enquiries.index') }}" class="sidebar-link {{ request()->routeIs('admin.enquiries.*') ? 'active' : '' }}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                     Enquiries
@@ -87,7 +82,7 @@
                     Pipeline
                 </a>
 
-                <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mt-4">Build 3</div>
+                <div class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4">Build 3</div>
                 <a href="{{ route('admin.websites.index') }}" class="sidebar-link {{ request()->routeIs('admin.websites.*') ? 'active' : '' }}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
                     Websites
@@ -104,22 +99,40 @@
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                     Scanner Checks
                 </a>
-
-                <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mt-4">Content</div>
-                <a href="{{ route('admin.hero-slides.index') }}" class="sidebar-link {{ request()->routeIs('admin.hero-slides.*') ? 'active' : '' }}">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    Hero Slides
+                <a href="{{ route('admin.discovery.index') }}" class="sidebar-link {{ request()->routeIs('admin.discovery.index', 'admin.discovery.store') ? 'active' : '' }}">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                    Website Discovery
+                </a>
+                <a href="{{ route('admin.discovery.leads') }}" class="sidebar-link {{ request()->routeIs('admin.discovery.leads*') ? 'active' : '' }}">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    No-Website Leads
+                </a>
+                <a href="{{ route('admin.scraped-businesses.index') }}" class="sidebar-link {{ request()->routeIs('admin.scraped-businesses.*') ? 'active' : '' }}">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 1.1.9 2 2 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H6a2 2 0 00-2 2z"/></svg>
+                    Scraper
+                </a>
+                <a href="{{ route('admin.scrape-targets.index') }}" class="sidebar-link {{ request()->routeIs('admin.scrape-targets.*') ? 'active' : '' }}">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Auto-Scraper Queue
                 </a>
 
-                <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mt-4">Reports</div>
+                <div class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4">Reports</div>
                 <a href="{{ route('admin.reports.index') }}" class="sidebar-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     Reports
                 </a>
+                <a href="{{ route('admin.payments.index') }}" class="sidebar-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    Payments
+                </a>
+                <a href="{{ route('admin.invoices.index') }}" class="sidebar-link {{ request()->routeIs('admin.invoices.*') ? 'active' : '' }}">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                    Invoices
+                </a>
             </nav>
         </aside>            <div class="flex-1 lg:ml-64">
 
-                <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-40">
+                <header class="admin-topbar h-16 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-40">
                 <div class="flex items-center gap-3">
                     <button id="sidebar-toggle" class="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -134,7 +147,7 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                         View Site
                     </a>
-                    <div class="w-8 h-8 bg-yellow-600 rounded-full flex items-center justify-center text-black text-sm font-semibold">
+                    <div class="w-8 h-8 bg-yellow-600 rounded-full flex items-center justify-center text-black text-sm font-bold ring-2 ring-yellow-200">
                         {{ substr(auth()->user()->name ?? 'A', 0, 1) }}
                     </div>
                 </div>
@@ -148,7 +161,7 @@
                     </div>
                 @endif
                 @if(session('error'))
-                    <div class="mb-6 bg-black border-l-4 border-gray-600 rounded-lg p-4 flex items-center gap-3">
+                    <div class="mb-6 bg-black border-l-4 border-yellow-600 rounded-lg p-4 flex items-center gap-3">
                         <svg class="w-5 h-5 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
                         <div>
                             <p class="text-white font-medium text-sm">{{ session('error') }}</p>

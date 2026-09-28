@@ -50,6 +50,7 @@
             </div>
             <div class="space-y-3">
                 @forelse($website->scans as $scan)
+                    @php $change = $scan->scoreChange(); @endphp
                     <a href="{{ route('admin.scans.show', $scan) }}"
                         class="flex items-center gap-4 p-4 rounded-lg border border-gray-100 hover:border-yellow-200 hover:bg-yellow-50/50 transition">
                         <div class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg
@@ -61,6 +62,11 @@
                                 <span class="badge {{ $scan->score >= 80 ? 'badge-success' : ($scan->score >= 60 ? 'badge-info' : ($scan->score >= 40 ? 'badge-warning' : 'badge-danger')) }}">
                                     {{ $scan->band }}
                                 </span>
+                                @if($change !== null)
+                                    <span class="text-xs font-semibold {{ $change > 0 ? 'text-green-600' : ($change < 0 ? 'text-red-600' : 'text-gray-400') }}">
+                                        {{ $change > 0 ? '+' . $change : $change }}
+                                    </span>
+                                @endif
                                 <span class="text-xs text-gray-500">{{ $scan->started_at?->format('d M Y H:i') ?? $scan->created_at->format('d M Y H:i') }}</span>
                             </div>
                             <div class="text-sm text-gray-600 mt-1">

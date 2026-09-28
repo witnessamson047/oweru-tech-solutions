@@ -1,12 +1,24 @@
 <?php
 
+/*
+ * Resolve the sqlite database path. DB_DATABASE is shared across drivers, and
+ * in this project it usually holds a MySQL-style name (oweru_tech_solutions).
+ * Feeding that to the sqlite driver makes PDO silently create an empty
+ * throwaway database next to the project. Fall back to the real local file
+ * unless the value looks like a usable sqlite path (:memory: or *.sqlite).
+ */
+$sqliteDatabase = env('DB_DATABASE', database_path('database.sqlite'));
+if ($sqliteDatabase !== ':memory:' && ! str_contains((string) $sqliteDatabase, '.sqlite')) {
+    $sqliteDatabase = database_path('database.sqlite');
+}
+
 return [
     'default' => env('DB_CONNECTION', 'mysql'),
     'connections' => [
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),
-            'database' => env('DB_DATABASE', database_path('database.sqlite')),
+            'database' => $sqliteDatabase,
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
             'failerToCreate' => true,

@@ -5,8 +5,11 @@
 @section('content')
 
 {{-- Hero --}}
-<section class="bg-black text-white py-16 lg:py-20">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+<section class="relative bg-black text-white py-16 lg:py-20 overflow-hidden">
+    <img src="{{ asset('images/hero/scanner-analytics.jpg') }}" alt="Website performance report with charts on a laptop screen"
+        class="absolute inset-0 h-full w-full object-cover" loading="eager" />
+    <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/75 to-black"></div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative text-on-photo">
         <div class="inline-flex items-center gap-2 bg-yellow-500/20 border border-yellow-500/30 rounded-full px-4 py-1.5 text-sm font-medium text-yellow-300 mb-6">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
             Free Website Health Check
@@ -14,7 +17,7 @@
         <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4">
             How Healthy Is Your Website?
         </h1>
-        <p class="text-gray-300 text-lg max-w-2xl mx-auto mb-8">
+        <p class="text-gray-200 text-lg max-w-2xl mx-auto mb-8">
             Our scanner checks your website's security, mobile experience, speed, and more.
             Get a score out of 100 and discover what's holding your site back.
         </p>
@@ -22,17 +25,20 @@
         {{-- Scanner Input --}}
         <form id="scanner-form" class="max-w-xl mx-auto">
             <div class="flex gap-2">
-                <input type="url" id="scanner-url" name="url"
+                {{-- type="text" + inputmode="url" on purpose: the browser's URL
+                     field rejects human input like "yourbusiness.co.tz" (no https://).
+                     The server accepts both forms, so visitors can type either. --}}
+                <input type="text" id="scanner-url" name="url" inputmode="url" autocomplete="url"
                     class="scanner-input flex-1"
-                    placeholder="https://yourbusiness.co.tz"
+                    placeholder="yourbusiness.co.tz"
                     required>
                 <button type="submit" id="scan-btn" class="btn-accent text-base px-6 py-3 whitespace-nowrap">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     Scan Website
                 </button>
             </div>
-            <p class="text-xs text-gray-400 mt-2">We only scan publicly accessible pages. No login or private data is accessed.</p>
-            <div class="flex flex-wrap items-center justify-center gap-4 mt-3 text-[11px] text-gray-500">
+            <p class="text-xs text-gray-300 mt-2">We only scan publicly accessible pages. No login or private data is accessed.</p>
+            <div class="flex flex-wrap items-center justify-center gap-4 mt-3 text-[11px] text-gray-300">
                 <span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg> No signup required</span>
                 <span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Results in about 60 seconds</span>
                 <span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg> 23 checks across 8 areas</span>

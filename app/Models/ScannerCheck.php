@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ScannerCheck extends Model
 {
@@ -19,6 +20,11 @@ class ScannerCheck extends Model
         'Security', 'Mobile', 'Speed', 'Function',
         'Findability', 'Trust', 'Commerce', 'Freshness',
     ];
+
+    public function results(): HasMany
+    {
+        return $this->hasMany(ScanResult::class, 'check_id');
+    }
 
     public function scopeEnabled($query)
     {
