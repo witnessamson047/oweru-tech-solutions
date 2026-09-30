@@ -41,11 +41,14 @@ class NotificationService
     public function newEnquiry(Enquiry $enquiry): void
     {
         $package = $enquiry->package_name ?? 'general';
-        $subject = "New enquiry: {$enquiry->business_name} ({$package})";
+        // Contact-form leads may have no business name yet — fall back to the sender's name.
+        $business = $enquiry->business_name ?: $enquiry->name;
+        $subject = "New enquiry: {$business} ({$package})";
         $message = sprintf(
-            "%s from %s submitted an enquiry.\n\nService/Package: %s\nBudget: %s\nRequired date: %s\nProblem: %s\n\nOpen the admin dashboard to qualify this lead.",
+            "%s from %s submitted an enquiry via %s.\n\nService/Package: %s\nBudget: %s\nRequired date: %s\nProblem: %s\n\nOpen the admin dashboard to qualify this lead.",
             $enquiry->name,
-            $enquiry->business_name,
+            $business,
+            $enquiry->source ?? 'website',
             $enquiry->package_name ?? '-',
             $enquiry->budget_range ?? '-',
             $enquiry->required_date ?? '-',

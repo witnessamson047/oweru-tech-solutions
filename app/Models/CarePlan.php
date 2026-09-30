@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class CarePlan extends Model
 {
     protected $fillable = [
-        'name', 'slug', 'description',
+        'name', 'slug', 'description', 'features',
         'price_tzs', 'price_usd',
         'is_featured', 'active',
     ];
@@ -15,6 +15,7 @@ class CarePlan extends Model
     protected $casts = [
         'price_tzs' => 'decimal:2',
         'price_usd' => 'decimal:2',
+        'features' => 'array',
         'is_featured' => 'boolean',
         'active' => 'boolean',
     ];

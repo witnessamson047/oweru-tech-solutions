@@ -15,6 +15,9 @@ $app = Application::configure(basePath: dirname(__DIR__))
         // Enable database connection fallback for all web requests
         $middleware->append(\App\Http\Middleware\EnsureDatabaseConnection::class);
 
+        // Apply the visitor's chosen language (session) to every web request
+        $middleware->append(\App\Http\Middleware\SetLocale::class);
+
         // Role-based aliases
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureAdmin::class,

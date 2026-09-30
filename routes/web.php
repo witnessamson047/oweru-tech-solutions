@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Config;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\EnquiryController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ScannerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PackageController as AdminPackageController;
@@ -43,6 +44,16 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// Language switcher — stores the choice in the session, then returns the visitor
+// to the page they were on (or home). Supported locales: en, sw.
+Route::get('/lang/{locale}', function (string $locale) {
+    if (in_array($locale, ['en', 'sw'], true)) {
+        session(['locale' => $locale]);
+    }
+
+    return redirect()->back();
+})->name('locale.switch');
+
 // Debug routes for troubleshooting
 Route::get('/debug/db', function () {
     try {
@@ -76,6 +87,15 @@ Route::get('/services/{package:slug}', [PackageController::class, 'show'])->name
 // Build 2 - Enquiry Form
 Route::get('/enquiry', [EnquiryController::class, 'create'])->name('enquiry.create');
 Route::post('/enquiry', [EnquiryController::class, 'store'])->name('enquiry.store');
+
+// Static content pages
+Route::get('/about', fn () => view('pages.about'))->name('about');
+Route::get('/projects', fn () => view('pages.projects'))->name('projects.index');
+Route::get('/faq', fn () => view('pages.faq'))->name('faq.index');
+
+// Light contact form (stored as enquiries with source=contact)
+Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 
 // Build 3 - Public Scanner
 Route::get('/website-check', [ScannerController::class, 'index'])->name('scanner.index');
