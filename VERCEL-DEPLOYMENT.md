@@ -124,6 +124,38 @@ be, on Vercel): `/payment/callback` and `/payment/ipn`.
   still delivered — attached to the e-mail at generation time.
 - **Sessions are cookie-based** on Vercel — admin login works, but always
   use HTTPS (Vercel gives you this by default).
-- **The scanner check lives elsewhere**: run start.bat locally, or host the
-  Flask engine on a VPS/Railway and point `SCANNER_SERVICE_URL` at it.
+- **The scanner engine lives elsewhere** (see section 6 below).
 - To deploy: `git push` (auto-deploys) or `vercel` from the project folder.
+
+## 6. Hosting the Python scanner engine (Fly.io or Render)
+
+The Flask engine (`scanner/`) cannot run on Vercel. It is a long-running
+service that needs an always-on container — a `scanner/Dockerfile` is
+included, so **both** platforms below work with zero code changes. Either
+host it now, or leave `SCANNER_SERVICE_URL` empty and use start.bat locally
+until you're ready.
+
+**Option A — Fly.io (cheapest, from inside the scanner folder):**
+```
+cd scanner
+fly launch          # picks up fly.toml (region jnb = Johannesburg)
+fly secrets set SCANNER_API_KEY=<generate-a-long-random-string>
+```
+URL: `https://oweru-scanner-engine.fly.dev` — that is your `SCANNER_SERVICE_URL`.
+
+**Option B — Render (simplest):**
+Render Dashboard → New → **Blueprint** → pick this repo → Apply. The included
+`render.yaml` builds `scanner/Dockerfile` with a `/health` health check and
+generates `SCANNER_API_KEY` for you (copy it into Vercel afterwards).
+
+**Then connect the two halves** (Vercel env vars + redeploy):
+```
+SCANNER_SERVICE_URL=https://<engine-url>
+SCANNER_API_KEY=<the same secret on BOTH services>
+```
+Verify: `curl https://<engine-url>/health` → `{"status":"ok",...}` then run a
+scan on the public scanner page.
+
+Playwright (headless-Chromium SPA rendering) is opt-in: `--build-arg
+INSTALL_PLAYWRIGHT=1` / the INSTALL_PLAYWRIGHT build arg — adds ~500MB to the
+image. Without it, SPA sites still scan but may report weaker findings.

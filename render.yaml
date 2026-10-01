@@ -1,0 +1,17 @@
+# Render Blueprint for the scanner engine (repo root file).
+# Deploy: Render Dashboard → New → Blueprint → pick this repo → Apply.
+# It creates ONE web service built from scanner/Dockerfile.
+services:
+  - type: web
+    name: oweru-scanner-engine
+    runtime: docker
+    dockerfilePath: ./scanner/Dockerfile
+    dockerContext: ./scanner
+    plan: starter
+    region: frankfurt # EU region; pick the closest to your users
+    healthCheckPath: /health
+    envVars:
+      - key: SCANNER_API_KEY
+        generateValue: true # copy this value into Vercel afterwards
+      - key: SCANNER_PORT
+        value: "5000"

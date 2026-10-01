@@ -1,0 +1,7 @@
+# Engine dependencies. Flask serves the API; gunicorn is the production
+# server (replaces Flask's dev server in containers). python-dateutil is
+# used by scanner.py for content-freshness checks.
+flask>=3.0
+requests>=2.31
+python-dateutil>=2.8
+gunicorn>=21.2

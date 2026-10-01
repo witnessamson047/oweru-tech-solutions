@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+excluded_sites.txt
+Dockerfile
+.dockerignore
