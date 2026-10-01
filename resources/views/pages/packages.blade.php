@@ -49,12 +49,12 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                     @forelse($groupPackages as $package)
                         @php $meta = $packageImages[$package->slug] ?? $defaultPackageImage; @endphp
-                        <article class="relative flex flex-col bg-white rounded-2xl border overflow-hidden transition-shadow hover:shadow-lg {{ $package->is_featured ? 'border-yellow-500 shadow-md' : 'border-gray-200' }}">
+                        <article class="card-hover group relative flex flex-col bg-white rounded-2xl border overflow-hidden {{ $package->is_featured ? 'border-yellow-500 shadow-md' : 'border-gray-200' }}">
                             @if($package->is_featured)
                                 <span class="absolute top-4 right-4 bg-yellow-100 text-yellow-900 text-[11px] font-semibold px-2.5 py-1 rounded-full">{{ __('packages.packages.recommended') }}</span>
                             @endif
 
-                            <img src="{{ asset($meta['image']) }}" alt="{{ $meta['alt'] }}" class="w-full h-40 object-cover" loading="lazy">
+                            <img src="{{ asset($meta['image']) }}" alt="{{ $meta['alt'] }}" class="w-full h-40 object-cover transition-transform duration-500 group-hover:scale-[1.04]" loading="lazy">
 
                             <div class="flex flex-col flex-1 p-6">
                                 <h3 class="text-base font-semibold text-gray-900">{{ $package->name }}</h3>
@@ -87,12 +87,12 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                     @foreach($uncategorised as $package)
                         @php $meta = $packageImages[$package->slug] ?? $defaultPackageImage; @endphp
-                        <article class="relative flex flex-col bg-white rounded-2xl border overflow-hidden transition-shadow hover:shadow-lg {{ $package->is_featured ? 'border-yellow-500 shadow-md' : 'border-gray-200' }}">
+                        <article class="card-hover group relative flex flex-col bg-white rounded-2xl border overflow-hidden {{ $package->is_featured ? 'border-yellow-500 shadow-md' : 'border-gray-200' }}">
                             @if($package->is_featured)
                                 <span class="absolute top-4 right-4 bg-yellow-100 text-yellow-900 text-[11px] font-semibold px-2.5 py-1 rounded-full">{{ __('packages.packages.recommended') }}</span>
                             @endif
 
-                            <img src="{{ asset($meta['image']) }}" alt="{{ $meta['alt'] }}" class="w-full h-40 object-cover" loading="lazy">
+                            <img src="{{ asset($meta['image']) }}" alt="{{ $meta['alt'] }}" class="w-full h-40 object-cover transition-transform duration-500 group-hover:scale-[1.04]" loading="lazy">
 
                             <div class="flex flex-col flex-1 p-6">
                                 <h3 class="text-base font-semibold text-gray-900">{{ $package->name }}</h3>
@@ -125,7 +125,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 @forelse($carePlans as $plan)
                     @php $isFeatured = $plan->is_featured; @endphp
-                    <article class="relative flex flex-col bg-white rounded-2xl border overflow-hidden transition-shadow hover:shadow-lg {{ $isFeatured ? 'border-yellow-500 shadow-md' : 'border-gray-200' }}">
+                    <article class="card-hover group relative flex flex-col bg-white rounded-2xl border overflow-hidden {{ $isFeatured ? 'border-yellow-500 shadow-md' : 'border-gray-200' }}">
                         @if($isFeatured)
                             <span class="absolute top-4 right-4 bg-yellow-100 text-yellow-900 text-[11px] font-semibold px-2.5 py-1 rounded-full">{{ __('packages.care.best_value') }}</span>
                         @endif
