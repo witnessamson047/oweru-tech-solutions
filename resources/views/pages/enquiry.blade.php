@@ -23,12 +23,6 @@
         <form id="enquiry-form" action="{{ route('enquiry.store') }}" method="POST" class="card">
             @csrf
 
-            {{-- Hidden package field --}}
-            @if($selectedPackage)
-                <input type="hidden" name="package_id" value="{{ $selectedPackage->id }}">
-                <input type="hidden" name="package_name" value="{{ $selectedPackage->name }}">
-            @endif
-
             <div class="space-y-6">
 
                 {{-- Contact Information --}}
@@ -95,7 +89,7 @@
                                 @foreach($allPackages as $group => $groupPackages)
                                     <optgroup label="{{ ucfirst($group) }}">
                                         @foreach($groupPackages as $pkg)
-                                            <option value="{{ $pkg->id }}" {{ old('package_id', request('package')) == $pkg->slug ? 'selected' : '' }}>
+                                            <option value="{{ $pkg->id }}" {{ old('package_id', $selectedPackage?->id) == $pkg->id ? 'selected' : '' }}>
                                                 {{ $pkg->name }} - TZS {{ number_format($pkg->price_tzs) }}
                                             </option>
                                         @endforeach
@@ -113,20 +107,6 @@
                             @error('problem_description') <p class="text-black text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
 
-                        {{-- Current Cost / Impact --}}
-                        <div>
-                            <label for="current_cost" class="block text-sm font-medium text-gray-700 mb-1">Current cost or impact of this problem</label>
-                            <input type="text" name="current_cost" id="current_cost" value="{{ old('current_cost') }}"
-                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm"
-                                placeholder="e.g., Losing ~50 customers/month, TZS 2M/year in manual work">
-                        </div>
-
-                        {{-- Required Date --}}
-                        <div>
-                            <label for="required_date" class="block text-sm font-medium text-gray-700 mb-1">When do you need this completed?</label>
-                            <input type="date" name="required_date" id="required_date" value="{{ old('required_date') }}"
-                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm">
-                        </div>
                     </div>
                 </div>
 
@@ -158,8 +138,7 @@
                     <input type="checkbox" name="consent" id="consent" required
                         class="mt-1 h-4 w-4 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500">
                     <label for="consent" class="text-sm text-gray-600">
-                        I agree to Oweru International Ltd processing my data for the purpose of this enquiry.
-                        I have read and agree to the <a href="#" class="text-yellow-600 hover:underline">Privacy Policy</a>.
+                        I agree to Oweru International Ltd using my information to respond to this enquiry.
                     </label>
                 </div>
                 @error('consent') <p class="text-black text-xs mt-1 ml-7">{{ $message }}</p> @enderror

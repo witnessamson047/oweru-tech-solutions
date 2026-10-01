@@ -9,6 +9,7 @@ use App\Http\Controllers\EnquiryController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ScannerController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Admin\PackageController as AdminPackageController;
 use App\Http\Controllers\Admin\CarePlanController;
 use App\Http\Controllers\Admin\EnquiryController as AdminEnquiryController;
@@ -25,6 +26,7 @@ use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\AccessRequestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +36,8 @@ use App\Http\Controllers\Auth\LoginController;
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
+Route::get('/register', [AccessRequestController::class, 'create'])->name('register');
+Route::post('/register', [AccessRequestController::class, 'store'])->middleware('throttle:5,1')->name('register.store');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 /*
@@ -122,6 +126,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('account/password', [AccountController::class, 'edit'])->name('account.password');
+    Route::patch('account/password', [AccountController::class, 'update'])->name('account.password.update');
 
     // Build 1 - Service Packages Management
     Route::resource('packages', AdminPackageController::class);

@@ -192,15 +192,10 @@ h1, h2, h3, h4, h5, h6 {
     position: relative;
 }
 
-/* Shared hover treatment for marketing cards (home, packages, …):
-   lift + gold hairline + soft shadow, on the gold/black/white palette */
-.card-hover {
-    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-}
-.card-hover:hover {
-    transform: translateY(-4px);
+/* Common gold border for marketing cards — no hover motion. One shared
+   accent color makes every card read as part of the same family. */
+.card-accent {
     border-color: var(--gold);
-    box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.18);
 }
 
 /* Soft gold pill used for section eyebrows and small badges */
@@ -353,12 +348,9 @@ h1, h2, h3, h4, h5, h6 {
     background-clip: text;
 }
 
-/* Pricing Card Enhancements */
+/* Pricing Card — bordered like every other card (no motion effects) */
 .pricing-card {
-    transition: all 0.3s ease;
-}
-.pricing-card:hover {
-    transform: translateY(-4px);
+    border: 1px solid var(--gold);
 }
 
 /* Table Styles — the ONE admin table recipe: black header + gold rule.

@@ -4,116 +4,452 @@
 
 @section('content')
 
-{{-- Page header --}}
-<section class="bg-gray-50 border-b border-gray-100">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 text-center">
-        <span class="badge-gold mb-4">{{ __('about.header.badge') }}</span>
-        <h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900">{{ __('about.header.title') }}</h1>
-        <p class="mt-4 text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">{{ __('about.header.lead') }}</p>
+<section class="about-hero">
+    <div class="about-hero-inner">
+        <div class="about-hero-copy">
+            <span class="about-kicker">{{ __('about.header.badge') }}</span>
+            <h1>{{ __('about.header.title') }}</h1>
+            <p>{{ __('about.header.lead') }}</p>
+        </div>
+        <figure class="about-hero-image">
+            <img src="{{ asset('images/hero/team-collaboration.jpg') }}" alt="The Oweru team collaborating around a table" fetchpriority="high">
+            <figcaption>Oweru International Ltd</figcaption>
+        </figure>
     </div>
 </section>
 
-{{-- Our story --}}
-<section class="py-16 sm:py-20 bg-white">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+<section class="about-story">
+    <div class="about-content-width about-story-layout">
+        <div class="about-story-heading">
+            <span class="about-section-number">01 / {{ __('about.story.badge') }}</span>
+            <h2>{{ __('about.story.title') }}</h2>
+        </div>
+        <div class="about-story-copy">
+            <p>{{ __('about.story.p1') }}</p>
+            <p>{{ __('about.story.p2') }}</p>
+            <p>{{ __('about.story.p3') }}</p>
+        </div>
+    </div>
+</section>
+
+<section class="about-pillars">
+    <div class="about-content-width about-pillars-grid">
+        <article class="about-pillar">
+            <span class="about-section-number">02 / Mission</span>
+            <h2>{{ __('about.mission.title') }}</h2>
+            <p>{{ __('about.mission.text') }}</p>
+        </article>
+        <article class="about-pillar">
+            <span class="about-section-number">03 / Vision</span>
+            <h2>{{ __('about.mission.vision_title') }}</h2>
+            <p>{{ __('about.mission.vision_text') }}</p>
+        </article>
+    </div>
+</section>
+
+<section class="about-values">
+    <div class="about-content-width">
+        <div class="about-values-heading">
             <div>
-                <span class="badge-gold mb-4">{{ __('about.story.badge') }}</span>
-                <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">{{ __('about.story.title') }}</h2>
-                <div class="mt-5 space-y-4 text-sm sm:text-base text-gray-600 leading-relaxed">
-                    <p>{{ __('about.story.p1') }}</p>
-                    <p>{{ __('about.story.p2') }}</p>
-                    <p>{{ __('about.story.p3') }}</p>
-                </div>
-            </div>
-            <div class="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
-                <img src="{{ asset('images/hero/team-collaboration.jpg') }}" alt="The Oweru team collaborating around a table" class="w-full h-64 sm:h-80 object-cover" loading="lazy">
+                <span class="about-section-number">04 / {{ __('about.values.badge') }}</span>
+                <h2>{{ __('about.values.title') }}</h2>
             </div>
         </div>
-    </div>
-</section>
-
-{{-- Mission & Vision --}}
-<section class="py-16 sm:py-20 bg-gray-50 border-y border-gray-100">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white rounded-2xl border border-gray-200 p-8">
-                <span class="w-11 h-11 rounded-xl bg-yellow-50 text-yellow-700 flex items-center justify-center mb-5">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                </span>
-                <h2 class="text-xl font-semibold text-gray-900">{{ __('about.mission.title') }}</h2>
-                <p class="mt-3 text-sm sm:text-base text-gray-600 leading-relaxed">{{ __('about.mission.text') }}</p>
-            </div>
-            <div class="bg-white rounded-2xl border border-gray-200 p-8">
-                <span class="w-11 h-11 rounded-xl bg-yellow-50 text-yellow-700 flex items-center justify-center mb-5">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                </span>
-                <h2 class="text-xl font-semibold text-gray-900">{{ __('about.mission.vision_title') }}</h2>
-                <p class="mt-3 text-sm sm:text-base text-gray-600 leading-relaxed">{{ __('about.mission.vision_text') }}</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-{{-- Values --}}
-<section class="py-16 sm:py-20 bg-white">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="max-w-2xl mx-auto text-center mb-12">
-            <span class="badge-gold mb-4">{{ __('about.values.badge') }}</span>
-            <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">{{ __('about.values.title') }}</h2>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="about-values-grid">
             @foreach([
-                ['title' => __('about.values.honesty.title'), 'desc' => __('about.values.honesty.desc'), 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
-                ['title' => __('about.values.clarity.title'), 'desc' => __('about.values.clarity.desc'), 'icon' => 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z'],
-                ['title' => __('about.values.pricing.title'), 'desc' => __('about.values.pricing.desc'), 'icon' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
-                ['title' => __('about.values.partnership.title'), 'desc' => __('about.values.partnership.desc'), 'icon' => 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z'],
+                ['title' => __('about.values.honesty.title'), 'desc' => __('about.values.honesty.desc')],
+                ['title' => __('about.values.clarity.title'), 'desc' => __('about.values.clarity.desc')],
+                ['title' => __('about.values.pricing.title'), 'desc' => __('about.values.pricing.desc')],
+                ['title' => __('about.values.partnership.title'), 'desc' => __('about.values.partnership.desc')],
             ] as $value)
-                <div class="bg-white rounded-2xl border border-gray-200 p-6">
-                    <span class="w-10 h-10 rounded-lg bg-yellow-50 text-yellow-700 flex items-center justify-center mb-4">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="{{ $value['icon'] }}"/></svg>
-                    </span>
-                    <h3 class="text-base font-semibold text-gray-900">{{ $value['title'] }}</h3>
-                    <p class="mt-2 text-sm text-gray-600 leading-relaxed">{{ $value['desc'] }}</p>
-                </div>
+                <article class="about-value">
+                    <h3>{{ $value['title'] }}</h3>
+                    <p>{{ $value['desc'] }}</p>
+                </article>
             @endforeach
         </div>
     </div>
 </section>
 
-{{-- Why choose us — mirror of the homepage stats, expanded --}}
-<section class="py-16 sm:py-20 bg-gray-950">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="max-w-2xl mb-12">
-            <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold text-yellow-400 mb-4">{{ __('about.why.badge') }}</span>
-            <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">{{ __('about.why.title') }}</h2>
+<section class="about-cta">
+    <div class="about-content-width about-cta-inner">
+        <div>
+            <span class="about-section-number">Oweru / Let's work together</span>
+            <h2>{{ __('about.cta.title') }}</h2>
+            <p>{{ __('about.cta.lead') }}</p>
         </div>
-        <dl class="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-            @foreach([
-                ['value' => '100+', 'label' => __('home.stats.projects')],
-                ['value' => '50+', 'label' => __('home.stats.businesses')],
-                ['value' => '99.9%', 'label' => __('home.stats.uptime')],
-                ['value' => '24/7', 'label' => __('home.stats.support_year')],
-            ] as $stat)
-                <div>
-                    <dd class="text-3xl sm:text-4xl font-bold text-white">{{ $stat['value'] }}</dd>
-                    <dt class="mt-1 text-sm text-gray-400">{{ $stat['label'] }}</dt>
-                </div>
-            @endforeach
-        </dl>
+        <div class="about-cta-actions">
+            <a href="{{ route('scanner.index') }}" class="about-button about-button-primary">{{ __('about.cta.run_check') }}</a>
+            <a href="{{ route('contact.create') }}" class="about-button about-button-outline">{{ __('about.cta.contact') }}</a>
+        </div>
     </div>
 </section>
 
-{{-- CTA --}}
-<section class="py-16 sm:py-20 bg-white">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">{{ __('about.cta.title') }}</h2>
-        <p class="mt-4 text-sm sm:text-base text-gray-600">{{ __('about.cta.lead') }}</p>
-        <div class="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-            <a href="{{ route('scanner.index') }}" class="btn-accent text-base px-6 py-3.5">{{ __('about.cta.run_check') }}</a>
-            <a href="{{ route('contact.create') }}" class="btn-secondary text-base px-6 py-3.5">{{ __('about.cta.contact') }}</a>
-        </div>
-    </div>
-</section>
+<style>
+    .about-content-width,
+    .about-hero-inner {
+        width: min(1120px, calc(100% - 40px));
+        margin: 0 auto;
+    }
+
+    .about-hero {
+        background: #17372f;
+        color: #fff;
+    }
+
+    .about-hero-inner {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
+        align-items: center;
+        gap: 64px;
+        padding: 48px 0;
+    }
+
+    .about-kicker,
+    .about-section-number {
+        color: #b98732;
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    .about-kicker {
+        color: #e7c15d;
+    }
+
+    .about-hero-copy h1 {
+        max-width: 580px;
+        margin: 16px 0 0;
+        color: #fff;
+        font-size: 48px;
+        font-weight: 750;
+        line-height: 1.06;
+    }
+
+    .about-hero-copy p {
+        max-width: 500px;
+        margin: 18px 0 0;
+        color: #d0ddd7;
+        font-size: 1rem;
+        line-height: 1.7;
+    }
+
+    .about-hero-image {
+        position: relative;
+        aspect-ratio: 1.3 / 1;
+        margin: 0;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 5px;
+        background: #29483e;
+    }
+
+    .about-hero-image img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
+
+    .about-hero-image figcaption {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        border: 1px solid rgba(255,255,255,0.32);
+        border-radius: 3px;
+        background: rgba(15, 33, 28, 0.86);
+        padding: 7px 10px;
+        color: #fff;
+        font-size: 0.68rem;
+    }
+
+    .about-story {
+        padding: 56px 0;
+        background: #fff;
+    }
+
+    .about-story-layout {
+        display: grid;
+        grid-template-columns: 0.7fr 1.3fr;
+        gap: 70px;
+    }
+
+    .about-story-heading h2,
+    .about-values-heading h2 {
+        margin: 10px 0 0;
+        color: #1b3028;
+        font-size: 30px;
+        font-weight: 750;
+        line-height: 1.18;
+    }
+
+    .about-story-copy {
+        display: grid;
+        gap: 13px;
+        color: #5e6b64;
+        font-size: 0.94rem;
+        line-height: 1.75;
+    }
+
+    .about-story-copy p {
+        margin: 0;
+    }
+
+    .about-pillars {
+        border-top: 1px solid #e0e6e0;
+        border-bottom: 1px solid #e0e6e0;
+        background: #f3f5f1;
+    }
+
+    .about-pillars-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .about-pillar {
+        padding: 34px 42px 38px 0;
+    }
+
+    .about-pillar + .about-pillar {
+        border-left: 1px solid #d8dfd8;
+        padding-right: 0;
+        padding-left: 42px;
+    }
+
+    .about-pillar h2 {
+        margin: 10px 0 0;
+        color: #20372e;
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .about-pillar p {
+        max-width: 470px;
+        margin: 10px 0 0;
+        color: #627068;
+        font-size: 0.88rem;
+        line-height: 1.7;
+    }
+
+    .about-values {
+        padding: 56px 0 62px;
+        background: #fff;
+    }
+
+    .about-values-heading {
+        margin-bottom: 24px;
+    }
+
+    .about-values-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        border-top: 1px solid #dce3dc;
+    }
+
+    .about-value {
+        padding: 18px 18px 0 0;
+    }
+
+    .about-value + .about-value {
+        border-left: 1px solid #e1e6e1;
+        padding-left: 18px;
+    }
+
+    .about-value h3 {
+        margin: 0;
+        color: #263b32;
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    .about-value p {
+        margin: 8px 0 0;
+        color: #69756e;
+        font-size: 0.8rem;
+        line-height: 1.6;
+    }
+
+    .about-cta {
+        background: #17372f;
+        color: #fff;
+    }
+
+    .about-cta-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 36px;
+        padding: 38px 0;
+    }
+
+    .about-cta .about-section-number {
+        color: #e7c15d;
+    }
+
+    .about-cta h2 {
+        margin: 8px 0 0;
+        color: #fff;
+        font-size: 26px;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .about-cta p {
+        max-width: 600px;
+        margin: 10px 0 0;
+        color: #d0ddd7;
+        font-size: 0.84rem;
+        line-height: 1.6;
+    }
+
+    .about-cta-actions {
+        display: flex;
+        flex: 0 0 auto;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .about-button {
+        display: inline-flex;
+        min-height: 42px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        padding: 10px 14px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .about-button-primary {
+        background: #e8bd50;
+        color: #17251f;
+    }
+
+    .about-button-primary:hover {
+        background: #f1ce70;
+    }
+
+    .about-button-outline {
+        border-color: rgba(255,255,255,0.45);
+        color: #fff;
+    }
+
+    .about-button-outline:hover {
+        border-color: #fff;
+        background: rgba(255,255,255,0.08);
+    }
+
+    @media (max-width: 800px) {
+        .about-hero-inner {
+            gap: 30px;
+        }
+
+        .about-hero-copy h1 {
+            font-size: 38px;
+        }
+
+        .about-story-layout {
+            gap: 36px;
+        }
+
+        .about-values-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            row-gap: 22px;
+        }
+
+        .about-value:nth-child(3) {
+            border-left: 0;
+            padding-left: 0;
+        }
+
+        .about-cta-inner {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 18px;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .about-content-width,
+        .about-hero-inner {
+            width: min(100% - 32px, 1120px);
+        }
+
+        .about-hero-inner {
+            grid-template-columns: 1fr;
+            gap: 22px;
+            padding: 34px 0 30px;
+        }
+
+        .about-hero-copy h1 {
+            font-size: 34px;
+        }
+
+        .about-hero-image {
+            aspect-ratio: 1.4 / 1;
+        }
+
+        .about-story {
+            padding: 38px 0;
+        }
+
+        .about-story-layout {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .about-story-heading h2,
+        .about-values-heading h2 {
+            font-size: 26px;
+        }
+
+        .about-pillars-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .about-pillar,
+        .about-pillar + .about-pillar {
+            padding: 24px 0;
+        }
+
+        .about-pillar + .about-pillar {
+            border-top: 1px solid #d8dfd8;
+            border-left: 0;
+        }
+
+        .about-values {
+            padding: 40px 0;
+        }
+
+        .about-values-grid {
+            grid-template-columns: 1fr;
+            row-gap: 0;
+        }
+
+        .about-value,
+        .about-value + .about-value,
+        .about-value:nth-child(3) {
+            border-left: 0;
+            border-bottom: 1px solid #e1e6e1;
+            padding: 15px 0;
+        }
+
+        .about-cta-inner {
+            padding: 32px 0;
+        }
+
+        .about-cta-actions {
+            width: 100%;
+        }
+
+        .about-button {
+            flex: 1;
+        }
+    }
+</style>
 
 @endsection

@@ -34,7 +34,8 @@
 
     <div class="flex min-h-screen">
 
-        <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-black transform -translate-x-full lg:translate-x-0 transition-transform">
+        <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-black/50 opacity-0 pointer-events-none transition-opacity lg:hidden" aria-hidden="true"></div>
+        <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-[min(16rem,85vw)] bg-black transform -translate-x-full lg:translate-x-0 transition-transform">
             <div class="h-16 flex items-center px-5 border-b border-white/10">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2">
                     <div class="w-9 h-9 bg-yellow-600 rounded-lg flex items-center justify-center">
@@ -134,18 +135,22 @@
 
                 <header class="admin-topbar h-16 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-40">
                 <div class="flex items-center gap-3">
-                    <button id="sidebar-toggle" class="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100">
+                    <button id="sidebar-toggle" type="button" aria-controls="admin-sidebar" aria-expanded="false" class="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                     </button>
-                    <div>
-                        <h1 class="text-lg font-semibold text-gray-900">@yield('page-title', 'Dashboard')</h1>
-                        <p class="text-xs text-gray-500">@yield('page-subtitle')</p>
+                    <div class="min-w-0">
+                        <h1 class="text-lg font-semibold text-gray-900 truncate">@yield('page-title', 'Dashboard')</h1>
+                        <p class="text-xs text-gray-500 truncate max-w-[42vw] sm:max-w-none">@yield('page-subtitle')</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('home') }}" target="_blank" class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
+                    <a href="{{ route('admin.account.password') }}" class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1" aria-label="{{ __('auth.password_change.nav') }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 11-4 0 2 2 0 014 0zM11 7H5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-2m0-6h6m0 0v6m0-6l-6 6"/></svg>
+                        <span class="hidden sm:inline">{{ __('auth.password_change.nav') }}</span>
+                    </a>
+                    <a href="{{ route('home') }}" target="_blank" class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1" aria-label="View public website">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                        View Site
+                        <span class="hidden sm:inline">View Site</span>
                     </a>
                     <div class="w-8 h-8 bg-yellow-600 rounded-full flex items-center justify-center text-black text-sm font-bold ring-2 ring-yellow-200">
                         {{ substr(auth()->user()->name ?? 'A', 0, 1) }}
@@ -175,9 +180,26 @@
     </div>
 
     <script>
-        document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
-            const sidebar = document.getElementById('admin-sidebar');
-            sidebar.classList.toggle('-translate-x-full');
+        const sidebar = document.getElementById('admin-sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+
+        const setSidebarOpen = (open) => {
+            sidebar.classList.toggle('-translate-x-full', !open);
+            sidebarBackdrop.classList.toggle('opacity-0', !open);
+            sidebarBackdrop.classList.toggle('pointer-events-none', !open);
+            sidebarToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        };
+
+        sidebarToggle.addEventListener('click', () => {
+            setSidebarOpen(sidebar.classList.contains('-translate-x-full'));
+        });
+        sidebarBackdrop.addEventListener('click', () => setSidebarOpen(false));
+        sidebar.addEventListener('click', (event) => {
+            if (event.target.closest('a')) setSidebarOpen(false);
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') setSidebarOpen(false);
         });
     </script>
     @stack('scripts')

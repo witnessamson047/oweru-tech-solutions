@@ -6,10 +6,10 @@
 
 @section('content')
 
-<div class="space-y-6">
+<div class="space-y-5 sm:space-y-6">
     {{-- Welcome Banner --}}
-    <div class="bg-black rounded-xl p-6">
-        <div class="flex items-center gap-6">
+    <div class="bg-black rounded-xl p-4 sm:p-6">
+        <div class="flex items-center gap-4 sm:gap-6">
             <div class="flex-1">
                 <h2 class="text-xl font-bold text-white mb-1">Welcome to Oweru Admin</h2>
                 <p class="text-sm text-gray-400">Manage your clients, scans, and pipeline all in one place.</p>
@@ -41,10 +41,10 @@
 
                 {{-- Quick actions --}}
                 <div class="mt-4 flex flex-wrap items-center gap-2">
-                    <a href="{{ route('admin.scraped-businesses.index') }}" class="admin-btn-gold px-3 py-1.5 text-xs">🔍 Business Scraper</a>
-                    <a href="{{ route('admin.discovery.index') }}" class="inline-flex items-center rounded-lg border border-gray-600 px-3 py-1.5 text-xs font-semibold text-gray-300 transition hover:border-yellow-500 hover:text-yellow-400">🗺 Website Discovery</a>
-                    <a href="{{ route('admin.scrape-targets.index') }}" class="inline-flex items-center rounded-lg border border-gray-600 px-3 py-1.5 text-xs font-semibold text-gray-300 transition hover:border-yellow-500 hover:text-yellow-400">⏱ Auto-Scraper Queue</a>
-                    <a href="{{ route('admin.websites.index') }}" class="inline-flex items-center rounded-lg border border-gray-600 px-3 py-1.5 text-xs font-semibold text-gray-300 transition hover:border-yellow-500 hover:text-yellow-400">🌐 Websites & Health Scans</a>
+                    <a href="{{ route('admin.scraped-businesses.index') }}" class="admin-btn-gold w-full sm:w-auto px-3 py-1.5 text-xs">🔍 Business Scraper</a>
+                    <a href="{{ route('admin.discovery.index') }}" class="inline-flex items-center justify-center rounded-lg border border-gray-600 w-full sm:w-auto px-3 py-1.5 text-xs font-semibold text-gray-300 transition hover:border-yellow-500 hover:text-yellow-400">🗺 Website Discovery</a>
+                    <a href="{{ route('admin.scrape-targets.index') }}" class="inline-flex items-center justify-center rounded-lg border border-gray-600 w-full sm:w-auto px-3 py-1.5 text-xs font-semibold text-gray-300 transition hover:border-yellow-500 hover:text-yellow-400">⏱ Auto-Scraper Queue</a>
+                    <a href="{{ route('admin.websites.index') }}" class="inline-flex items-center justify-center rounded-lg border border-gray-600 w-full sm:w-auto px-3 py-1.5 text-xs font-semibold text-gray-300 transition hover:border-yellow-500 hover:text-yellow-400">🌐 Websites & Health Scans</a>
                 </div>
             </div>
             <div class="w-20 h-20 bg-yellow-500/10 rounded-xl flex items-center justify-center flex-shrink-0 hidden sm:flex">
@@ -67,14 +67,14 @@
             ['label' => 'Websites', 'value' => $stats['websites'] ?? 0, 'sub' => 'Tracked sites',
              'icon' => 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9', 'href' => route('admin.websites.index')],
         ] as $stat)
-            <a href="{{ $stat['href'] }}" class="admin-card card-hover group p-5 block">
+            <a href="{{ $stat['href'] }}" class="admin-card group p-5 block">
                 <div class="flex items-start justify-between mb-3">
-                    <div class="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center transition-colors group-hover:bg-yellow-400">
-                        <svg class="w-5 h-5 text-yellow-600 transition-colors group-hover:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $stat['icon'] }}"/>
                         </svg>
                     </div>
-                    <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider transition-colors group-hover:text-yellow-600">View</span>
+                    <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">View</span>
                 </div>
                 <div class="text-2xl font-bold text-black">{{ number_format($stat['value']) }}</div>
                 <div class="text-xs text-gray-500 mt-1">{{ $stat['label'] }} · {{ $stat['sub'] }}</div>
@@ -91,7 +91,7 @@
             ['label' => 'Priority', 'value' => $stats['priority_prospects'] ?? 0, 'bar' => ($stats['priority_prospects'] ?? 0) * 5],
             ['label' => 'Excluded', 'value' => $stats['excluded_websites'] ?? 0, 'bar' => ($stats['excluded_websites'] ?? 0) * 10],
         ] as $stat)
-            <div class="admin-card card-hover p-4">
+            <div class="admin-card p-4">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ $stat['label'] }}</span>
                     <div class="w-1.5 h-1.5 rounded-full bg-yellow-500"></div>
@@ -147,15 +147,15 @@
             </div>
             <div class="space-y-2">
                 @forelse($lowScoreScans ?? [] as $scan)
-                    <a href="{{ route('admin.scans.show', $scan) }}" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:border-yellow-300 hover:bg-yellow-50/50 transition group">
-                        <div class="w-10 h-10 rounded-lg bg-black text-white flex items-center justify-center text-lg font-bold transition group-hover:bg-yellow-500 group-hover:text-black">
+                    <a href="{{ route('admin.scans.show', $scan) }}" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:border-yellow-300 transition">
+                        <div class="w-10 h-10 rounded-lg bg-black text-white flex items-center justify-center text-lg font-bold">
                             {{ $scan->score }}
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="text-sm font-semibold text-black truncate">{{ $scan->website->business_name ?? $scan->url }}</div>
                             <div class="text-xs text-gray-500 truncate">{{ $scan->url }}</div>
                         </div>
-                        <svg class="w-4 h-4 text-gray-300 transition group-hover:text-yellow-600 group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </a>
                 @empty
                     <div class="text-center py-8">
@@ -183,7 +183,7 @@
             </div>
             <div class="space-y-1">
                 @forelse($websitesBySector ?? [] as $sector => $count)
-                    <div class="flex items-center justify-between py-3 px-3 rounded-lg hover:bg-yellow-50/50 transition">
+                    <div class="flex items-center justify-between py-3 px-3">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 rounded-lg bg-yellow-50 flex items-center justify-center">
                                 <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -221,7 +221,7 @@
                     ['label' => 'Qualified', 'value' => $pipelineStats['qualified'] ?? 0],
                     ['label' => 'Diagnostic', 'value' => $pipelineStats['diagnostic_paid'] ?? 0],
                 ] as $stage)
-                    <div class="text-center p-3 rounded-lg border border-gray-100 bg-white hover:border-yellow-300 hover:bg-yellow-50/50 transition">
+                    <div class="text-center p-3 rounded-lg border border-gray-100 bg-white">
                         <div class="text-lg font-bold text-black">{{ $stage['value'] }}</div>
                         <div class="text-[10px] text-gray-500 uppercase font-semibold mt-0.5 tracking-wider">{{ $stage['label'] }}</div>
                     </div>
@@ -232,7 +232,7 @@
                     ['label' => 'Proposal', 'value' => $pipelineStats['proposal_sent'] ?? 0],
                     ['label' => 'Won', 'value' => $pipelineStats['won'] ?? 0, 'highlight' => true],
                 ] as $stage)
-                    <div class="text-center p-2.5 rounded-lg border {{ ($stage['highlight'] ?? false) ? 'border-yellow-400 bg-yellow-50' : 'border-gray-100 bg-white hover:border-yellow-300' }} transition">
+                    <div class="text-center p-2.5 rounded-lg border {{ ($stage['highlight'] ?? false) ? 'border-yellow-400 bg-yellow-50' : 'border-gray-100 bg-white' }}">
                         <div class="text-base font-bold text-black">{{ $stage['value'] }}</div>
                         <div class="text-[10px] {{ ($stage['highlight'] ?? false) ? 'text-yellow-700' : 'text-gray-500' }} uppercase font-semibold tracking-wider">{{ $stage['label'] }}</div>
                     </div>
@@ -243,13 +243,13 @@
 
     {{-- Watchdog Activity Feed --}}
     <div class="admin-card overflow-hidden">
-        <div class="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
-            <div class="flex items-center gap-2">
+        <div class="px-4 sm:px-5 py-3 border-b border-gray-200 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex min-w-0 items-center gap-2">
                 <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                 </svg>
-                <h3 class="font-semibold text-black">Watchdog Activity</h3>
+                <h3 class="font-semibold text-black truncate">Watchdog Activity</h3>
                 @if(($watchdogHotWeek ?? 0) > 0)
                     <span class="px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 text-[10px] font-semibold uppercase tracking-wider">
                         {{ $watchdogHotWeek }} hot this week
@@ -261,8 +261,8 @@
         <div class="divide-y divide-gray-100">
             @forelse($watchEvents ?? [] as $event)
                 @php $biz = $event->business; @endphp
-                <a href="{{ $biz ? route('admin.scraped-businesses.show', $biz) : '#' }}" class="block px-5 py-3 hover:bg-yellow-50/50 transition">
-                    <div class="flex items-center gap-3">
+                <a href="{{ $biz ? route('admin.scraped-businesses.show', $biz) : '#' }}" class="block px-5 py-3">
+                    <div class="flex items-center gap-2 sm:gap-3">
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap {{ $event->style }}">
                             {{ $event->label }}
                         </span>
@@ -277,7 +277,7 @@
                                 <div class="text-xs text-gray-500 truncate">{{ $event->summary }}</div>
                             @endif
                         </div>
-                        <span class="text-[11px] text-gray-400 whitespace-nowrap">{{ $event->created_at->diffForHumans(short: true) }}</span>
+                        <span class="ml-auto text-[11px] text-gray-400 whitespace-nowrap">{{ $event->created_at->diffForHumans(short: true) }}</span>
                     </div>
                 </a>
             @empty
@@ -302,7 +302,7 @@
                 <table class="w-full">
                     <tbody class="divide-y divide-gray-100">
                         @forelse($recentEnquiries ?? [] as $enquiry)
-                            <tr class="hover:bg-yellow-50/50 transition">
+                            <tr class="">
                                 <td class="px-5 py-3">
                                     <div class="font-medium text-black text-sm">{{ $enquiry->business_name }}</div>
                                     <div class="text-xs text-gray-500">{{ $enquiry->name }}</div>
@@ -332,7 +332,7 @@
             </div>
             <div class="divide-y divide-gray-100">
                 @forelse($recentScans ?? [] as $scan)
-                    <a href="{{ route('admin.scans.show', $scan) }}" class="block px-5 py-3 hover:bg-yellow-50/50 transition">
+                    <a href="{{ route('admin.scans.show', $scan) }}" class="block px-5 py-3">
                         <div class="flex items-center gap-3">
                             <div class="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold {{ $scan->score < 40 ? 'bg-black text-white' : ($scan->score < 60 ? 'bg-yellow-700 text-white' : ($scan->score < 80 ? 'bg-yellow-500 text-black' : 'bg-yellow-300 text-black')) }}">
                                 {{ $scan->score ?? '-' }}

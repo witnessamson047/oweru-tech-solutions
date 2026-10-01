@@ -20,9 +20,9 @@
      * from lang/{locale}/projects.php so both languages stay in sync.
      */
     $projects = [
-        ['key' => 0, 'image' => 'images/services/mobile-web-development.jpg'],
-        ['key' => 1, 'image' => 'images/services/crm-solutions.jpg'],
-        ['key' => 2, 'image' => 'images/services/software-development.jpg'],
+        ['key' => 0, 'image' => null],
+        ['key' => 1, 'image' => null],
+        ['key' => 2, 'image' => null],
     ];
 @endphp
 
@@ -32,11 +32,13 @@
 
         @foreach($projects as $p)
             @php $t = __('projects.projects')[$p['key']]; @endphp
-            <article class="card-hover group bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                <div class="grid grid-cols-1 lg:grid-cols-2">
+            <article class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div class="grid grid-cols-1 {{ $p['image'] ? 'lg:grid-cols-2' : '' }}">
+                    @if($p['image'])
                     <div class="relative order-1 lg:order-none">
-                        <img src="{{ asset($p['image']) }}" alt="{{ $t['alt'] }}" class="h-56 sm:h-72 lg:h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" loading="lazy">
+                        <img src="{{ asset($p['image']) }}" alt="{{ $t['alt'] }}" class="h-56 sm:h-72 lg:h-full w-full object-cover" loading="lazy">
                     </div>
+                    @endif
 
                     <div class="p-6 sm:p-10">
                         <div class="flex flex-wrap gap-2">

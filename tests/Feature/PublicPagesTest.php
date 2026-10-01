@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\ServiceLine;
+use App\Models\ServicePackage;
 use Tests\TestCase;
 
 class PublicPagesTest extends TestCase
@@ -23,6 +25,48 @@ class PublicPagesTest extends TestCase
         $response = $this->get('/');
         $response->assertStatus(200);
         $response->assertSee('Oweru Tech Solutions');
+    }
+
+    public function test_admin_login_page_translates_the_form_and_hides_demo_credentials(): void
+    {
+        $englishResponse = $this->withSession(['locale' => 'en'])->get('/login');
+
+        $englishResponse->assertOk();
+        $englishResponse->assertSee('All your work.');
+        $englishResponse->assertSee('name="email"', false);
+        $englishResponse->assertSee('name="password"', false);
+        $englishResponse->assertSee('Sign in');
+        $englishResponse->assertDontSee('Kazi zako zote.');
+        $englishResponse->assertDontSee('admin123');
+
+        $swahiliResponse = $this->withSession(['locale' => 'sw'])->get('/login');
+
+        $swahiliResponse->assertOk();
+        $swahiliResponse->assertSee('Kazi zako zote.');
+        $swahiliResponse->assertSee('Ingia');
+        $swahiliResponse->assertDontSee('All your work.');
+    }
+
+    public function test_home_page_shows_three_services_and_links_to_all_services(): void
+    {
+        foreach (range(1, 4) as $index) {
+            ServiceLine::create([
+                'name' => 'Beyond homepage ' . $index,
+                'slug' => 'beyond-homepage-' . $index,
+                'icon' => 'layout',
+                'description' => 'Overflow test service ' . $index,
+                'active' => true,
+                'sort_order' => 100 + $index,
+            ]);
+        }
+
+        $response = $this->get('/');
+        $response->assertStatus(200);
+        $response->assertDontSee('Beyond homepage 1');
+        $response->assertSee('View all services');
+        $response->assertSee('Custom business systems');
+        $response->assertSee('images/home-services/software-development.jpg');
+        $this->assertSame(3, substr_count($response->getContent(), 'class="home-service-card"'));
     }
 
     /**
@@ -62,5 +106,39 @@ class PublicPagesTest extends TestCase
         $response = $this->get('/enquiry');
         $response->assertStatus(200);
         $response->assertSee('enquiry');
+    }
+
+    public function test_service_page_shows_six_cards_and_view_more_button(): void
+    {
+        $serviceLine = ServiceLine::create([
+            'name' => 'Web Design',
+            'slug' => 'web-design',
+            'icon' => 'layout',
+            'description' => 'Design services',
+            'active' => true,
+            'sort_order' => 1,
+        ]);
+
+        foreach (range(1, 8) as $index) {
+            ServicePackage::create([
+                'name' => 'Package ' . $index,
+                'slug' => 'package-' . $index,
+                'group' => 'individuals',
+                'description' => 'Test package ' . $index,
+                'service_line_id' => $serviceLine->id,
+                'price_tzs' => 100000 * $index,
+                'price_usd' => 50 * $index,
+                'delivery_days' => 7,
+                'is_featured' => false,
+                'active' => true,
+                'sort_order' => $index,
+            ]);
+        }
+
+        $response = $this->get('/services');
+
+        $response->assertStatus(200);
+        $response->assertSee('View more');
+        $this->assertSame(6, substr_count($response->getContent(), 'data-package-card="true"'));
     }
 }
