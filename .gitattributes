@@ -1,0 +1,5 @@
+# Force LF in the repo so shell scripts survive Windows checkouts and work
+# inside Linux containers (CRLF breaks `#!/bin/sh` shebangs in Docker).
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.py text eol=lf

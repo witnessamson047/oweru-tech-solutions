@@ -1,0 +1,24 @@
+# Keep the app image small and free of dev clutter/secrets.
+.git
+.github
+.vercel
+.env
+.env.*
+!.env.example
+.env.vps.example
+/node_modules
+/vendor
+/tests
+/public/hot
+/storage/logs
+/storage/framework/cache
+/storage/framework/sessions
+/storage/framework/views
+scanner-service.log
+scanner.log
+.phpunit.result.cache
+oweru_tech_solutions
+oweru-tech-solutions
+VERCEL-DEPLOYMENT.md
+VPS-DEPLOYMENT.md
+*.md

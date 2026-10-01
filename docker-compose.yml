@@ -1,0 +1,85 @@
+# Oweru Tech Solutions — full production stack on ONE small VPS.
+# Brings up: MySQL + Laravel app (Apache) + scanner engine + queue worker
+# + scheduler. Deploy steps live in VPS-DEPLOYMENT.md.
+
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    env_file: .env            # server .env — see .env.vps.example
+    environment:
+      DB_HOST: db             # compose-internal DNS, overrides .env
+      SCANNER_SERVICE_URL: http://engine:5000
+      MIGRATE_ON_BOOT: "1"   # only the app container runs migrations
+    volumes:
+      - storage-app:/var/www/html/storage/app   # PDFs survive redeploys
+    depends_on:
+      db:
+        condition: service_healthy
+
+  engine:
+    build:
+      context: ./scanner
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SCANNER_API_KEY: ${SCANNER_API_KEY}
+      SCANNER_PORT: "5000"
+    depends_on:
+      - app
+
+  queue:
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: db
+      SCANNER_SERVICE_URL: http://engine:5000
+    entrypoint: ["php", "artisan", "queue:work", "--tries=1", "--timeout=300"]
+    volumes:
+      - storage-app:/var/www/html/storage/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: db
+      SCANNER_SERVICE_URL: http://engine:5000
+    entrypoint: ["php", "artisan", "schedule:work"]
+    volumes:
+      - storage-app:/var/www/html/storage/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
+  storage-app:
