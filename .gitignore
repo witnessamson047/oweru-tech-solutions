@@ -23,8 +23,13 @@
 !/storage/framework/sessions/.gitignore
 !/storage/framework/views/.gitignore
 
-# Build output (recreated with npm run build)
-/public/build
+# Build output — COMMITTED: Vercel serves these as static files and its PHP
+# runtime cannot run `npm run build`. Rebuild with `npm run build` and commit
+# whenever CSS/JS change.
+!/public/build
+
+# Vite dev-server marker — NEVER commit (breaks asset URLs in production)
+/public/hot
 
 # OS / editor junk
 .DS_Store

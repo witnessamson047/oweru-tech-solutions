@@ -1,0 +1,28 @@
+# Secrets — never upload
+.env
+.env.local
+.env.*.local
+
+# Reinstalled on Vercel by the PHP runtime from composer.lock
+/vendor
+/node_modules
+
+# Local dev artifacts
+/tests
+/storage/logs
+/storage/framework/cache
+/storage/framework/sessions
+/public/hot
+.phpunit.result.cache
+scanner-service.log
+scanner.log
+scanner-stop.flag
+
+# Python scanner engine — runs on the local/hosted engine box, not Vercel
+/scanner
+/scripts
+/queue-worker.bat
+/start.bat
+
+# Docs kept out of the lambda bundle
+/oweru-tech-solutions

@@ -5,6 +5,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Generated-file storage (PDF reports + receipts)
+    |--------------------------------------------------------------------------
+    | Default (null) keeps everything in storage/app as always. On serverless
+    | hosts with a read-only deployment filesystem (Vercel), set
+    | OWERU_STORAGE_DIR to a writable path (e.g. /tmp) — see LocalPath.
+    */
+
+    'storage' => [
+        'dir' => env('OWERU_STORAGE_DIR'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Invoicing
     |--------------------------------------------------------------------------
     */

@@ -8,6 +8,7 @@ use App\Mail\ReceiptMail;
 use App\Models\Enquiry;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Support\LocalPath;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -98,7 +99,7 @@ class InvoiceService
         try {
             $invoice->load(['completedPayments', 'enquiry']);
 
-            $dir = storage_path('app/receipts');
+            $dir = LocalPath::receiptsDir();
             if (! is_dir($dir)) {
                 mkdir($dir, 0755, true);
             }

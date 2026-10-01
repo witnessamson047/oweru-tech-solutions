@@ -8,6 +8,7 @@ use App\Models\Scan;
 use App\Services\AiInsightService;
 use App\Services\NotificationService;
 use App\Services\PageSpeedService;
+use App\Support\LocalPath;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -98,10 +99,10 @@ class PostScanJob implements ShouldQueue
             ]);
 
             $fileName = "oweru-report-{$this->scan->id}-" . now()->format('Y-m-d') . '.pdf';
-            $filePath = storage_path("app/reports/{$fileName}");
+            $filePath = LocalPath::reportsDir() . "/{$fileName}";
 
-            if (!is_dir(storage_path('app/reports'))) {
-                mkdir(storage_path('app/reports'), 0755, true);
+            if (! is_dir(LocalPath::reportsDir())) {
+                mkdir(LocalPath::reportsDir(), 0755, true);
             }
 
             $pdf->save($filePath);

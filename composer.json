@@ -33,6 +33,11 @@
         }
     },
     "scripts": {
+        "vercel": [
+            "@php artisan migrate --force || echo 'No database configured yet - skipping migrations'",
+            "npm install",
+            "npm run build"
+        ],
         "setup": [
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",

@@ -12,6 +12,11 @@ $app = Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Trust the hosting proxy (Vercel, etc.) so HTTPS/URLs are generated
+        // correctly — behind a reverse proxy Laravel otherwise sees http://
+        // and builds mixed-content absolute URLs.
+        $middleware->trustProxies(at: '*');
+
         // Enable database connection fallback for all web requests
         $middleware->append(\App\Http\Middleware\EnsureDatabaseConnection::class);
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Report;
 use App\Models\Scan;
+use App\Support\LocalPath;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -34,11 +35,11 @@ class ReportController extends Controller
         ]);
 
         $fileName = "oweru-report-{$scan->id}-" . now()->format('Y-m-d') . '.pdf';
-        $filePath = storage_path("app/reports/{$fileName}");
+        $filePath = LocalPath::reportsDir() . "/{$fileName}";
 
         // Ensure directory exists
-        if (!is_dir(storage_path('app/reports'))) {
-            mkdir(storage_path('app/reports'), 0755, true);
+        if (! is_dir(LocalPath::reportsDir())) {
+            mkdir(LocalPath::reportsDir(), 0755, true);
         }
 
         $pdf->save($filePath);
