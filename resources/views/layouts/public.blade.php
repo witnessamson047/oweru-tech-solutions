@@ -66,7 +66,6 @@
                     @else
                         <a href="{{ route('login') }}" class="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">{{ __('site.nav.login') }}</a>
                     @endauth
-                    <a href="{{ route('scanner.index') }}" class="btn-accent text-sm py-2">{{ __('site.nav.free_check') }}</a>
                 </div>
 
                 {{-- Mobile toggle --}}
@@ -100,17 +99,16 @@
                        class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors {{ app()->getLocale() === 'sw' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600' }}">SW</a>
                 </div>
                 <div class="pt-2">
-                    <a href="{{ route('scanner.index') }}" class="btn-accent w-full">{{ __('site.nav.free_check') }}</a>
+                    @auth
+                        <a href="{{ route('admin.dashboard') }}" class="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">{{ __('site.nav.dashboard') }}</a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="w-full text-left block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">{{ __('site.nav.logout') }}</button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}" class="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">{{ __('site.nav.login') }}</a>
+                    @endauth
                 </div>
-                @auth
-                    <a href="{{ route('admin.dashboard') }}" class="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">{{ __('site.nav.dashboard') }}</a>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="w-full text-left block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">{{ __('site.nav.logout') }}</button>
-                    </form>
-                @else
-                    <a href="{{ route('login') }}" class="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">{{ __('site.nav.login') }}</a>
-                @endauth
             </div>
         </div>
     </nav>

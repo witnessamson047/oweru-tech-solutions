@@ -11,6 +11,11 @@ return [
         'free_consultation' => 'Free consultation',
         'no_hidden_fees' => 'No hidden fees',
         'support_247' => '24/7 support',
+        'slides' => [
+            ['kicker' => 'Consultation', 'caption' => 'We start by listening — every project begins with a free consultation about your goals.'],
+            ['kicker' => 'The team', 'caption' => 'A local team that plans, builds and supports everything in plain language.'],
+            ['kicker' => 'Development', 'caption' => 'Custom software and websites, built in-house and tested before launch.'],
+        ],
     ],
 
     'stats' => [
@@ -48,6 +53,8 @@ return [
         'badge' => 'Our services',
         'title' => 'Solutions tailored to your business',
         'lead' => 'From simple websites to complex enterprise systems — transparent pricing, no surprises.',
+        'includes' => 'What you get',
+        'from' => 'Starting at',
         'individuals' => 'Individuals',
         'sme' => 'SMEs',
         'corporate' => 'Corporate',

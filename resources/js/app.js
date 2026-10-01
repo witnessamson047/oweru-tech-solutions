@@ -29,6 +29,10 @@ function initCarousel(carousel) {
     const dots = [...carousel.querySelectorAll('[data-hero-dot]')];
     if (!slides.length) return;
 
+    // Optional caption stack rendered next to the carousel — one layer per
+    // slide; JS just shows the one matching the active slide.
+    const captionEls = [...carousel.parentElement.querySelectorAll('[data-caption-set] [data-caption]')];
+
     const interval = parseInt(carousel.dataset.interval || '6000', 10);
     let index = 0;
     let timer = null;
@@ -41,6 +45,11 @@ function initCarousel(carousel) {
         dots.forEach((dot, i) => {
             dot.classList.toggle('is-active', i === index);
             dot.setAttribute('aria-selected', i === index ? 'true' : 'false');
+        });
+        captionEls.forEach((cap, i) => {
+            cap.classList.toggle('hidden', i !== index);
+            cap.classList.toggle('opacity-100', i === index);
+            cap.classList.toggle('opacity-0', i !== index);
         });
     }
 

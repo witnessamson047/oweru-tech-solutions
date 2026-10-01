@@ -11,6 +11,11 @@ return [
         'free_consultation' => 'Ushauri bure',
         'no_hidden_fees' => 'Hakuna ada zilizofichwa',
         'support_247' => 'Usaidizi wa saa 24',
+        'slides' => [
+            ['kicker' => 'Ushauri', 'caption' => 'Tunaanza kwa kusikiliza — kila mradi unaanza na ushauri wa bure kuhusu malengo yako.'],
+            ['kicker' => 'Timu yetu', 'caption' => 'Timu ya wenyeji inayopanga, kujenga na kusaidia kwa lugha rahisi.'],
+            ['kicker' => 'Usanidi', 'caption' => 'Programu na tovuti maalum, zilizojengwa ndani na kujaribiwa kabla ya kuanza.'],
+        ],
     ],
 
     'stats' => [
@@ -48,6 +53,8 @@ return [
         'badge' => 'Huduma zetu',
         'title' => 'Suluhisho zinazokidhi mahitaji ya biashara yako',
         'lead' => 'Kutoka kwenye tovuti rahisi hadi mifumo tata ya kampuni kubwa — bei wazi, hakuna mshangao.',
+        'includes' => 'Utapata nini',
+        'from' => 'Kuanzia',
         'individuals' => 'Watu binafsi',
         'sme' => 'Biashara ndogo',
         'corporate' => 'Kampuni kubwa',

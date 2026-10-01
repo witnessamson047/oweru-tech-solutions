@@ -7,7 +7,7 @@
 {{-- ============================================================
      HERO — full-bleed photo, calm overlay, one clear message
 ============================================================ --}}
-<section class="relative overflow-hidden bg-gray-950" id="hero">
+<section class="relative overflow-hidden bg-gray-950 group/hero" id="hero">
 
     @php
         $heroSlides = [
@@ -27,7 +27,7 @@
     </div>
 
     {{-- Readability overlay — dark enough for contrast, photos still visible --}}
-    <div class="absolute inset-0 bg-gray-950/70"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/60 to-black/70"></div>
 
     <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 lg:py-40 text-center">
         <span class="badge-gold mb-6">{{ __('home.hero.badge') }}</span>
@@ -58,6 +58,40 @@
             <span class="hidden sm:inline text-gray-500" aria-hidden="true">·</span>
             <span>{{ __('home.hero.support_247') }}</span>
         </p>
+    </div>
+
+    {{-- Slide controls — caption, arrows and dots make each slide clearly distinct --}}
+    <div class="absolute inset-x-0 bottom-0 z-10">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-5 flex items-end justify-between gap-4">
+            {{-- Active slide caption — one layer per slide; JS shows the active one --}}
+            <div data-caption-set class="hidden sm:block max-w-md text-left">
+                @foreach($heroSlides as $slide)
+                    @php $slideCopy = __('home.hero.slides.' . $loop->index); @endphp
+                    <div data-caption data-kicker="{{ $slideCopy['kicker'] }}" class="transition-opacity duration-700 {{ $loop->first ? 'opacity-100' : 'hidden opacity-0' }}">
+                        <span class="block text-[11px] font-semibold uppercase tracking-wider text-yellow-400">{{ $slideCopy['kicker'] }}</span>
+                        <span class="mt-1 block text-sm text-gray-200 text-on-photo leading-relaxed">{{ $slideCopy['caption'] }}</span>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="flex items-center gap-3 ml-auto">
+                {{-- Arrows --}}
+                <div class="flex items-center gap-2">
+                    <button type="button" data-hero-prev aria-label="Previous slide" class="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-black/40 text-white backdrop-blur transition hover:bg-yellow-500 hover:text-black hover:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <button type="button" data-hero-next aria-label="Next slide" class="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-black/40 text-white backdrop-blur transition hover:bg-yellow-500 hover:text-black hover:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+                {{-- Dots --}}
+                <div class="flex items-center gap-2" role="tablist" aria-label="Choose slide">
+                    @foreach($heroSlides as $slide)
+                        <button type="button" data-hero-dot role="tab" aria-label="Go to slide {{ $loop->iteration }}" class="h-2 rounded-full bg-white/40 transition-all duration-300 hover:bg-white/70 [&.is-active]:w-6 [&.is-active]:bg-yellow-400 {{ $loop->first ? 'w-6 is-active' : 'w-2' }}"></button>
+                    @endforeach
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -93,22 +127,21 @@
             <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">{{ __('home.how.title') }}</h2>
         </div>
 
-        <ol class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-10">
+        <ol class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             @foreach([
                 ['icon' => 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', 'title' => __('home.how.scan.title'), 'desc' => __('home.how.scan.desc')],
                 ['icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', 'title' => __('home.how.scorecard.title'), 'desc' => __('home.how.scorecard.desc')],
                 ['icon' => 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z', 'title' => __('home.how.talk.title'), 'desc' => __('home.how.talk.desc')],
                 ['icon' => 'M13 10V3L4 14h7v7l9-11h-7z', 'title' => __('home.how.grow.title'), 'desc' => __('home.how.grow.desc')],
             ] as $step)
-                <li class="text-center sm:text-left">
-                    <div class="flex sm:flex-col items-center sm:items-start gap-4 sm:gap-0">
-                        <span class="w-11 h-11 rounded-xl bg-yellow-50 text-yellow-700 flex items-center justify-center shrink-0">
+                <li class="card-hover group rounded-2xl border border-gray-200 bg-white p-6">
+                    <div class="flex items-center justify-between">
+                        <span class="w-11 h-11 rounded-xl bg-yellow-50 text-yellow-700 flex items-center justify-center transition-colors group-hover:bg-yellow-400 group-hover:text-black">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="{{ $step['icon'] }}"/></svg>
                         </span>
-                        <span class="sm:hidden text-sm font-bold text-yellow-700">{{ $loop->iteration }}</span>
-                        <span class="hidden sm:block mt-4 mb-2 text-sm font-bold text-yellow-700">{{ __('home.how.step') }} {{ $loop->iteration }}</span>
+                        <span class="text-xs font-bold uppercase tracking-wider text-gray-300 transition-colors group-hover:text-yellow-600">{{ __('home.how.step') }} {{ $loop->iteration }}</span>
                     </div>
-                    <h3 class="mt-3 text-base font-semibold text-gray-900">{{ $step['title'] }}</h3>
+                    <h3 class="mt-4 text-base font-semibold text-gray-900">{{ $step['title'] }}</h3>
                     <p class="mt-1.5 text-sm text-gray-600 leading-relaxed">{{ $step['desc'] }}</p>
                 </li>
             @endforeach
@@ -164,17 +197,40 @@
                         'corporate' => __('home.services.corporate'),
                         default => ucfirst($package->group ?? 'All'),
                     };
+                    $packageFeatures = collect([
+                        __('home.services.includes') . ':',
+                        __('home.hero.free_consultation'),
+                        __('home.hero.support_247'),
+                        __('home.services.from') . ' ' . $package->delivery_days . ' ' . __('home.services.day_delivery'),
+                    ]);
                 @endphp
-                <article class="flex flex-col bg-white rounded-2xl border border-gray-200 overflow-hidden transition-shadow hover:shadow-lg">
-                    <img src="{{ asset($meta['image']) }}" alt="{{ $meta['alt'] }}" class="w-full h-40 sm:h-44 object-cover" loading="lazy">
+                <article class="card-hover group flex flex-col bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                    <div class="relative overflow-hidden">
+                        <img src="{{ asset($meta['image']) }}" alt="{{ $meta['alt'] }}" class="w-full h-40 sm:h-44 object-cover transition-transform duration-500 group-hover:scale-[1.04]" loading="lazy">
+                        <span class="absolute top-3 left-3 bg-black/80 text-yellow-400 text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full">{{ $categoryLabel }}</span>
+                    </div>
                     <div class="flex flex-col flex-1 p-6">
-                        <span class="text-xs font-medium text-yellow-700 uppercase tracking-wide">{{ $categoryLabel }}</span>
-                        <h3 class="mt-1.5 text-lg font-semibold text-gray-900">{{ $package->name }}</h3>
-                        <p class="mt-2 text-sm text-gray-600 leading-relaxed flex-1">{{ $package->description }}</p>
-                        <div class="mt-5 flex items-baseline gap-2">
-                            <span class="text-xl font-bold text-gray-900 price-tzs" style="display: {{ !$currency || $currency === 'TZS' ? 'inline' : 'none' }}">TZS {{ number_format($package->price_tzs) }}</span>
-                            <span class="text-xl font-bold text-gray-900 price-usd" style="display: {{ $currency === 'USD' ? 'inline' : 'none' }}">${{ number_format($package->price_usd) }}</span>
-                            <span class="text-xs text-gray-500">· {{ $package->delivery_days }} {{ __('home.services.day_delivery') }}</span>
+                        <h3 class="text-lg font-semibold text-gray-900">{{ $package->name }}</h3>
+                        <p class="mt-2 text-sm text-gray-600 leading-relaxed">{{ $package->description }}</p>
+                        <ul class="mt-4 space-y-2 flex-1">
+                            @foreach($packageFeatures as $i => $feature)
+                                @if($i === 0)
+                                    <li class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">{{ $feature }}</li>
+                                @else
+                                    <li class="flex items-start gap-2">
+                                        <svg class="w-4 h-4 mt-0.5 text-yellow-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                        <span class="text-sm text-gray-600">{{ $feature }}</span>
+                                    </li>
+                                @endif
+                            @endforeach
+                        </ul>
+                        <div class="mt-5 pt-4 border-t border-gray-100 flex items-baseline justify-between">
+                            <div>
+                                <span class="block text-[11px] uppercase tracking-wide text-gray-400">{{ __('home.services.from') }}</span>
+                                <span class="text-xl font-bold text-gray-900 price-tzs" style="display: {{ !$currency || $currency === 'TZS' ? 'inline' : 'none' }}">TZS {{ number_format($package->price_tzs) }}</span>
+                                <span class="text-xl font-bold text-gray-900 price-usd" style="display: {{ $currency === 'USD' ? 'inline' : 'none' }}">${{ number_format($package->price_usd) }}</span>
+                            </div>
+                            <span class="text-xs text-gray-500">{{ $package->delivery_days }} {{ __('home.services.day_delivery') }}</span>
                         </div>
                         <a href="{{ route('enquiry.create', ['package' => $package->slug]) }}" class="{{ $package->is_featured ? 'btn-accent' : 'btn-secondary' }} w-full mt-5 py-2.5 text-sm">{{ __('site.common.get_started') }}</a>
                     </div>
@@ -249,7 +305,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 @foreach($carePlans as $plan)
                     @php $isFeatured = $plan->is_featured; @endphp
-                    <article class="relative flex flex-col bg-white rounded-2xl border overflow-hidden transition-shadow hover:shadow-lg {{ $isFeatured ? 'border-yellow-500 shadow-md' : 'border-gray-200' }}">
+                    <article class="card-hover relative flex flex-col bg-white rounded-2xl border overflow-hidden {{ $isFeatured ? 'border-yellow-500 shadow-md' : 'border-gray-200' }}">
                         @if($isFeatured)
                             <span class="absolute top-4 right-4 bg-yellow-100 text-yellow-900 text-[11px] font-semibold px-2.5 py-1 rounded-full">Best value</span>
                         @endif
@@ -301,12 +357,13 @@
                 ['quote' => '"As a solo consultant, I needed a professional website that reflected my expertise. The team delivered beyond expectations — modern, fast, and exactly on timeline."', 'name' => 'Pendo Oweru', 'role' => 'Founder, Kavishe Consulting'],
                 ['quote' => '"Their CRM solution streamlined our entire sales process. We went from spreadsheets to automated pipeline management in just 3 weeks. Remarkable work."', 'name' => 'Pendo Oweru', 'role' => 'IT Manager, Meridian Bank'],
             ] as $t)
-                <figure class="flex flex-col bg-white rounded-2xl border border-gray-200 p-6 sm:p-8">
-                    <div class="flex items-center gap-1 text-yellow-500" aria-label="{{ __('home.testimonials.stars') }}">
+                <figure class="card-hover flex flex-col bg-white rounded-2xl border border-gray-200 p-6 sm:p-8">
+                    <svg class="w-7 h-7 text-yellow-400" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.983 3v7.391c0 5.704-3.731 9.57-8.983 10.609l-.995-2.151c2.432-.917 3.995-3.638 3.995-5.849h-4v-10h9.983zm14.017 0v7.391c0 5.704-3.748 9.571-9 10.609l-.996-2.151c2.433-.917 3.996-3.638 3.996-5.849h-3.983v-10h9.983z"/></svg>
+                    <blockquote class="mt-4 text-sm text-gray-700 leading-relaxed flex-1">{{ $t['quote'] }}</blockquote>
+                    <div class="mt-4 flex items-center gap-1 text-yellow-500" aria-label="{{ __('home.testimonials.stars') }}">
                         @for($i = 0; $i < 5; $i++)<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>@endfor
                     </div>
-                    <blockquote class="mt-4 text-sm text-gray-700 leading-relaxed flex-1">{{ $t['quote'] }}</blockquote>
-                    <figcaption class="mt-6 pt-6 border-t border-gray-100 flex items-center gap-3">
+                    <figcaption class="mt-5 pt-5 border-t border-gray-100 flex items-center gap-3">
                         <span class="w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center text-sm font-semibold">{{ substr($t['name'], 0, 1) }}</span>
                         <div>
                             <p class="text-sm font-semibold text-gray-900">{{ $t['name'] }}</p>

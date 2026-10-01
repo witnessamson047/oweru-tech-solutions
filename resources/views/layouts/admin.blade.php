@@ -56,13 +56,13 @@
             </div>
 
             <nav class="p-3 space-y-1 overflow-y-auto h-[calc(100vh-4rem)]">
-                <div class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Main</div>
+                <div class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Overview</div>
                 <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                     Dashboard
                 </a>
 
-                <div class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4">Build 1</div>
+                <div class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4">Catalog</div>
                 <a href="{{ route('admin.packages.index') }}" class="sidebar-link {{ request()->routeIs('admin.packages.*') ? 'active' : '' }}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     Service Packages
@@ -72,7 +72,7 @@
                     Care Plans
                 </a>
 
-                <div class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4">Build 2</div>
+                <div class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4">Sales</div>
                 <a href="{{ route('admin.enquiries.index') }}" class="sidebar-link {{ request()->routeIs('admin.enquiries.*') ? 'active' : '' }}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                     Enquiries
@@ -82,7 +82,7 @@
                     Pipeline
                 </a>
 
-                <div class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4">Build 3</div>
+                <div class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4">Lead Generation</div>
                 <a href="{{ route('admin.websites.index') }}" class="sidebar-link {{ request()->routeIs('admin.websites.*') ? 'active' : '' }}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
                     Websites
