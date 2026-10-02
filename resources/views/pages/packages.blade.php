@@ -131,8 +131,8 @@
                                 <p class="mt-1 text-[11px] text-slate-500">{{ __('packages.packages.delivery_days', ['days' => $package->delivery_days]) }}</p>
 
                                 <div class="mt-4 grid grid-cols-2 gap-2">
-                                    <a href="{{ route('enquiry.create', ['package' => $package->slug]) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors">{{ __('packages.packages.enquire') }}</a>
-                                    <a href="{{ route('payment.checkout', ['type' => 'package', 'id' => $package->id]) }}" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-2.5 py-2 text-xs font-medium text-white hover:bg-slate-700 transition-colors">{{ __('packages.packages.pay_now') }}</a>
+                                    <a href="{{ route('packages.show', ['package' => $package->slug]) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors">View details</a>
+                                    <a href="{{ route('enquiry.create', ['package' => $package->slug]) }}" class="service-enquire-btn inline-flex items-center justify-center rounded-xl px-2.5 py-2 text-xs transition-colors">{{ __('packages.packages.enquire') }}</a>
                                 </div>
                             </div>
                         </article>
@@ -165,8 +165,8 @@
                                 <p class="mt-1 text-[11px] text-slate-500">{{ __('packages.packages.delivery_days', ['days' => $package->delivery_days]) }}</p>
 
                                 <div class="mt-4 grid grid-cols-2 gap-2">
-                                    <a href="{{ route('enquiry.create', ['package' => $package->slug]) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors">{{ __('packages.packages.enquire') }}</a>
-                                    <a href="{{ route('payment.checkout', ['type' => 'package', 'id' => $package->id]) }}" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-2.5 py-2 text-xs font-medium text-white hover:bg-slate-700 transition-colors">{{ __('packages.packages.pay_now') }}</a>
+                                    <a href="{{ route('packages.show', ['package' => $package->slug]) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors">View details</a>
+                                    <a href="{{ route('enquiry.create', ['package' => $package->slug]) }}" class="service-enquire-btn inline-flex items-center justify-center rounded-xl px-2.5 py-2 text-xs transition-colors">{{ __('packages.packages.enquire') }}</a>
                                 </div>
                             </div>
                         </article>
@@ -211,8 +211,8 @@
                                 <p class="mt-1 text-xs text-gray-500">{{ __('packages.packages.delivery_days', ['days' => $package->delivery_days]) }}</p>
 
                                 <div class="mt-5 flex items-center gap-2">
-                                    <a href="{{ route('enquiry.create', ['package' => $package->slug]) }}" class="btn-secondary flex-1 py-2.5 text-sm">{{ __('packages.packages.enquire') }}</a>
-                                    <a href="{{ route('payment.checkout', ['type' => 'package', 'id' => $package->id]) }}" class="btn-accent flex-1 py-2.5 text-sm">{{ __('packages.packages.pay_now') }}</a>
+                                    <a href="{{ route('packages.show', ['package' => $package->slug]) }}" class="btn-secondary flex-1 py-2.5 text-sm">View details</a>
+                                    <a href="{{ route('enquiry.create', ['package' => $package->slug]) }}" class="service-enquire-btn btn-accent flex-1 py-2.5 text-sm">{{ __('packages.packages.enquire') }}</a>
                                 </div>
                             </div>
                         </article>
@@ -225,6 +225,20 @@
 </section>
 
 <style>
+    .service-package-card a.service-enquire-btn {
+        background-color: #f4d67b;
+        border: 1px solid #d8b75a;
+        color: #17372f;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .service-package-card a.service-enquire-btn:hover {
+        background-color: #ffe69a;
+        border-color: #cda53e;
+        color: #102b25;
+    }
+
     .service-package-card {
         border: 1px solid #d5ad45 !important;
         border-radius: 6px !important;

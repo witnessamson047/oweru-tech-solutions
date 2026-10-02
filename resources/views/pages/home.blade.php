@@ -73,11 +73,13 @@
             @foreach($serviceLines->take(3) as $line)
                 @php $serviceImage = $homeServiceImages[$line->slug] ?? null; @endphp
                 <a href="{{ route('packages.index') }}#{{ $line->slug }}" class="home-service-card">
-                    @if($serviceImage)
-                        <img src="{{ asset($serviceImage['image']) }}" alt="{{ $serviceImage['alt'] }}" loading="lazy">
-                    @else
-                        <div class="home-service-artwork" aria-hidden="true"></div>
-                    @endif
+                    <div class="home-service-card-media">
+                        @if($serviceImage)
+                            <img src="{{ asset($serviceImage['image']) }}" alt="{{ $serviceImage['alt'] }}" loading="lazy">
+                        @else
+                            <div class="home-service-artwork" aria-hidden="true"></div>
+                        @endif
+                    </div>
                     <div class="home-service-card-content">
                         <h3>{{ $line->name }}</h3>
                         <p>{{ $line->description }}</p>
@@ -95,6 +97,21 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
             </a>
         </div>
+    </div>
+</section>
+
+{{-- ============================================================
+     TESTIMONIAL
+============================================================ --}}
+<section class="home-testimonial-wrap">
+    <div class="home-content-width">
+        <blockquote class="home-testimonial">
+            <p>“Oweru helped us turn a confusing digital presence into a strong, professional system our clients trust. The process was smooth, strategic, and practical.”</p>
+            <footer>
+                <strong>Client Feedback</strong>
+                <span>Business Owner</span>
+            </footer>
+        </blockquote>
     </div>
 </section>
 
@@ -313,6 +330,118 @@
         background: #f6f7f4;
     }
 
+    .home-differentiator,
+    .home-process,
+    .home-testimonial-wrap {
+        background: #f8f7f2;
+        padding: 72px 0;
+    }
+
+    .home-differentiator-header,
+    .home-process .home-services-heading {
+        margin-bottom: 28px;
+    }
+
+    .home-feature-grid,
+    .home-process-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px;
+    }
+
+    .home-feature-card,
+    .home-process-step {
+        border: 1px solid #e8e2d1;
+        border-radius: 18px;
+        background: linear-gradient(180deg, #ffffff 0%, #fbf9f4 100%);
+        box-shadow: 0 10px 28px rgba(19, 32, 28, 0.04);
+        padding: 24px 22px;
+    }
+
+    .home-feature-card-featured {
+        border-color: #d7ba63;
+        background: linear-gradient(180deg, #fffaf0 0%, #fff 100%);
+    }
+
+    .home-feature-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: #17372f;
+        color: #f4d67b;
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+    }
+
+    .home-feature-card h3,
+    .home-process-step h3 {
+        margin: 18px 0 10px;
+        color: #1a312a;
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+
+    .home-feature-card p,
+    .home-process-step p {
+        margin: 0;
+        color: #5f6e66;
+        line-height: 1.7;
+        font-size: 0.9rem;
+    }
+
+    .home-process-step span {
+        display: inline-flex;
+        align-items: center;
+        padding: 7px 10px;
+        border-radius: 999px;
+        background: rgba(227, 197, 107, 0.18);
+        color: #7c6319;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    .home-testimonial {
+        position: relative;
+        padding: 36px 34px;
+        border: 1px solid #e4dcbe;
+        border-radius: 22px;
+        background: linear-gradient(135deg, #17372f 0%, #21453b 100%);
+        color: #edf8f3;
+        box-shadow: 0 16px 40px rgba(12, 25, 20, 0.12);
+    }
+
+    .home-testimonial p {
+        margin: 0;
+        color: #edf8f3;
+        font-size: clamp(1.08rem, 2vw, 1.5rem);
+        line-height: 1.6;
+    }
+
+    .home-testimonial footer {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-top: 22px;
+    }
+
+    .home-testimonial strong {
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #f1d97a;
+    }
+
+    .home-testimonial span {
+        color: rgba(255,255,255,0.8);
+        font-size: 0.8rem;
+    }
+
     .home-services-heading {
         display: grid;
         grid-template-columns: 1fr minmax(260px, 0.75fr);
@@ -348,26 +477,64 @@
         min-width: 0;
         flex-direction: column;
         overflow: hidden;
-        border: 1px solid #dce2dc;
-        border-radius: 5px;
-        background: #fff;
+        border: 1px solid #e1d2a1;
+        border-radius: 8px;
+        background: linear-gradient(180deg, #fff 0%, #fffdf7 100%);
         color: #263a31;
         text-decoration: none;
-        transition: border-color 160ms ease, transform 160ms ease;
+        box-shadow: 0 8px 20px rgba(23, 55, 47, 0.06);
+        transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
     }
 
     .home-service-card:hover {
-        border-color: #aebfb2;
-        transform: translateY(-2px);
+        border-color: #c49a37;
+        box-shadow: 0 16px 30px rgba(23, 55, 47, 0.14), 0 0 0 1px rgba(196, 154, 55, 0.18);
+        transform: translateY(-4px);
     }
 
-    .home-service-card > img,
+    .home-service-card:focus-visible {
+        outline: 3px solid #b18a2e;
+        outline-offset: 3px;
+    }
+
+    .home-service-card-media {
+        position: relative;
+        flex: 0 0 170px;
+        height: 170px;
+        overflow: hidden;
+        background: #e8eee8;
+    }
+
+    .home-service-card-media::after {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(244, 214, 123, 0.25), transparent 65%);
+        content: "";
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 250ms ease;
+    }
+
+    .home-service-card:hover .home-service-card-media::after {
+        opacity: 1;
+    }
+
+    .home-service-card-media img,
     .home-service-artwork {
         display: block;
         width: 100%;
-        height: 170px;
+        height: 100%;
         object-fit: cover;
         background: #e8eee8;
+        transition: transform 450ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    }
+
+    .home-service-card:hover .home-service-card-media img {
+        transform: scale(1.06);
+    }
+
+    .home-service-card:hover .home-service-artwork {
+        background: #f1e5bd;
     }
 
     .home-service-card-content {
@@ -400,7 +567,13 @@
     .home-service-card-arrow {
         display: flex;
         justify-content: flex-end;
-        color: #285b49;
+        color: #9b741e;
+        transition: color 180ms ease, transform 180ms ease;
+    }
+
+    .home-service-card:hover .home-service-card-arrow {
+        color: #17372f;
+        transform: translateX(3px);
     }
 
     .home-service-card-arrow svg,
@@ -488,9 +661,14 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
-        .home-service-card > img,
-        .home-service-artwork {
+        .home-service-card-media {
+            flex-basis: 150px;
             height: 150px;
+        }
+
+        .home-feature-grid,
+        .home-process-grid {
+            grid-template-columns: 1fr;
         }
 
         .home-cta-inner {
@@ -574,8 +752,8 @@
             grid-template-columns: 1fr;
         }
 
-        .home-service-card > img,
-        .home-service-artwork {
+        .home-service-card-media {
+            flex-basis: 180px;
             height: 180px;
         }
 
@@ -593,6 +771,16 @@
 
         .home-cta-actions .home-button {
             flex: 1;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .home-service-card,
+        .home-service-card-media::after,
+        .home-service-card-media img,
+        .home-service-artwork,
+        .home-service-card-arrow {
+            transition-duration: 0.01ms;
         }
     }
 </style>

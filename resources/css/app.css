@@ -25,15 +25,17 @@
    ============================================ */
 
 :root {
-    --gold: #E3C56B;
-    --gold-light: #F2DC9B;
-    --gold-dark: #CDA53E;
-    --black: #0f0f0f;
-    --black-light: #333333;
-    --black-dark: #000000;
+    --gold: #d8b75a;
+    --gold-light: #f4d67b;
+    --gold-dark: #9d7b2c;
+    --black: #111827;
+    --black-light: #1f2937;
+    --black-dark: #030712;
     --white: #ffffff;
     --white-off: #f8f8f8;
-    --gray-light: #e5e5e5;
+    --gray-light: #e5e7eb;
+    --text-muted: #4b5563;
+    --text-soft: #64748b;
 }
 
 /* Body defaults */
@@ -41,6 +43,11 @@ body {
     font-family: 'Inter', 'system-ui', -apple-system, sans-serif;
     color: var(--black);
     background-color: var(--white);
+    line-height: 1.6;
+}
+
+a {
+    color: inherit;
 }
 
 /* Smooth anchor scrolling (deep links like /services#crm-solutions)
@@ -75,8 +82,8 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    background-color: var(--black);
-    color: var(--white);
+    background-color: #17372f;
+    color: #ffffff;
     padding: 0.625rem 1.25rem;
     border: none;
     border-radius: 0.5rem;
@@ -88,7 +95,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 .btn-primary:hover,
 .btn-accent:hover {
-    background-color: var(--black-light);
+    background-color: #102b25;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 .btn-primary:focus-visible,
@@ -99,11 +106,11 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn-outline {
     background-color: transparent;
-    color: var(--gold);
+    color: #17372f;
     padding: 0.625rem 1.5rem;
     border-radius: 0.5rem;
     font-weight: 600;
-    border: 2px solid var(--gold);
+    border: 2px solid #17372f;
     transition: all 0.2s ease;
     cursor: pointer;
     display: inline-flex;
@@ -111,8 +118,8 @@ h1, h2, h3, h4, h5, h6 {
     gap: 0.5rem;
 }
 .btn-outline:hover {
-    background-color: var(--gold);
-    color: var(--black);
+    background-color: #17372f;
+    color: var(--white);
 }
 
 /* Outline button for use on dark/photo backgrounds */
@@ -143,9 +150,9 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: center;
     gap: 0.5rem;
     background-color: var(--white);
-    color: var(--black-light);
+    color: #1f2937;
     padding: 0.625rem 1.25rem;
-    border: 1px solid var(--gray-light);
+    border: 1px solid #d1d5db;
     border-radius: 0.5rem;
     font-weight: 600;
     line-height: 1.25rem;
@@ -155,7 +162,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 .btn-secondary:hover {
     border-color: #9ca3af;
-    color: var(--black);
+    color: #111827;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 

@@ -22,6 +22,25 @@ class PackageController extends Controller
 
     public function show(ServicePackage $package)
     {
-        return redirect()->route('enquiry.create', ['package' => $package->slug]);
+        $currency = request()->cookie('currency', 'TZS');
+
+        $relatedPackages = ServicePackage::active()
+            ->where(function ($query) use ($package) {
+                if ($package->service_line_id) {
+                    $query->where('service_line_id', $package->service_line_id);
+                } else {
+                    $query->where('group', $package->group);
+                }
+            })
+            ->where('id', '!=', $package->id)
+            ->orderBy('sort_order')
+            ->limit(3)
+            ->get();
+
+        return view('pages.package-detail', [
+            'package' => $package,
+            'relatedPackages' => $relatedPackages,
+            'currency' => $currency,
+        ]);
     }
 }
