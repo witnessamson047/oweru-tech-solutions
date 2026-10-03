@@ -6,11 +6,43 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 // Scanner functionality
 document.addEventListener('DOMContentLoaded', () => {
     initScanner();
-    initPipelineFilters();
     initEnquiryForm();
     initCurrencyToggle();
     initCarousels();
+    initScrollReveals();
+    initLocaleSwitches();
 });
+
+function initLocaleSwitches() {
+    document.querySelectorAll('[data-locale-switch]').forEach((selector) => {
+        selector.addEventListener('change', () => {
+            if (selector.value) window.location.assign(selector.value);
+        });
+    });
+}
+
+function initScrollReveals() {
+    const targets = document.querySelectorAll('[data-scroll-reveal]');
+    if (!targets.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+        targets.forEach((target) => target.classList.add('is-revealed'));
+        return;
+    }
+
+    const observer = new IntersectionObserver((entries, currentObserver) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add('is-revealed');
+            currentObserver.unobserve(entry.target);
+        });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+    targets.forEach((target) => {
+        target.classList.add('is-reveal-pending');
+        observer.observe(target);
+    });
+}
 
 /**
  * Image carousels (Tailwind, no library). Any element with [data-carousel]
@@ -211,32 +243,6 @@ function displayScanResults(data) {
 function showReportRequestForm() {
     const modal = document.getElementById('report-modal');
     if (modal) modal.classList.remove('hidden');
-}
-
-/**
- * Pipeline filters for internal dashboard
- */
-function initPipelineFilters() {
-    const filterBtns = document.querySelectorAll('.pipeline-filter');
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const stage = btn.dataset.stage;
-            filterPipeline(stage);
-            filterBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        });
-    });
-}
-
-function filterPipeline(stage) {
-    const rows = document.querySelectorAll('.pipeline-row');
-    rows.forEach(row => {
-        if (stage === 'all' || row.dataset.stage === stage) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
 }
 
 /**

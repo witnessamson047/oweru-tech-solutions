@@ -6,77 +6,76 @@
 
 @section('content')
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+@php
+    use App\Services\PageSpeedService;
 
-    {{-- Main Content --}}
-    <div class="lg:col-span-2 space-y-6">
+    $score = $scan->score ?? 0;
+    $change = $scan->scoreChange();
+    $scoreClass = $score === null ? 'admin-score-neutral'
+        : ($score < 40 ? 'admin-score-critical' : ($score < 60 ? 'admin-score-weak' : ($score < 80 ? 'admin-score-fair' : 'admin-score-strong')));
+    $bandVariant = $score >= 80 ? 'success' : ($score >= 60 ? 'info' : ($score >= 40 ? 'warning' : 'danger'));
+    $areas = [
+        'Security' => 'key', 'Mobile' => 'globe', 'Speed' => 'refresh', 'Function' => 'checklist',
+        'Findability' => 'search', 'Trust' => 'care-plan', 'Commerce' => 'money', 'Freshness' => 'clock',
+    ];
+@endphp
 
-        {{-- Score Overview --}}
-        <div class="card">
-            <div class="flex flex-col sm:flex-row items-center gap-6">
-                @php $score = $scan->score ?? 0; @endphp
-                <div class="w-28 h-28 rounded-full border-6 flex items-center justify-center font-extrabold text-3xl
-                    {{ $score < 40 ? 'border-black text-white bg-gray-100' : ($score < 60 ? 'border-yellow-600 text-yellow-800 bg-yellow-50' : ($score < 80 ? 'border-yellow-500 text-yellow-800 bg-yellow-50' : 'border-yellow-400 text-yellow-800 bg-yellow-50')) }}">
-                    {{ $score }}
-                </div>
-                <div class="text-center sm:text-left">
-                    <h2 class="text-2xl font-bold text-gray-900">{{ $scan->website->business_name ?? 'Unknown' }}</h2>
-                    <p class="text-sm text-gray-500">{{ $scan->url }}</p>
-                    <div class="flex items-center gap-3 mt-2">
-                        <span class="badge {{ $score >= 80 ? 'badge-success' : ($score >= 60 ? 'badge-info' : ($score >= 40 ? 'badge-warning' : 'badge-danger')) }} text-sm">
-                            {{ $scan->band }} ({{ $score }}/100)
-                        </span>
-                        @php $change = $scan->scoreChange(); @endphp
-                        @if($change !== null)
-                            <span class="inline-flex items-center gap-1 text-sm font-semibold {{ $change > 0 ? 'text-green-600' : ($change < 0 ? 'text-red-600' : 'text-gray-500') }}">
-                                @if($change > 0)
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-                                    +{{ $change }} pts
-                                @elseif($change < 0)
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
-                                    {{ $change }} pts
-                                @else
-                                    No change
-                                @endif
-                                <span class="text-xs text-gray-400 font-normal">vs previous scan</span>
+<div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
+
+    <div class="lg:col-span-2 space-y-5">
+
+        <x-admin.card>
+            <div class="flex flex-col items-center gap-6 sm:flex-row">
+                <span class="admin-score admin-score-lg {{ $scoreClass }} admin-tabular shrink-0">{{ $score }}</span>
+
+                <div class="min-w-0 flex-1 text-center sm:text-left">
+                    <h2 class="text-xl font-bold text-gray-900">{{ $scan->website->business_name ?? 'Unknown site' }}</h2>
+                    <p class="admin-muted break-all text-sm">{{ $scan->url }}</p>
+                    <div class="mt-3 flex flex-wrap items-center justify-center gap-3 sm:justify-start">
+                        <x-admin.badge :variant="$bandVariant">{{ $scan->band }} ({{ $score }}/100)</x-admin.badge>
+                        @if ($change !== null)
+                            <span class="inline-flex items-center gap-1 text-sm font-bold"
+                                  style="color: {{ $change > 0 ? 'var(--admin-success)' : ($change < 0 ? 'var(--admin-danger)' : 'var(--admin-muted)') }}">
+                                <x-admin.icon :name="$change >= 0 ? 'trend-up' : 'trend-down'" class="w-4 h-4" />
+                                {{ $change > 0 ? '+'.$change : $change }} pts
+                                <span class="font-normal text-xs text-gray-400">vs previous scan</span>
                             </span>
                         @endif
                         <span class="text-xs text-gray-400">{{ $scan->started_at?->format('d M Y H:i') ?? $scan->created_at->format('d M Y H:i') }}</span>
                     </div>
                 </div>
-                <div class="sm:ml-auto flex gap-2">
-                    <a href="{{ route('admin.reports.generate', $scan) }}" class="btn-primary text-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        Generate Report
-                    </a>
-                    <button onclick="scanWebsite({{ $scan->website_id }})" class="btn-outline text-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m0 0H1m0 0a8.000 8.000 0 00-1.029 1.68M15.58 16H9m3.366 3.366A8.002 8.002 0 0021.42 20H15.58m0 0a8.001 8.001 0 01-9.033-2M1 13.58V19m0 0a8.003 8.003 0 005.075 2.29l.075.072M10.5 18.5H9"/></svg>
-                        Re-scan
+
+                <div class="flex shrink-0 flex-wrap justify-center gap-2 sm:ml-auto">
+                    {{-- Report generation writes a file and sends an email, so it is a POST. --}}
+                    <form method="POST" action="{{ route('admin.reports.generate', $scan) }}">
+                        @csrf
+                        <button type="submit" class="admin-btn">
+                            <x-admin.icon name="document-text" class="w-4 h-4" /> Generate report
+                        </button>
+                    </form>
+                    <button type="button" onclick="scanWebsite({{ $scan->website_id }})" class="admin-btn-ghost">
+                        <x-admin.icon name="refresh" class="w-4 h-4" /> Re-scan
                     </button>
                 </div>
             </div>
-        </div>
+        </x-admin.card>
 
-        {{-- Real-world performance (component 4: External API) --}}
-        @if($scan->pagespeed)
+        @if ($scan->pagespeed)
             @php
                 $psi = $scan->pagespeed;
                 $psiScore = $psi['performance_score'] ?? null;
-                $psiBand = \App\Services\PageSpeedService::band(is_numeric($psiScore) ? (int) $psiScore : null);
-                $psiColor = $psiBand === 'Good' ? 'text-green-600' : ($psiBand === 'Poor' ? 'text-red-600' : 'text-yellow-600');
+                $psiBand = PageSpeedService::band(is_numeric($psiScore) ? (int) $psiScore : null);
+                $psiVariant = $psiBand === 'Good' ? 'success' : ($psiBand === 'Poor' ? 'danger' : 'warning');
             @endphp
-            <div class="card">
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-bold text-gray-900">Real-World Mobile Performance</h3>
-                    <span class="text-xs text-gray-400">Google PageSpeed Insights • {{ \Carbon\Carbon::parse($psi['measured_at'] ?? now())->format('d M Y H:i') }}</span>
-                </div>
+            <x-admin.card title="Real-world mobile performance" icon="pulse"
+                          subtitle="Google PageSpeed Insights · {{ \Carbon\Carbon::parse($psi['measured_at'] ?? now())->format('d M Y H:i') }}">
                 <div class="flex items-center gap-6">
                     <div class="text-center">
-                        <div class="text-4xl font-extrabold {{ $psiColor }}">{{ $psiScore ?? '—' }}</div>
-                        <div class="text-xs text-gray-500">PSI score</div>
+                        <div class="text-4xl font-extrabold admin-tabular">{{ $psiScore ?? '—' }}</div>
+                        <x-admin.badge :variant="$psiVariant" class="mt-1">{{ $psiBand ?? '—' }}</x-admin.badge>
                     </div>
-                    <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm flex-1">
-                        @foreach([
+                    <div class="grid flex-1 grid-cols-1 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
+                        @foreach ([
                             'fcp_s' => 'First Contentful Paint',
                             'lcp_s' => 'Largest Contentful Paint',
                             'tbt_s' => 'Total Blocking Time',
@@ -84,113 +83,100 @@
                         ] as $key => $label)
                             <div class="flex justify-between border-b border-gray-50 py-0.5">
                                 <span class="text-gray-500">{{ $label }}</span>
-                                <span class="font-medium text-gray-800">{{ $psi['metrics'][$key] ?? '—' }}{{ isset($psi['metrics'][$key]) && $key !== 'cls' ? 's' : '' }}</span>
+                                <span class="font-semibold text-gray-800 admin-tabular">{{ $psi['metrics'][$key] ?? '—' }}{{ isset($psi['metrics'][$key]) && $key !== 'cls' ? 's' : '' }}</span>
                             </div>
                         @endforeach
                     </div>
                 </div>
-            </div>
+            </x-admin.card>
         @endif
 
-        {{-- AI interpretation (component 5: AI API) --}}
-        @if($scan->ai_insight)
-            <div class="card">
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-bold text-gray-900">What This Means (AI Insight)</h3>
-                    <span class="badge {{ ($scan->ai_insight['source'] ?? '') === 'ai' ? 'badge-success' : 'badge-info' }} text-[10px]">
+        @if ($scan->ai_insight)
+            <x-admin.card :padded="true">
+                <x-slot:title>What this means</x-slot:title>
+                <x-slot:subtitle>Plain-language summary for the pitch</x-slot:subtitle>
+                <x-slot:actions>
+                    <x-admin.badge :variant="($scan->ai_insight['source'] ?? '') === 'ai' ? 'success' : 'info'">
                         {{ ($scan->ai_insight['source'] ?? 'fallback') === 'ai' ? 'AI-generated' : 'Auto-summary' }}
-                    </span>
-                </div>
-                <p class="text-sm text-gray-700">{{ $scan->ai_insight['summary'] ?? '' }}</p>
-                @if(!empty($scan->ai_insight['next_actions']))
-                    <div class="mt-3">
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Next actions</p>
-                        <ul class="list-disc list-inside text-sm text-gray-700 space-y-0.5">
-                            @foreach($scan->ai_insight['next_actions'] as $action)
+                    </x-admin.badge>
+                </x-slot:actions>
+
+                <p class="text-sm leading-relaxed text-gray-700">{{ $scan->ai_insight['summary'] ?? '' }}</p>
+
+                @if (! empty($scan->ai_insight['next_actions']))
+                    <div class="mt-4">
+                        <p class="admin-label mb-1">Next actions</p>
+                        <ul class="list-inside list-disc space-y-0.5 text-sm text-gray-700">
+                            @foreach ($scan->ai_insight['next_actions'] as $action)
                                 <li>{{ $action }}</li>
                             @endforeach
                         </ul>
                     </div>
                 @endif
-                @if(!empty($scan->ai_insight['pitch_email']))
+
+                @if (! empty($scan->ai_insight['pitch_email']))
                     <details class="mt-3">
-                        <summary class="text-xs font-semibold text-yellow-700 cursor-pointer">View pitch email draft</summary>
-                        <pre class="mt-2 p-3 bg-gray-50 rounded text-xs text-gray-700 whitespace-pre-wrap">{{ $scan->ai_insight['pitch_email'] }}</pre>
+                        <summary class="cursor-pointer text-xs font-semibold" style="color: var(--gold-dark)">View pitch email draft</summary>
+                        <pre class="mt-2 whitespace-pre-wrap rounded bg-gray-50 p-3 text-xs text-gray-700">{{ $scan->ai_insight['pitch_email'] }}</pre>
                     </details>
                 @endif
-            </div>
+            </x-admin.card>
         @endif
 
-        {{-- Individual Check Results --}}
-        <div class="card">
-            <h3 class="font-bold text-gray-900 mb-4">Check Results ({{ $scan->results->count() }} checks)</h3>
+        <x-admin.card :padded="false">
+            <x-slot:title>Check results</x-slot:title>
+            <x-slot:subtitle>{{ $scan->results->count() }} {{ Str::plural('check', $scan->results->count()) }} performed</x-slot:subtitle>
 
-            {{-- Grouped by area --}}
-            @php
-                $grouped = $scan->results->groupBy('area');
-            @endphp
-
-            <div class="space-y-6">
-                @foreach($grouped as $area => $results)
+            <div class="space-y-6 p-5">
+                @forelse ($scan->results->groupBy('area') as $area => $results)
                     @php
                         $areaPassed = $results->where('passed', true)->count();
                         $areaTotal = $results->count();
                         $areaPoints = $results->where('passed', true)->sum('points');
                         $areaMaxPoints = $results->sum('points');
+                        $pct = $areaMaxPoints > 0 ? ($areaPoints / $areaMaxPoints * 100) : 0;
                     @endphp
                     <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <h4 class="font-semibold text-gray-800 flex items-center gap-2">
-                                @switch($area)
-                                    @case('Security')<svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg> @break
-                                    @case('Mobile')<svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg> @break
-                                    @case('Speed')<svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> @break
-                                    @case('Function')<svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> @break
-                                    @case('Findability')<svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg> @break
-                                    @case('Trust')<svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg> @break
-                                    @case('Commerce')<svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg> @break
-                                    @case('Freshness')<svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> @break
-                                    @default<svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                                @endswitch
+                        <div class="mb-2 flex items-center justify-between gap-3">
+                            <h4 class="flex items-center gap-2 font-semibold text-gray-800">
+                                <x-admin.icon :name="$areas[$area] ?? 'checklist'" class="w-4 h-4" />
                                 {{ $area }}
                             </h4>
-                            <span class="text-sm font-medium {{ $areaPassed === $areaTotal ? 'text-yellow-600' : ($areaPassed > $areaTotal / 2 ? 'text-yellow-600' : 'text-black') }}">
-                                {{ $areaPassed }}/{{ $areaTotal }} passed • {{ $areaPoints }}/{{ $areaMaxPoints }} pts
+                            <span class="text-sm font-medium admin-tabular {{ $areaPassed === $areaTotal ? 'text-gray-900' : 'text-gray-600' }}">
+                                {{ $areaPassed }}/{{ $areaTotal }} passed · {{ $areaPoints }}/{{ $areaMaxPoints }} pts
                             </span>
                         </div>
+
                         <div class="progress-bar mb-3">
-                            <div class="progress-bar-fill {{ $areaPassed === $areaTotal ? 'bg-yellow-500' : ($areaPassed > $areaTotal / 2 ? 'bg-yellow-500' : 'bg-black') }}"
-                                style="width: {{ $areaMaxPoints > 0 ? ($areaPoints / $areaMaxPoints * 100) : 0 }}%"></div>
+                            <div class="progress-bar-fill {{ $areaPassed === $areaTotal ? 'bg-yellow-500' : 'bg-black' }}"
+                                 style="width: {{ $pct }}%"></div>
                         </div>
+
                         <div class="space-y-2">
-                            @foreach($results as $result)
-                                <div class="flex items-start gap-3 p-3 rounded-lg {{ $result->passed ? 'bg-yellow-50' : 'bg-gray-100' }}">
+                            @foreach ($results as $result)
+                                <div class="flex items-start gap-3 rounded-lg p-3 {{ $result->passed ? 'bg-yellow-50' : 'bg-gray-100' }}">
                                     <span class="mt-0.5">
-                                        @if($result->passed)
-                                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                        @else
-                                            <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                                        @endif
+                                        <x-admin.icon :name="$result->passed ? 'check-circle' : 'x-circle'" class="w-4 h-4" />
                                     </span>
-                                    <div class="flex-1">
-                                        <div class="flex items-center gap-2">
-                                            <p class="font-medium text-sm text-gray-900">{{ $result->check->name ?? $result->check_name }}</p>
-                                            <span class="text-xs {{ $result->passed ? 'text-yellow-600' : 'text-black' }}">
-                                                {{ $result->passed ? '+' . $result->points . ' pts' : '0 pts' }}
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <p class="text-sm font-semibold text-gray-900">{{ $result->check->name ?? $result->check_name }}</p>
+                                            <span class="text-xs font-bold {{ $result->passed ? 'text-gray-700' : 'text-gray-500' }}">
+                                                {{ $result->passed ? '+'.$result->points.' pts' : '0 pts' }}
                                             </span>
                                         </div>
-                                        @if($result->finding_text)
-                                            <p class="text-sm text-gray-600 mt-1">{{ $result->finding_text }}</p>
+                                        @if ($result->finding_text)
+                                            <p class="mt-1 text-sm text-gray-600">{{ $result->finding_text }}</p>
                                         @endif
-                                        @if($result->evidence)
-                                            <p class="text-xs text-gray-400 mt-1 font-mono">{{ Str::limit($result->evidence, 150) }}</p>
+                                        @if ($result->evidence)
+                                            <p class="mt-1 font-mono text-xs text-gray-400">{{ Str::limit($result->evidence, 150) }}</p>
                                         @endif
-                                        @if(!$result->passed && $result->recommendation)
-                                            <div class="mt-2 p-2 rounded bg-yellow-50 border-l-2 border-yellow-500">
+                                        @if (! $result->passed && $result->recommendation)
+                                            <div class="mt-2 rounded border-l-2 border-yellow-500 bg-yellow-50 p-2">
                                                 <p class="text-xs text-gray-700">
-                                                    <span class="inline-flex items-center gap-1 font-semibold text-yellow-800"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v4a1 1 0 102 0V7zm-1 8a1 1 0 100-2 1 1 0 000 2z"/></svg> Offer:</span>
+                                                    <span class="font-semibold text-yellow-800">Offer:</span>
                                                     {{ $result->recommendation->solution }}
-                                                    <span class="badge badge-info text-[10px] ml-1">{{ $result->recommendation->service_type }}</span>
+                                                    <x-admin.badge variant="info" class="ml-1">{{ $result->recommendation->service_type }}</x-admin.badge>
                                                 </p>
                                             </div>
                                         @endif
@@ -199,86 +185,65 @@
                             @endforeach
                         </div>
                     </div>
-                @endforeach
+                @empty
+                    <x-admin.empty icon="scan" title="No check results recorded"
+                                   text="This scan has not produced any results yet — it may still be running." />
+                @endforelse
             </div>
-        </div>
+        </x-admin.card>
     </div>
 
-    {{-- Sidebar --}}
-    <div class="space-y-6">
+    <div class="space-y-5">
 
-        {{-- Score Band Legend --}}
-        <div class="card">
-            <h3 class="font-bold text-gray-900 mb-3">Score Bands</h3>
+        <x-admin.card title="Score bands" icon="target">
             <div class="space-y-2 text-sm">
-                <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full bg-yellow-400"></span>
-                    <span class="text-gray-700">Strong: 80–100</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
-                    <span class="text-gray-700">Adequate: 60–79</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full bg-yellow-600"></span>
-                    <span class="text-gray-700">Weak: 40–59</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full bg-black"></span>
-                    <span class="text-gray-700">Critical: Under 40</span>
-                </div>
-            </div>
-        </div>
-
-        {{-- Top Findings --}}
-        <div class="card">
-            <h3 class="font-bold text-gray-900 mb-3">Top 5 Findings</h3>
-            <div class="space-y-2">
-                @foreach($scan->results->where('passed', false)->sortBy('points')->take(5) as $finding)
-                    <div class="p-2 bg-gray-100 rounded-lg text-sm">
-                        <p class="font-medium text-black text-xs">{{ $finding->check->name ?? $finding->check_name }}</p>
-                        <p class="text-gray-600 text-xs mt-0.5">{{ Str::limit($finding->finding_text, 80) }}</p>
+                @foreach ([
+                    ['Strong: 80–100', 'var(--gold-light)'],
+                    ['Adequate: 60–79', 'var(--gold)'],
+                    ['Weak: 40–59', 'var(--gold-dark)'],
+                    ['Critical: under 40', 'var(--black)'],
+                ] as [$label, $color])
+                    <div class="flex items-center gap-2">
+                        <span class="h-3 w-3 rounded-full" style="background-color: {{ $color }}"></span>
+                        <span class="text-gray-700">{{ $label }}</span>
                     </div>
                 @endforeach
-                @if($scan->results->where('passed', false)->count() === 0)
-                    <p class="text-sm text-gray-400 inline-flex items-center gap-1">All checks passed
-                        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            </div>
+        </x-admin.card>
+
+        <x-admin.card title="Top findings" icon="warning">
+            <div class="space-y-2">
+                @forelse ($scan->results->where('passed', false)->sortBy('points')->take(5) as $finding)
+                    <div class="rounded-lg bg-gray-100 p-2.5 text-sm">
+                        <p class="text-xs font-semibold text-gray-900">{{ $finding->check->name ?? $finding->check_name }}</p>
+                        <p class="mt-0.5 text-xs text-gray-600">{{ Str::limit($finding->finding_text, 80) }}</p>
+                    </div>
+                @empty
+                    <p class="inline-flex items-center gap-1 text-sm text-gray-500">
+                        All checks passed <x-admin.icon name="check-circle" class="w-4 h-4" />
                     </p>
-                @endif
+                @endforelse
             </div>
-        </div>
+        </x-admin.card>
 
-        {{-- Scan Meta --}}
-        <div class="card">
-            <h3 class="font-bold text-gray-900 mb-3">Scan Details</h3>
-            <div class="space-y-2 text-xs text-gray-500">
+        <x-admin.card title="Scan details" icon="info">
+            <dl class="space-y-2 text-xs text-gray-500">
                 <div class="flex justify-between">
-                    <span>Status</span>
-                    <span class="badge {{ $scan->status === 'completed' ? 'badge-success' : 'badge-warning' }}">{{ ucfirst($scan->status) }}</span>
+                    <dt>Status</dt>
+                    <dd><x-admin.badge :variant="$scan->status === 'completed' ? 'success' : ($scan->status === 'failed' ? 'danger' : 'warning')">{{ ucfirst($scan->status) }}</x-admin.badge></dd>
                 </div>
-                <div class="flex justify-between">
-                    <span>Started</span>
-                    <span>{{ $scan->started_at?->format('d M Y H:i') ?? '-' }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Completed</span>
-                    <span>{{ $scan->completed_at?->format('d M Y H:i') ?? '-' }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Source</span>
-                    <span>{{ ucfirst($scan->source ?? 'manual') }}</span>
-                </div>
-            </div>
-        </div>
+                <div class="flex justify-between"><dt>Started</dt><dd>{{ $scan->started_at?->format('d M Y H:i') ?? '—' }}</dd></div>
+                <div class="flex justify-between"><dt>Completed</dt><dd>{{ $scan->completed_at?->format('d M Y H:i') ?? '—' }}</dd></div>
+                <div class="flex justify-between"><dt>Source</dt><dd>{{ ucfirst($scan->source ?? 'manual') }}</dd></div>
+            </dl>
+        </x-admin.card>
 
-        {{-- Related Enquiry --}}
-        @if($scan->enquiry)
-            <div class="card">
-                <h3 class="font-bold text-gray-900 mb-3">Related Enquiry</h3>
-                <a href="{{ route('admin.enquiries.show', $scan->enquiry) }}" class="text-sm text-yellow-600 hover:underline">
+        @if ($scan->enquiry)
+            <x-admin.card title="Related enquiry" icon="inbox">
+                <a href="{{ route('admin.enquiries.show', $scan->enquiry) }}" class="admin-inline-link">
                     {{ $scan->enquiry->name }} — {{ $scan->enquiry->business_name }}
                 </a>
-            </div>
+            </x-admin.card>
         @endif
     </div>
 </div>

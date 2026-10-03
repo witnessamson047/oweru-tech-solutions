@@ -2,70 +2,125 @@
 
 @section('title', 'Care Plans')
 @section('page-title', 'Monthly Care Plans')
-@section('page-subtitle', 'Manage recurring maintenance and support plans')
+@section('page-subtitle', 'Recurring maintenance and support plans you sell after delivery')
 
 @section('content')
 
-<div class="flex items-center justify-between mb-6">
-    <div class="text-sm text-gray-500">
-        {{ $carePlans->count() }} care plans total
-    </div>
-    <a href="{{ route('admin.care-plans.create') }}" class="btn-primary text-sm">+ Add Care Plan</a>
-</div>
+<div class="space-y-5">
 
-<div class="card overflow-hidden">
-    <div class="overflow-x-auto">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Price (TZS)</th>
-                    <th>Price (USD)</th>
-                    <th>Featured</th>
-                    <th>Active</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($carePlans as $plan)
-                    <tr>
-                        <td class="font-medium text-sm text-gray-900">{{ $plan->name }}</td>
-                        <td class="text-sm text-gray-600 max-w-[300px]">{{ Str::limit($plan->description, 80) }}</td>
-                        <td class="text-sm text-gray-700">TZS {{ number_format($plan->price_tzs) }}/mo</td>
-                        <td class="text-sm text-gray-700">${{ number_format($plan->price_usd) }}/mo</td>
-                        <td>
-                            @if($plan->is_featured)
-                                <span class="badge badge-success">Featured</span>
-                            @else
-                                <span class="text-xs text-gray-400">-</span>
-                            @endif
-                        </td>
-                        <td>
-                            <span class="badge {{ $plan->active ? 'badge-success' : 'badge-gray' }}">
-                                {{ $plan->active ? 'Active' : 'Inactive' }}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="flex gap-2">
-                                <a href="{{ route('admin.care-plans.edit', $plan) }}" class="text-yellow-600 hover:underline text-sm">Edit</a>
-                                <form method="POST" action="{{ route('admin.care-plans.destroy', $plan) }}">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-black hover:underline text-sm"
-                                        onclick="return confirm('Delete this care plan?')">Delete</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" class="text-center text-gray-400 py-8">No care plans configured yet.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+    <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <x-admin.stat label="Care plans" :value="$stats['total']" icon="care-plan" />
+        <x-admin.stat label="Active on site" :value="$stats['active']" icon="eye"
+                      :href="route('admin.care-plans.index', ['status' => 'active'])" />
+        <x-admin.stat label="Featured" :value="$stats['featured']" icon="sparkles"
+                      :href="route('admin.care-plans.index', ['featured' => 1])" />
+        <x-admin.stat label="Recurring per month" icon="trend-up" featured
+                      :hint="'TZS '.number_format($stats['monthly_tzs']).'  ·  $'.number_format($stats['monthly_usd'])"
+                      value="{{ number_format($stats['monthly_tzs']) }}" suffix="TZS" />
     </div>
+
+    <x-admin.note tone="info" title="These plans are your repeat revenue">
+        A care plan keeps a client on a monthly retainer after their site is built.
+        Active plans appear on the public pricing page; inactive ones are hidden but
+        kept for your records.
+    </x-admin.note>
+
+    <x-admin.filters :reset="route('admin.care-plans.index')">
+        <x-admin.search :value="request('search')" placeholder="Search plans…" />
+
+        <div class="field">
+            <label for="filter-status">Status</label>
+            <select name="status" id="filter-status">
+                <option value="">Any status</option>
+                <option value="active" @selected(request('status') === 'active')>Active only</option>
+                <option value="inactive" @selected(request('status') === 'inactive')>Inactive only</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label class="admin-checkbox !text-[11px] uppercase tracking-wider font-bold">
+                <input type="checkbox" name="featured" value="1" @checked(request()->boolean('featured'))>
+                Featured only
+            </label>
+        </div>
+    </x-admin.filters>
+
+    <x-admin.card :padded="false">
+        <x-slot:title>Care plans</x-slot:title>
+        <x-slot:subtitle>{{ $carePlans->total() }} {{ Str::plural('plan', $carePlans->total()) }} configured</x-slot:subtitle>
+        <x-slot:actions>
+            <a href="{{ route('admin.care-plans.create') }}" class="admin-btn">
+                <x-admin.icon name="plus" class="w-4 h-4" />
+                Add care plan
+            </a>
+        </x-slot:actions>
+
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <x-admin.sort column="name" label="Plan"
+                                          :active-sort="$sort['column']" :active-direction="$sort['direction']" />
+                        </th>
+                        <th>Description</th>
+                        <th>
+                            <x-admin.sort column="price_tzs" label="TZS / month"
+                                          :active-sort="$sort['column']" :active-direction="$sort['direction']" />
+                        </th>
+                        <th>
+                            <x-admin.sort column="price_usd" label="USD / month"
+                                          :active-sort="$sort['column']" :active-direction="$sort['direction']" />
+                        </th>
+                        <th>Status</th>
+                        <th class="col-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($carePlans as $plan)
+                        <tr>
+                            <td>
+                                <div class="font-semibold text-gray-900">{{ $plan->name }}</div>
+                                @if ($plan->is_featured)
+                                    <x-admin.badge variant="gold" class="mt-1 !text-[10px] !px-1.5">
+                                        Featured
+                                    </x-admin.badge>
+                                @endif
+                            </td>
+                            <td class="max-w-[22rem] text-gray-600">{{ Str::limit($plan->description ?: '—', 110) }}</td>
+                            <td class="admin-tabular font-medium text-gray-900">TZS {{ number_format($plan->price_tzs) }}</td>
+                            <td class="admin-tabular font-medium text-gray-900">${{ number_format($plan->price_usd) }}</td>
+                            <td>
+                                <x-admin.badge :variant="$plan->active ? 'success' : 'neutral'">
+                                    {{ $plan->active ? 'Active' : 'Hidden' }}
+                                </x-admin.badge>
+                            </td>
+                            <td class="col-actions">
+                                <div class="admin-actions">
+                                    <x-admin.action :href="route('admin.care-plans.edit', $plan)" icon="pencil"
+                                                    title="Edit">Edit</x-admin.action>
+                                    <x-admin.action :action="route('admin.care-plans.destroy', $plan)"
+                                                    method="DELETE" variant="danger" icon="trash"
+                                                    :confirm="'Delete the care plan &quot;'.$plan->name.'&quot;? This cannot be undone.'"
+                                                    title="Delete" />
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <x-admin.empty colspan="6" icon="care-plan"
+                                       title="No care plans yet"
+                                       text="Care plans are monthly retainers for hosting, maintenance and support — the revenue that keeps clients on after delivery.">
+                            <a href="{{ route('admin.care-plans.create') }}" class="admin-btn">
+                                <x-admin.icon name="plus" class="w-4 h-4" /> Create the first plan
+                            </a>
+                        </x-admin.empty>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <x-admin.pagination :paginator="$carePlans" label="care plans" />
+    </x-admin.card>
 </div>
 
 @endsection

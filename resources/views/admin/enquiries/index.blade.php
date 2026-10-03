@@ -2,117 +2,157 @@
 
 @section('title', 'Enquiries')
 @section('page-title', 'Enquiries')
-@section('page-subtitle', 'Manage and track all client enquiries')
+@section('page-subtitle', 'Every enquiry that has come in, from any channel')
 
 @section('content')
 
-{{-- Stats --}}
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-    <div class="card">
-        <div class="text-sm text-gray-500">Total</div>
-        <div class="text-2xl font-bold text-gray-900">{{ $stats['total'] }}</div>
-    </div>
-    <div class="card">
-        <div class="text-sm text-gray-500">New</div>
-        <div class="text-2xl font-bold text-yellow-600">{{ $stats['new'] }}</div>
-    </div>
-    <div class="card">
-        <div class="text-sm text-gray-500">Won</div>
-        <div class="text-2xl font-bold text-yellow-600">{{ $stats['won'] }}</div>
-    </div>
-    <div class="card">
-        <div class="text-sm text-gray-500">This Month</div>
-        <div class="text-2xl font-bold text-yellow-600">{{ $stats['this_month'] }}</div>
-    </div>
-</div>
+@php
+    $stageVariant = [
+        'new' => 'info',
+        'qualified' => 'gold',
+        'diagnostic_paid' => 'warning',
+        'proposal_sent' => 'warning',
+        'won' => 'success',
+        'lost' => 'neutral',
+    ];
+@endphp
 
-{{-- Filters --}}
-<div class="card mb-6">
-    <form method="GET" class="flex flex-wrap gap-3 items-end">
-        <div class="flex-1 min-w-[200px]">
-            <label class="block text-xs font-medium text-gray-500 mb-1">Search</label>
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Name, email, business..."
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
-        </div>
-        <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Stage</label>
-            <select name="stage" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500">
-                <option value="">All Stages</option>
-                @foreach(['new', 'qualified', 'diagnostic_paid', 'proposal_sent', 'won', 'lost'] as $stage)
-                    <option value="{{ $stage }}" {{ request('stage') === $stage ? 'selected' : '' }}>
-                        {{ str_replace('_', ' ', ucfirst($stage)) }}
+<div class="space-y-5">
+
+    <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <x-admin.stat label="All enquiries" :value="$stats['total']" icon="inbox" />
+        <x-admin.stat label="Needs triage" :value="$stats['new']" icon="bell"
+                      :href="route('admin.enquiries.index', ['stage' => 'new'])" />
+        <x-admin.stat label="Won" :value="$stats['won']" icon="check"
+                      :href="route('admin.enquiries.index', ['stage' => 'won'])" />
+        <x-admin.stat label="This month" :value="$stats['this_month']" icon="calendar" />
+    </div>
+
+    @if ($stats['new'] > 0)
+        <x-admin.note tone="warning" :title="$stats['new'].' '.\Illuminate\Support\Str::plural('enquiry', $stats['new']).' waiting to be triaged'">
+            New enquiries have not been qualified yet. Open each one, decide if it is a real
+            opportunity, and move it to <strong>Qualified</strong> or <strong>Lost</strong>.
+            Everything with a stage is tracked on the <a class="admin-inline-link" href="{{ route('admin.pipeline.index') }}">pipeline</a>.
+        </x-admin.note>
+    @endif
+
+    <x-admin.filters :reset="route('admin.enquiries.index')">
+        <x-admin.search :value="request('search')" placeholder="Name, email, business, phone…" />
+
+        <div class="field">
+            <label for="filter-stage">Stage</label>
+            <select name="stage" id="filter-stage">
+                <option value="">All stages</option>
+                @foreach ($stages as $stage)
+                    <option value="{{ $stage }}" @selected(request('stage') === $stage)>
+                        {{ ucwords(str_replace('_', ' ', $stage)) }}
                     </option>
                 @endforeach
             </select>
         </div>
-        <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Source</label>
-            <select name="source" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500">
-                <option value="">All Sources</option>
-                <option value="website" {{ request('source') === 'website' ? 'selected' : '' }}>Website</option>
-                <option value="scanner" {{ request('source') === 'scanner' ? 'selected' : '' }}>Scanner</option>
-                <option value="referral" {{ request('source') === 'referral' ? 'selected' : '' }}>Referral</option>
-                <option value="manual" {{ request('source') === 'manual' ? 'selected' : '' }}>Manual</option>
+
+        <div class="field">
+            <label for="filter-source">Source</label>
+            <select name="source" id="filter-source">
+                <option value="">Any source</option>
+                @foreach (['website', 'scanner', 'referral', 'manual'] as $source)
+                    <option value="{{ $source }}" @selected(request('source') === $source)>{{ ucfirst($source) }}</option>
+                @endforeach
             </select>
         </div>
-        <button type="submit" class="btn-primary text-sm">Filter</button>
-    </form>
-</div>
 
-{{-- Enquiries Table --}}
-<div class="card overflow-hidden">
-    <div class="overflow-x-auto">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Contact</th>
-                    <th>Business</th>
-                    <th>Package</th>
-                    <th>Stage</th>
-                    <th>Budget</th>
-                    <th>Source</th>
-                    <th>Created</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($enquiries as $enquiry)
-                    <tr class="pipeline-row" data-stage="{{ $enquiry->stage }}">
-                        <td>
-                            <div class="font-medium text-gray-900 text-sm">{{ $enquiry->name }}</div>
-                            <div class="text-xs text-gray-500">{{ $enquiry->email }}</div>
-                        </td>
-                        <td class="text-sm text-gray-700">{{ $enquiry->business_name }}</td>
-                        <td class="text-sm text-gray-700">{{ $enquiry->package_name ?? '-' }}</td>
-                        <td>
-                            <span class="badge stage-{{ $enquiry->stage === 'diagnostic_paid' ? 'diagnostic' : $enquiry->stage }}">
-                                {{ str_replace('_', ' ', ucfirst($enquiry->stage)) }}
-                            </span>
-                        </td>
-                        <td class="text-sm text-gray-700">{{ str_replace('_', ' ', ucfirst($enquiry->budget_range ?? '')) }}</td>
-                        <td>
-                            <span class="badge badge-{{ $enquiry->source === 'scanner' ? 'info' : 'gray' }}">
-                                {{ ucfirst($enquiry->source ?? 'direct') }}
-                            </span>
-                        </td>
-                        <td class="text-sm text-gray-500">{{ $enquiry->created_at->diffForHumans() }}</td>
-                        <td>
-                            <a href="{{ route('admin.enquiries.show', $enquiry) }}" class="text-yellow-600 hover:underline text-sm">View</a>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="8" class="text-center text-gray-400 py-8">No enquiries found.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-    @if(method_exists($enquiries, 'links'))
-        <div class="px-4 py-3 border-t border-gray-100">
-            {{ $enquiries->links() }}
+        <div class="field">
+            <label for="filter-owner">Owner</label>
+            <select name="owner" id="filter-owner">
+                <option value="">Anyone</option>
+                @foreach ($owners as $owner)
+                    <option value="{{ $owner->id }}" @selected((string) request('owner') === (string) $owner->id)>
+                        {{ $owner->name }}
+                    </option>
+                @endforeach
+            </select>
         </div>
-    @endif
+    </x-admin.filters>
+
+    <x-admin.card :padded="false">
+        <x-slot:title>Enquiries</x-slot:title>
+        <x-slot:subtitle>{{ $enquiries->total() }} {{ \Illuminate\Support\Str::plural('result', $enquiries->total()) }}</x-slot:subtitle>
+
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <x-admin.sort column="name" label="Contact"
+                                          :active-sort="$sort['column']" :active-direction="$sort['direction']" />
+                        </th>
+                        <th>
+                            <x-admin.sort column="business_name" label="Business"
+                                          :active-sort="$sort['column']" :active-direction="$sort['direction']" />
+                        </th>
+                        <th>Package</th>
+                        <th>
+                            <x-admin.sort column="stage" label="Stage"
+                                          :active-sort="$sort['column']" :active-direction="$sort['direction']" />
+                        </th>
+                        <th>Budget</th>
+                        <th>Source</th>
+                        <th>
+                            <x-admin.sort column="created_at" label="Received"
+                                          :active-sort="$sort['column']" :active-direction="$sort['direction']"
+                                          default-direction="desc" />
+                        </th>
+                        <th class="col-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($enquiries as $enquiry)
+                        <tr>
+                            <td>
+                                <div class="font-semibold text-gray-900">{{ $enquiry->name }}</div>
+                                <div class="text-xs text-gray-500">{{ $enquiry->email }}</div>
+                            </td>
+                            <td class="text-gray-700">{{ $enquiry->business_name ?: '—' }}</td>
+                            <td class="text-gray-600">
+                                {{ $enquiry->package_name ?: ($enquiry->package?->name ?? '—') }}
+                            </td>
+                            <td>
+                                <x-admin.badge :variant="$stageVariant[$enquiry->stage] ?? 'neutral'">
+                                    {{ ucwords(str_replace('_', ' ', $enquiry->stage)) }}
+                                </x-admin.badge>
+                            </td>
+                            <td class="text-gray-600">
+                                {{ $enquiry->budget_range ? ucwords(str_replace('_', ' ', $enquiry->budget_range)) : '—' }}
+                            </td>
+                            <td>
+                                <span class="admin-badge admin-badge-neutral !text-[11px]">
+                                    {{ ucfirst($enquiry->source ?? 'direct') }}
+                                </span>
+                            </td>
+                            <td class="text-gray-500 whitespace-nowrap" title="{{ $enquiry->created_at }}">
+                                {{ $enquiry->created_at->diffForHumans(short: true) }}
+                            </td>
+                            <td class="col-actions">
+                                <div class="admin-actions">
+                                    <x-admin.action :href="route('admin.enquiries.show', $enquiry)" icon="eye" title="Open">Open</x-admin.action>
+                                    @if ($enquiry->scan)
+                                        <x-admin.action :href="route('admin.scans.show', $enquiry->scan)" icon="scan" title="View scan" />
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <x-admin.empty colspan="8" icon="inbox" title="No enquiries match these filters"
+                                       text="Try clearing the filters, or check back after the next scan or form submission.">
+                            <a href="{{ route('admin.enquiries.index') }}" class="admin-btn-ghost">Clear filters</a>
+                        </x-admin.empty>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <x-admin.pagination :paginator="$enquiries" label="enquiries" />
+    </x-admin.card>
 </div>
 
 @endsection

@@ -2,119 +2,134 @@
 
 @section('title', 'Websites')
 @section('page-title', 'Websites')
-@section('page-subtitle', 'Manage websites being tracked and scanned')
+@section('page-subtitle', 'Every site in the portfolio and its latest scan score')
 
 @section('content')
 
-{{-- Actions --}}
-<div class="flex items-center justify-between mb-6">
-    <div class="flex items-center gap-3">
-        <form method="GET" class="flex gap-2">
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search websites..."
-                class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500">
-            <select name="status" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500">
-                <option value="">All Status</option>
-                <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
-                <option value="excluded" {{ request('status') === 'excluded' ? 'selected' : '' }}>Excluded</option>
-                <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
+@php
+    $scoreVariant = fn ($score) => $score === null ? 'neutral'
+        : ($score >= 80 ? 'success' : ($score >= 60 ? 'info' : ($score >= 40 ? 'warning' : 'danger')));
+@endphp
+
+<div class="space-y-5">
+
+    <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+        <x-admin.stat label="Tracked websites" :value="$stats['total']" icon="globe" />
+        <x-admin.stat label="Active" :value="$stats['active']" icon="check"
+                      :href="route('admin.websites.index', ['status' => 'active'])" />
+        <x-admin.stat label="Excluded" :value="$stats['excluded']" icon="ban"
+                      :href="route('admin.websites.index', ['status' => 'excluded'])" />
+    </div>
+
+    <x-admin.note tone="info" title="What lives here">
+        A website is anything you scan — a client site, a prospect, or a lead you found
+        through discovery. Batch-scanning queues a scan for every site that matches the
+        current filters, so filter first if you only want to scan a subset.
+    </x-admin.note>
+
+    <x-admin.filters :reset="route('admin.websites.index')" submit-label="Filter">
+        <x-admin.search :value="request('search')" placeholder="Business name or URL…" />
+
+        <div class="field">
+            <label for="filter-status">Status</label>
+            <select name="status" id="filter-status">
+                <option value="">Any status</option>
+                <option value="active" @selected(request('status') === 'active')>Active</option>
+                <option value="pending" @selected(request('status') === 'pending')>Pending</option>
+                <option value="excluded" @selected(request('status') === 'excluded')>Excluded</option>
             </select>
-            <button type="submit" class="btn-primary text-sm">Filter</button>
-        </form>
-    </div>
-    <div class="flex items-center gap-3">
-        <span class="text-sm text-gray-500 hidden md:inline">Staff Actions:</span>
-        <a href="{{ route('admin.websites.create') }}" class="btn-primary text-sm">
-            + Add Website
-        </a>
-        @php $batchCount = $websites->total(); @endphp
-        @if($batchCount > 0)
-            <input type="hidden" id="batch-scan-count" value="{{ $batchCount }}">
-            <button id="batch-scan-btn" onclick="batchScanWebsites()" class="btn-outline text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                Scan All ({{ $batchCount }})
-            </button>
-        @endif
-    </div>
-</div>
-
-{{-- Quick Scan Banner --}}
-<div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-            <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </div>
-        <div>
-            <p class="font-semibold text-black text-sm">Staff Scanner</p>
-            <p class="text-xs text-gray-500">Run internal scans on any website in your portfolio</p>
-        </div>
-    </div>
-    <a href="{{ route('admin.scans.index') }}" class="text-yellow-600 hover:text-yellow-700 text-sm font-medium">
-        View All Scans →
-    </a>
-</div>
+    </x-admin.filters>
 
-{{-- Websites Table --}}
-<div class="card overflow-hidden">
-    <div class="overflow-x-auto">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Business Name</th>
-                    <th>URL</th>
-                    <th>Sector</th>
-                    <th>Last Score</th>
-                    <th>Status</th>
-                    <th>Scans</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($websites as $website)
+    <x-admin.card :padded="false">
+        <x-slot:title>Websites</x-slot:title>
+        <x-slot:subtitle>{{ $websites->total() }} {{ Str::plural('website', $websites->total()) }} matching</x-slot:subtitle>
+        <x-slot:actions>
+            <a href="{{ route('admin.websites.create') }}" class="admin-btn">
+                <x-admin.icon name="plus" class="w-4 h-4" />
+                Add website
+            </a>
+            @if ($websites->total() > 0)
+                <input type="hidden" id="batch-scan-count" value="{{ $websites->total() }}">
+                <button type="button" id="batch-scan-btn" onclick="batchScanWebsites()" class="admin-btn-ghost">
+                    <x-admin.icon name="scan" class="w-4 h-4" />
+                    Scan all ({{ $websites->total() }})
+                </button>
+            @endif
+        </x-slot:actions>
+
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
                     <tr>
-                        <td>
-                            <div class="font-medium text-sm text-gray-900">{{ $website->business_name }}</div>
-                        </td>
-                        <td>
-                            <a href="{{ $website->url }}" target="_blank" class="text-sm text-yellow-600 hover:underline">
-                                {{ Str::limit($website->url, 40) }}
+                        <th>
+                            <x-admin.sort column="business_name" label="Business"
+                                          :active-sort="$sort['column']" :active-direction="$sort['direction']" />
+                        </th>
+                        <th>URL</th>
+                        <th>
+                            <x-admin.sort column="sector" label="Sector"
+                                          :active-sort="$sort['column']" :active-direction="$sort['direction']" />
+                        </th>
+                        <th>Last score</th>
+                        <th>Status</th>
+                        <th>
+                            <x-admin.sort column="scans_count" label="Scans"
+                                          :active-sort="$sort['column']" :active-direction="$sort['direction']" />
+                        </th>
+                        <th class="col-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($websites as $website)
+                        <tr>
+                            <td>
+                                <div class="font-semibold text-gray-900">{{ $website->business_name }}</div>
+                            </td>
+                            <td>
+                                <a href="{{ $website->url }}" target="_blank" rel="noopener noreferrer"
+                                   class="admin-inline-link max-w-[16rem] inline-block truncate align-bottom">
+                                    {{ Str::limit(preg_replace('#^https?://#', '', $website->url), 40) }}
+                                </a>
+                            </td>
+                            <td class="text-gray-600">{{ $website->sector ?: '—' }}</td>
+                            <td>
+                                @if ($website->latestScan?->score !== null)
+                                    <x-admin.badge :variant="$scoreVariant($website->latestScan->score)">
+                                        {{ $website->latestScan->score }}/100
+                                    </x-admin.badge>
+                                @else
+                                    <span class="text-xs text-gray-400">Not scanned</span>
+                                @endif
+                            </td>
+                            <td>
+                                <x-admin.badge :variant="$website->exclusion_status === 'excluded' ? 'danger' : 'success'">
+                                    {{ ucfirst($website->status ?? 'active') }}
+                                </x-admin.badge>
+                            </td>
+                            <td class="admin-tabular text-gray-700">{{ $website->scans_count ?? 0 }}</td>
+                            <td class="col-actions">
+                                <div class="admin-actions">
+                                    <x-admin.action :href="route('admin.websites.show', $website)" icon="eye" title="Open">Open</x-admin.action>
+                                    <x-admin.action href="#" icon="scan" title="Scan now"
+                                                    onclick="event.preventDefault(); scanWebsite({{ $website->id }});" />
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <x-admin.empty colspan="7" icon="globe" title="No websites found"
+                                       text="Add a website to start tracking its health, or clear the filters to see the full portfolio.">
+                            <a href="{{ route('admin.websites.create') }}" class="admin-btn">
+                                <x-admin.icon name="plus" class="w-4 h-4" /> Add the first website
                             </a>
-                        </td>
-                        <td class="text-sm text-gray-700">{{ $website->sector ?? '-' }}</td>
-                        <td>
-                            @if($website->latestScan)
-                                <span class="badge {{ $website->latestScan->score >= 80 ? 'badge-success' : ($website->latestScan->score >= 60 ? 'badge-info' : ($website->latestScan->score >= 40 ? 'badge-warning' : 'badge-danger')) }}">
-                                    {{ $website->latestScan->score }}/100
-                                </span>
-                            @else
-                                <span class="text-xs text-gray-400">Not scanned</span>
-                            @endif
-                        </td>
-                        <td>
-                            <span class="badge {{ $website->exclusion_status === 'excluded' ? 'badge-danger' : 'badge-success' }}">
-                                {{ ucfirst($website->status ?? 'active') }}
-                            </span>
-                        </td>
-                        <td class="text-sm text-gray-700">{{ $website->scans_count ?? 0 }}</td>
-                        <td>
-                            <div class="flex items-center gap-2">
-                                <a href="{{ route('admin.websites.show', $website) }}" class="text-yellow-600 hover:underline text-sm">View</a>
-                                <button onclick="scanWebsite({{ $website->id }})" class="text-yellow-600 hover:underline text-sm">Scan</button>
-                            </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" class="text-center text-gray-400 py-8">No websites tracked yet.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-    @if(method_exists($websites, 'links'))
-        <div class="px-4 py-3 border-t border-gray-100">
-            {{ $websites->links() }}
+                        </x-admin.empty>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-    @endif
+
+        <x-admin.pagination :paginator="$websites" label="websites" />
+    </x-admin.card>
 </div>
 
 @endsection

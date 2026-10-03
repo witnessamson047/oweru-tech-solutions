@@ -6,40 +6,25 @@
 
 @section('content')
 
-<div class="max-w-3xl">
-    <form method="POST" action="{{ route('admin.websites.store') }}" class="card space-y-5">
-        @csrf
+<form method="POST" action="{{ route('admin.websites.store') }}" class="space-y-5">
+    @csrf
 
-        <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Business Name *</label>
-            <input type="text" name="business_name" value="{{ old('business_name') }}" required maxlength="255"
-                placeholder="e.g. Demo Cafe"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-            @error('business_name')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
-        </div>
+    <x-admin.note tone="info" title="Every lead starts with a site">
+        Add the client's address once and the scanner, reports and pitch recommendations all
+        work from it. Tracking a site you have not sold to yet is fine — that is how the
+        health scan becomes your opening pitch.
+    </x-admin.note>
 
-        <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Website URL *</label>
-            <input type="text" name="url" inputmode="url" value="{{ old('url') }}" required
-                placeholder="e.g. abc.co.tz — https:// is optional"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-            <p class="text-xs text-gray-400 mt-1">Include https:// — must be a unique, valid URL.</p>
-            @error('url')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
-        </div>
+    <x-admin.card title="Website details" icon="globe">
+        @include('admin.websites._form')
+    </x-admin.card>
 
-        <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Sector</label>
-            <input type="text" name="sector" value="{{ old('sector') }}" maxlength="255"
-                placeholder="e.g. Hospitality, Retail, NGO"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-            @error('sector')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
-        </div>
-
-        <div class="flex gap-3 pt-2 border-t border-gray-100">
-            <button type="submit" class="btn-primary text-sm">Add Website</button>
-            <a href="{{ route('admin.websites.index') }}" class="btn-outline text-sm">Cancel</a>
-        </div>
-    </form>
-</div>
+    <div class="flex flex-wrap items-center gap-2">
+        <button type="submit" class="admin-btn">
+            <x-admin.icon name="check" class="w-4 h-4" /> Add website
+        </button>
+        <a href="{{ route('admin.websites.index') }}" class="admin-btn-ghost">Cancel</a>
+    </div>
+</form>
 
 @endsection

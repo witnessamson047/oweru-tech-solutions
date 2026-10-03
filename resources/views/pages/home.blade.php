@@ -73,7 +73,7 @@
             @foreach($serviceLines->take(3) as $line)
                 @php $serviceImage = $homeServiceImages[$line->slug] ?? null; @endphp
                 <a href="{{ route('packages.index') }}#{{ $line->slug }}" class="home-service-card">
-                    <div class="home-service-card-media">
+                    <div class="home-service-card-media" data-scroll-reveal>
                         @if($serviceImage)
                             <img src="{{ asset($serviceImage['image']) }}" alt="{{ $serviceImage['alt'] }}" loading="lazy">
                         @else
@@ -152,7 +152,7 @@
         display: grid;
         grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
         align-items: center;
-        gap: 36px;
+        gap: 24px;
         min-height: 0;
         padding: 32px 0;
     }
@@ -326,7 +326,7 @@
     }
 
     .home-services {
-        padding: 72px 0 66px;
+        padding: 60px 0 54px;
         background: #f6f7f4;
     }
 
@@ -469,7 +469,7 @@
     .home-service-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 16px;
+        gap: 12px;
     }
 
     .home-service-card {
@@ -503,6 +503,27 @@
         height: 170px;
         overflow: hidden;
         background: #e8eee8;
+    }
+
+    .home-service-card-media.is-reveal-pending {
+        opacity: 0;
+        transform: translateY(18px);
+        transition: opacity 500ms ease, transform 500ms ease;
+    }
+
+    .home-service-card-media.is-revealed {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .home-service-card:nth-child(2) .home-service-card-media.is-reveal-pending,
+    .home-service-card:nth-child(2) .home-service-card-media.is-revealed {
+        transition-delay: 90ms;
+    }
+
+    .home-service-card:nth-child(3) .home-service-card-media.is-reveal-pending,
+    .home-service-card:nth-child(3) .home-service-card-media.is-revealed {
+        transition-delay: 180ms;
     }
 
     .home-service-card-media::after {
@@ -776,6 +797,7 @@
 
     @media (prefers-reduced-motion: reduce) {
         .home-service-card,
+        .home-service-card-media.is-reveal-pending,
         .home-service-card-media::after,
         .home-service-card-media img,
         .home-service-artwork,

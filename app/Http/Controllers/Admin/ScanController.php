@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Concerns\SortsListings;
 use App\Jobs\ScanWebsiteJob;
 use App\Models\Scan;
 use App\Models\Website;
@@ -11,11 +12,20 @@ use Illuminate\Http\Request;
 
 class ScanController extends Controller
 {
+    use SortsListings;
+
     public function index(Request $request)
     {
+        $sort = $this->resolveSort($request, [
+            'score' => 'Score',
+            'band' => 'Band',
+            'status' => 'Status',
+            'created_at' => 'Newest',
+        ], default: 'created_at', defaultDirection: 'desc');
+
         $query = Scan::with(['website', 'results']);
 
-        if ($search = $request->input('search')) {
+        if ($search = trim((string) $request->input('search'))) {
             $query->whereHas('website', function ($q) use ($search) {
                 $q->where('business_name', 'like', "%{$search}%")
                   ->orWhere('url', 'like', "%{$search}%");
@@ -30,9 +40,20 @@ class ScanController extends Controller
             $query->where('status', $status);
         }
 
-        $scans = $query->latest()->paginate(20);
+        $this->applySort($query, $sort);
 
-        return view('admin.scans.index', compact('scans'));
+        $scans = $query->paginate($this->perPage($request, 20))->withQueryString();
+
+        return view('admin.scans.index', [
+            'scans' => $scans,
+            'sort' => $sort,
+            'stats' => [
+                'total' => Scan::count(),
+                'completed' => Scan::where('status', 'completed')->count(),
+                'failed' => Scan::where('status', 'failed')->count(),
+                'critical' => Scan::where('status', 'completed')->where('score', '<', 40)->count(),
+            ],
+        ]);
     }
 
     public function show(Scan $scan)
@@ -84,7 +105,7 @@ class ScanController extends Controller
 
         if ($websites->isEmpty()) {
             return redirect()->route('admin.websites.index')
-                ->with('error', 'No websites match the current filters — nothing to scan.');
+                ->with('error', 'No websites match the current filters â€” nothing to scan.');
         }
 
         foreach ($websites as $website) {

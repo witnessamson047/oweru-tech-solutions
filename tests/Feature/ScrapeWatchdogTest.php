@@ -335,7 +335,7 @@ class ScrapeWatchdogTest extends TestCase
         $response = $this->actingAs($admin)->get(route('admin.scraped-businesses.show', $business));
 
         $response->assertStatus(200);
-        $response->assertSee('Watchdog Activity');
+        $response->assertSee('Watchdog activity');
         $response->assertSee('Rating drop');
     }
 

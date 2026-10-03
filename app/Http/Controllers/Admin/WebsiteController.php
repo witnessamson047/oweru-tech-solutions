@@ -3,17 +3,27 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Concerns\SortsListings;
 use App\Models\Website;
 use App\Support\UrlInput;
 use Illuminate\Http\Request;
 
 class WebsiteController extends Controller
 {
+    use SortsListings;
+
     public function index(Request $request)
     {
+        $sort = $this->resolveSort($request, [
+            'business_name' => 'Business',
+            'sector' => 'Sector',
+            'scans_count' => 'Scans',
+            'created_at' => 'Newest',
+        ], default: 'created_at', defaultDirection: 'desc');
+
         $query = Website::withCount('scans')->with('latestScan');
 
-        if ($search = $request->input('search')) {
+        if ($search = trim((string) $request->input('search'))) {
             $query->where(function ($q) use ($search) {
                 $q->where('business_name', 'like', "%{$search}%")
                   ->orWhere('url', 'like', "%{$search}%");
@@ -28,9 +38,19 @@ class WebsiteController extends Controller
             }
         }
 
-        $websites = $query->latest()->paginate(20);
+        $this->applySort($query, $sort, ['business_name']);
 
-        return view('admin.websites.index', compact('websites'));
+        $websites = $query->paginate($this->perPage($request, 20))->withQueryString();
+
+        return view('admin.websites.index', [
+            'websites' => $websites,
+            'sort' => $sort,
+            'stats' => [
+                'total' => Website::count(),
+                'active' => Website::where('status', 'active')->count(),
+                'excluded' => Website::where('exclusion_status', 'excluded')->count(),
+            ],
+        ]);
     }
 
     public function create()

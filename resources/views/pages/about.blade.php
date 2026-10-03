@@ -11,7 +11,7 @@
             <h1>{{ __('about.header.title') }}</h1>
             <p>{{ __('about.header.lead') }}</p>
         </div>
-        <figure class="about-hero-image">
+        <figure class="about-hero-image" data-scroll-reveal>
             <img src="{{ asset('images/hero/team-collaboration.jpg') }}" alt="The Oweru team collaborating around a table" fetchpriority="high">
             <figcaption>Oweru International Ltd</figcaption>
         </figure>

@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Admin\PackageController as AdminPackageController;
 use App\Http\Controllers\Admin\CarePlanController;
+use App\Http\Controllers\Admin\PackageExclusionController;
 use App\Http\Controllers\Admin\EnquiryController as AdminEnquiryController;
 use App\Http\Controllers\Admin\PipelineController;
 use App\Http\Controllers\Admin\WebsiteController;
@@ -58,31 +59,40 @@ Route::get('/lang/{locale}', function (string $locale) {
     return redirect()->back();
 })->name('locale.switch');
 
-// Debug routes for troubleshooting
-Route::get('/debug/db', function () {
-    try {
-        DB::connection()->getPdo();
-        return response()->json([
-            'status' => 'connected',
-            'database' => Config::get('database.default'),
-            'host' => env('DB_HOST'),
-            'mailer' => Config::get('mail.default'),
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => $e->getMessage(),
-            'database' => Config::get('database.default'),
-        ], 500);
-    }
-});
+// Debug routes for troubleshooting.
+//
+// These expose infrastructure details (DB host, mailer, session config) and raw
+// exception messages, so they must never be reachable by an anonymous visitor.
+// Staff-only, and skipped entirely outside local/dev.
+if (app()->environment(['local', 'testing'])) {
+    Route::middleware(['auth', 'admin'])->group(function () {
+        Route::get('/debug/db', function () {
+            try {
+                DB::connection()->getPdo();
 
-Route::get('/debug/session', function () {
-    return response()->json([
-        'session_driver' => Config::get('session.driver'),
-        'session_lifetime' => Config::get('session.lifetime'),
-    ]);
-});
+                return response()->json([
+                    'status' => 'connected',
+                    'database' => Config::get('database.default'),
+                    'host' => env('DB_HOST'),
+                    'mailer' => Config::get('mail.default'),
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                    'database' => Config::get('database.default'),
+                ], 500);
+            }
+        })->name('debug.db');
+
+        Route::get('/debug/session', function () {
+            return response()->json([
+                'session_driver' => Config::get('session.driver'),
+                'session_lifetime' => Config::get('session.lifetime'),
+            ]);
+        })->name('debug.session');
+    });
+}
 
 // Build 1 - Service Packages
 Route::get('/services', [PackageController::class, 'index'])->name('packages.index');
@@ -130,10 +140,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::patch('account/password', [AccountController::class, 'update'])->name('account.password.update');
 
     // Build 1 - Service Packages Management
-    Route::resource('packages', AdminPackageController::class);
+    // 'show' is excluded deliberately: packages are edited in place from the
+    // index table, and there is no package detail view behind that URL.
+    Route::resource('packages', AdminPackageController::class)->except(['show']);
 
     // Build 1 - Care Plans Management
     Route::resource('care-plans', CarePlanController::class)->except(['show']);
+
+    // Build 1 - Package Exclusions (what a package does NOT include)
+    Route::resource('package-exclusions', PackageExclusionController::class)->except(['show']);
 
     // Build 2 - Enquiries Management
     Route::get('enquiries', [AdminEnquiryController::class, 'index'])->name('enquiries.index');
@@ -161,7 +176,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // Reports
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('reports/{report}/download', [ReportController::class, 'download'])->name('reports.download');
-    Route::get('reports/{scan}/generate', [ReportController::class, 'generate'])->name('reports.generate');
+    // POST, not GET: generating a report writes a PDF to disk and upserts a
+    // reports row, so it must never be triggerable by a link prefetch.
+    Route::post('reports/{scan}/generate', [ReportController::class, 'generate'])->name('reports.generate');
 
     // Scanner Checks Management
     Route::resource('scanner-checks', ScannerCheckController::class)->except(['show']);

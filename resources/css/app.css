@@ -46,8 +46,10 @@ body {
     line-height: 1.6;
 }
 
-a {
-    color: inherit;
+@layer base {
+    a {
+        color: inherit;
+    }
 }
 
 /* Smooth anchor scrolling (deep links like /services#crm-solutions)
@@ -61,6 +63,24 @@ html {
 :focus-visible {
     outline: 2px solid var(--gold-dark);
     outline-offset: 2px;
+}
+
+[data-scroll-reveal].is-reveal-pending {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 500ms ease, transform 500ms ease;
+}
+
+[data-scroll-reveal].is-revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-scroll-reveal].is-reveal-pending {
+        transition-duration: 0.01ms;
+        transition-delay: 0ms;
+    }
 }
 
 /* Typography */
@@ -393,13 +413,968 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ============================================
-   ADMIN UI SYSTEM — one consistent kit
-   (black · gold · white) used by every page of
-   /admin so the panel reads as a single product.
-   Lives in @layer components so Tailwind
-   utilities (p-4, text-xs, hover:…) still win
-   where a page needs to vary size/spacing.
+   ADMIN PANEL KIT v2 — the shared vocabulary
+   Every /admin page is built from these classes
+   (via the x-admin.* Blade components) so the
+   panel reads as one product: same surfaces,
+   same hover language, same spacing rhythm.
+
+   Tokens live on .admin-portal so a page can
+   restyle locally without fighting the cascade.
    ============================================ */
+.admin-portal {
+    /* Re-declared here so the v2 rules below can use them directly. */
+    --admin-accent: #17372f;
+    --admin-accent-dark: #102b25;
+    --admin-accent-soft: #eef5f1;
+    --admin-border: #e1e5e2;
+    --admin-border-strong: #cbd5d1;
+    --admin-radius: 0.625rem;
+    --admin-muted: #5f6b76;
+    --admin-gold-soft: #fffaf0;
+    --admin-danger: #b42318;
+    --admin-danger-soft: #fef3f2;
+    --admin-success: #067647;
+    --admin-success-soft: #ecfdf3;
+    --admin-warn: #b54708;
+    --admin-warn-soft: #fffaeb;
+    --admin-info: #175cd3;
+    --admin-info-soft: #eff8ff;
+
+    /* One shadow ramp so every elevation matches. */
+    --shadow-1: 0 1px 2px rgba(16, 24, 22, 0.05);
+    --shadow-2: 0 2px 6px rgba(16, 24, 22, 0.07);
+    --shadow-3: 0 10px 24px rgba(16, 24, 22, 0.1);
+    --ring: 0 0 0 3px rgba(205, 165, 62, 0.22);
+}
+
+.admin-portal {
+    background-color: #f4f6f9;
+    color: #17211d;
+}
+
+/* ---------- Surfaces ---------- */
+.admin-portal .admin-card,
+.admin-portal .card {
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius);
+    background-color: #fff;
+    box-shadow: var(--shadow-1);
+}
+
+/* The hover language for cards: lift + warm border. Only for cards that
+   are themselves interactive, so plain info panels stay still. */
+.admin-portal .admin-card-interactive {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+.admin-portal .admin-card-interactive:hover,
+.admin-portal .admin-card-interactive:focus-visible {
+    border-color: var(--admin-accent);
+    box-shadow: var(--shadow-3);
+    transform: translateY(-2px);
+}
+.admin-portal .admin-card-interactive:focus-visible {
+    outline: 2px solid var(--gold-dark);
+    outline-offset: 2px;
+}
+
+/* Card with a section header — the most repeated shape in the panel. */
+.admin-portal .admin-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0.9rem 1.15rem;
+    border-bottom: 1px solid var(--admin-border);
+}
+.admin-portal .admin-panel-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #17211d;
+    letter-spacing: -0.01em;
+}
+.admin-portal .admin-panel-sub {
+    font-size: 0.75rem;
+    color: var(--admin-muted);
+    margin-top: 0.1rem;
+}
+.admin-portal .admin-panel-body {
+    padding: 1.15rem;
+}
+.admin-portal .admin-panel-foot {
+    padding: 0.8rem 1.15rem;
+    border-top: 1px solid var(--admin-border);
+    background-color: #fafbf9;
+    border-radius: 0 0 var(--admin-radius) var(--admin-radius);
+}
+
+/* ---------- Stat cards ---------- */
+.admin-portal .admin-stat {
+    position: relative;
+    overflow: hidden;
+    padding: 1.05rem 1.15rem;
+    transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+.admin-portal a.admin-stat:hover,
+.admin-portal a.admin-stat:focus-visible {
+    border-color: var(--admin-accent);
+    box-shadow: var(--shadow-3);
+    transform: translateY(-2px);
+}
+/* The gold rule that grows on hover — the panel's signature detail. */
+.admin-portal .admin-stat::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 32%;
+    background: linear-gradient(90deg, var(--admin-accent-dark), var(--gold-light));
+    transition: width 200ms ease;
+}
+.admin-portal a.admin-stat:hover::after,
+.admin-portal a.admin-stat:focus-visible::after {
+    width: 100%;
+}
+.admin-portal .admin-stat-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--admin-muted);
+}
+.admin-portal .admin-stat-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: #17211d;
+    margin-top: 0.3rem;
+}
+.admin-portal .admin-stat-hint {
+    font-size: 0.7rem;
+    color: var(--admin-muted);
+    margin-top: 0.25rem;
+}
+.admin-portal .admin-stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.55rem;
+    background-color: var(--admin-accent-soft);
+    color: var(--admin-accent);
+}
+.admin-portal .admin-stat-icon svg {
+    width: 1.15rem;
+    height: 1.15rem;
+}
+.admin-portal .admin-stat.is-featured {
+    border-color: var(--admin-accent);
+    background: linear-gradient(145deg, var(--admin-accent), var(--admin-accent-dark));
+}
+.admin-portal .admin-stat.is-featured::after {
+    display: none;
+}
+.admin-portal .admin-stat.is-featured .admin-stat-label,
+.admin-portal .admin-stat.is-featured .admin-stat-value,
+.admin-portal .admin-stat.is-featured .admin-stat-hint,
+.admin-portal .admin-stat.is-featured .admin-stat-icon svg {
+    color: #fff;
+}
+.admin-portal .admin-stat.is-featured .admin-stat-icon {
+    background-color: rgba(255, 255, 255, 0.16);
+}
+.admin-portal .admin-stat.is-featured .admin-stat-hint {
+    color: rgba(255, 255, 255, 0.72);
+}
+
+/* ---------- Filter bar ---------- */
+.admin-portal .admin-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.65rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius);
+    background-color: #fff;
+    box-shadow: var(--shadow-1);
+}
+.admin-portal .admin-filters .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.28rem;
+    min-width: 0;
+}
+.admin-portal .admin-filters label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--admin-muted);
+}
+.admin-portal .admin-filters .spacer {
+    flex: 1 1 auto;
+}
+/* Search box inside the filter bar: fixed-ish width so it does not
+   dominate the row, and its own hover/focus treatment. */
+.admin-portal .admin-filter-input {
+    min-width: 12rem;
+    padding-block: 0.42rem;
+    font-size: 0.82rem;
+}
+.admin-portal .admin-filter-input::-webkit-search-cancel-button {
+    display: none;
+}
+
+/* ---------- Tables ---------- */
+.admin-portal .admin-table-wrap {
+    overflow-x: auto;
+    border-radius: var(--admin-radius);
+}
+.admin-portal .admin-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+.admin-portal .admin-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: #fafbf9;
+    color: #5c6b64;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    text-align: left;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--admin-border);
+}
+.admin-portal .admin-table td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid #f0f2ef;
+    vertical-align: middle;
+    font-size: 0.8125rem;
+}
+.admin-portal .admin-table tbody tr {
+    transition: background-color 130ms ease;
+}
+.admin-portal .admin-table tbody tr:hover {
+    background-color: #fcfdfb;
+}
+.admin-portal .admin-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+.admin-portal .admin-table .col-actions {
+    width: 1%;
+    white-space: nowrap;
+    text-align: right;
+}
+/* Sortable column headers. */
+.admin-portal .admin-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: inherit;
+    text-decoration: none;
+    transition: color 130ms ease;
+}
+.admin-portal .admin-sort:hover {
+    color: var(--admin-accent);
+}
+.admin-portal .admin-sort svg {
+    width: 0.8rem;
+    height: 0.8rem;
+    opacity: 0.35;
+    transition: opacity 130ms ease, transform 130ms ease;
+}
+.admin-portal .admin-sort:hover svg {
+    opacity: 0.8;
+}
+.admin-portal .admin-sort.is-active {
+    color: var(--admin-accent);
+}
+.admin-portal .admin-sort.is-active svg {
+    opacity: 1;
+}
+.admin-portal .admin-sort.is-desc svg {
+    transform: rotate(180deg);
+}
+
+/* ---------- Row action buttons (Edit / Delete / Run) ---------- */
+.admin-portal .admin-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    justify-content: flex-end;
+}
+.admin-portal .admin-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.55rem;
+    border-radius: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 650;
+    line-height: 1;
+    color: #3c4a44;
+    background-color: #fff;
+    border: 1px solid var(--admin-border);
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
+}
+.admin-portal .admin-action svg {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+.admin-portal .admin-action:hover {
+    border-color: var(--admin-accent);
+    color: var(--admin-accent);
+    background-color: var(--admin-accent-soft);
+}
+.admin-portal .admin-action:active {
+    transform: scale(0.96);
+}
+.admin-portal .admin-action.is-primary {
+    background-color: var(--admin-accent);
+    border-color: var(--admin-accent);
+    color: #fff;
+}
+.admin-portal .admin-action.is-primary:hover {
+    background-color: var(--admin-accent-dark);
+    border-color: var(--admin-accent-dark);
+    color: #fff;
+}
+.admin-portal .admin-action.is-danger:hover {
+    border-color: var(--admin-danger);
+    color: var(--admin-danger);
+    background-color: var(--admin-danger-soft);
+}
+.admin-portal .admin-action.is-gold {
+    background-color: var(--gold);
+    border-color: var(--gold);
+    color: #17211d;
+}
+.admin-portal .admin-action.is-gold:hover {
+    background-color: var(--gold-light);
+    border-color: var(--gold-light);
+    color: #17211d;
+}
+
+/* ---------- Badges / status pills ---------- */
+.admin-portal .admin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+.admin-portal .admin-badge::before {
+    content: "";
+    width: 0.35rem;
+    height: 0.35rem;
+    border-radius: 999px;
+    background-color: currentColor;
+    flex: 0 0 auto;
+}
+.admin-portal .admin-badge.is-plain::before {
+    display: none;
+}
+.admin-portal .admin-badge-neutral {
+    background-color: #f1f3f1;
+    color: #58645e;
+}
+.admin-portal .admin-badge-gold {
+    background-color: var(--admin-gold-soft);
+    color: var(--gold-dark);
+    border-color: #ecdcae;
+}
+.admin-portal .admin-badge-success {
+    background-color: var(--admin-success-soft);
+    color: var(--admin-success);
+}
+.admin-portal .admin-badge-danger {
+    background-color: var(--admin-danger-soft);
+    color: var(--admin-danger);
+}
+.admin-portal .admin-badge-warning {
+    background-color: var(--admin-warn-soft);
+    color: var(--admin-warn);
+}
+.admin-portal .admin-badge-info {
+    background-color: var(--admin-info-soft);
+    color: var(--admin-info);
+}
+
+/* ---------- Empty state ---------- */
+.admin-portal .admin-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 2.75rem 1.5rem;
+    text-align: center;
+}
+.admin-portal .admin-empty-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 999px;
+    background-color: var(--admin-accent-soft);
+    color: var(--admin-accent);
+    margin-bottom: 0.35rem;
+}
+.admin-portal .admin-empty-icon svg {
+    width: 1.4rem;
+    height: 1.4rem;
+}
+.admin-portal .admin-empty-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #17211d;
+}
+.admin-portal .admin-empty-text {
+    font-size: 0.78rem;
+    color: var(--admin-muted);
+    max-width: 26rem;
+}
+
+/* ---------- Info / callout strip ---------- */
+.admin-portal .admin-note {
+    display: flex;
+    gap: 0.7rem;
+    align-items: flex-start;
+    padding: 0.85rem 1rem;
+    border-radius: var(--admin-radius);
+    border: 1px solid var(--admin-border);
+    background-color: #fafbf9;
+    font-size: 0.8rem;
+    color: #3c4a44;
+}
+.admin-portal .admin-note svg {
+    width: 1.05rem;
+    height: 1.05rem;
+    flex: 0 0 auto;
+    margin-top: 0.1rem;
+    color: var(--admin-accent);
+}
+.admin-portal .admin-note-title {
+    font-weight: 700;
+    color: #17211d;
+}
+.admin-portal .admin-note.is-info {
+    border-color: #b2ddff;
+    background-color: var(--admin-info-soft);
+}
+.admin-portal .admin-note.is-info svg {
+    color: var(--admin-info);
+}
+.admin-portal .admin-note.is-warn {
+    border-color: #fedf89;
+    background-color: var(--admin-warn-soft);
+}
+.admin-portal .admin-note.is-warn svg {
+    color: var(--admin-warn);
+}
+.admin-portal .admin-note.is-danger {
+    border-color: #fecdca;
+    background-color: var(--admin-danger-soft);
+}
+.admin-portal .admin-note.is-danger svg {
+    color: var(--admin-danger);
+}
+
+/* ---------- Flash messages (layout) ---------- */
+.admin-portal .admin-flash {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.25rem;
+    border-radius: var(--admin-radius);
+    border: 1px solid;
+    font-size: 0.85rem;
+}
+.admin-portal .admin-flash svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex: 0 0 auto;
+    margin-top: 0.1rem;
+}
+.admin-portal .admin-flash.is-success {
+    background-color: var(--admin-success-soft);
+    border-color: #abefc6;
+    color: var(--admin-success);
+}
+.admin-portal .admin-flash.is-error {
+    background-color: var(--admin-danger-soft);
+    border-color: #fecdca;
+    color: var(--admin-danger);
+}
+.admin-portal .admin-flash.is-info {
+    background-color: var(--admin-info-soft);
+    border-color: #b2ddff;
+    color: var(--admin-info);
+}
+.admin-portal .admin-flash-close {
+    flex: 0 0 auto;
+    width: 1.4rem;
+    height: 1.4rem;
+    margin-top: -0.1rem;
+    border-radius: 0.3rem;
+    font-size: 1.15rem;
+    line-height: 1;
+    color: currentColor;
+    opacity: 0.55;
+    cursor: pointer;
+    transition: opacity 140ms ease, background-color 140ms ease;
+}
+.admin-portal .admin-flash-close:hover {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.07);
+}
+
+/* ---------- Forms ---------- */
+.admin-portal .admin-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+.admin-portal .admin-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #4b5a53;
+}
+.admin-portal .admin-hint {
+    font-size: 0.72rem;
+    color: var(--admin-muted);
+}
+.admin-portal .admin-error {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--admin-danger);
+}
+.admin-portal input:not([type="checkbox"]):not([type="radio"]),
+.admin-portal select,
+.admin-portal textarea {
+    width: 100%;
+    border: 1px solid var(--admin-border-strong);
+    border-radius: 0.5rem;
+    background-color: #fff;
+    color: #17211d;
+    padding: 0.5rem 0.7rem;
+    font-size: 0.85rem;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.admin-portal input:focus,
+.admin-portal select:focus,
+.admin-portal textarea:focus {
+    border-color: var(--gold-dark);
+    box-shadow: var(--ring);
+    outline: none;
+}
+.admin-portal input[aria-invalid="true"],
+.admin-portal select[aria-invalid="true"],
+.admin-portal textarea[aria-invalid="true"] {
+    border-color: var(--admin-danger);
+}
+.admin-portal input[aria-invalid="true"]:focus,
+.admin-portal select[aria-invalid="true"]:focus,
+.admin-portal textarea[aria-invalid="true"]:focus {
+    box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.15);
+}
+.admin-portal .admin-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: #3c4a44;
+    cursor: pointer;
+    user-select: none;
+}
+.admin-portal .admin-checkbox input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 0.25rem;
+    border-color: var(--admin-border-strong);
+    accent-color: var(--admin-accent);
+    cursor: pointer;
+}
+
+/* Segmented radio/checkbox group (filters, toggles) */
+.admin-portal .admin-segment {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid var(--admin-border);
+    background-color: #fff;
+    font-size: 0.75rem;
+    font-weight: 650;
+    color: #3c4a44;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 150ms ease;
+}
+.admin-portal .admin-segment:hover {
+    border-color: var(--admin-accent);
+    color: var(--admin-accent);
+    background-color: var(--admin-accent-soft);
+}
+.admin-portal .admin-segment.is-active {
+    background-color: var(--admin-accent);
+    border-color: var(--admin-accent);
+    color: #fff;
+}
+.admin-portal .admin-segment-count {
+    font-size: 0.68rem;
+    opacity: 0.7;
+}
+
+/* ---------- Pagination ---------- */
+.admin-portal .admin-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1.15rem;
+    border-top: 1px solid var(--admin-border);
+}
+.admin-portal .admin-pagination-info {
+    font-size: 0.75rem;
+    color: var(--admin-muted);
+}
+.admin-portal .admin-pagination-links {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    flex-wrap: wrap;
+}
+.admin-portal .admin-page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.55rem;
+    border-radius: 0.4rem;
+    border: 1px solid var(--admin-border);
+    background-color: #fff;
+    color: #3c4a44;
+    font-size: 0.75rem;
+    font-weight: 650;
+    text-decoration: none;
+    transition: all 140ms ease;
+}
+.admin-portal .admin-page-link:hover {
+    border-color: var(--admin-accent);
+    color: var(--admin-accent);
+    background-color: var(--admin-accent-soft);
+}
+.admin-portal .admin-page-link.is-active {
+    background-color: var(--admin-accent);
+    border-color: var(--admin-accent);
+    color: #fff;
+}
+.admin-portal .admin-page-link.is-disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+.admin-portal .admin-page-link svg {
+    width: 0.8rem;
+    height: 0.8rem;
+}
+
+/* ---------- Kanban (pipeline) ---------- */
+.admin-portal .kanban-column {
+    display: flex;
+    flex-direction: column;
+    background-color: #eceff3;
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius);
+    min-height: 12rem;
+    max-height: calc(100vh - 18rem);
+}
+.admin-portal .kanban-column-head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.65rem 0.8rem;
+    border-bottom: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius) var(--admin-radius) 0 0;
+    background-color: #fff;
+}
+.admin-portal .kanban-column-title {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #3c4a44;
+}
+.admin-portal .kanban-column-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.35rem;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background-color: #eef1f0;
+    color: #58645e;
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+.admin-portal .kanban-column-value {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--gold-dark);
+}
+.admin-portal .kanban-scroll {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 0.55rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.admin-portal .kanban-card {
+    display: block;
+    padding: 0.7rem 0.8rem;
+    border-radius: 0.55rem;
+    border: 1px solid var(--admin-border);
+    border-left: 3px solid var(--admin-accent);
+    background-color: #fff;
+    box-shadow: var(--shadow-1);
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow 160ms ease, transform 160ms ease, border-color 160ms ease;
+}
+.admin-portal .kanban-card:hover,
+.admin-portal .kanban-card:focus-visible {
+    box-shadow: var(--shadow-2);
+    transform: translateY(-2px);
+    border-color: var(--admin-accent);
+}
+/* Age indicator: a card that has been sitting too long glows amber/red. */
+.admin-portal .kanban-card.age-warm {
+    border-left-color: #f79009;
+}
+.admin-portal .kanban-card.age-hot {
+    border-left-color: var(--admin-danger);
+}
+.admin-portal .kanban-age {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.1rem 0.35rem;
+    border-radius: 999px;
+    background-color: #f1f3f1;
+    color: #58645e;
+}
+.admin-portal .kanban-age.is-warm {
+    background-color: var(--admin-warn-soft);
+    color: var(--admin-warn);
+}
+.admin-portal .kanban-age.is-hot {
+    background-color: var(--admin-danger-soft);
+    color: var(--admin-danger);
+}
+.admin-portal .kanban-empty {
+    padding: 1.5rem 0.5rem;
+    text-align: center;
+    font-size: 0.72rem;
+    color: #8b958f;
+}
+
+/* Avatar: initials of whoever owns an enquiry. */
+.admin-portal .admin-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 999px;
+    background-color: var(--admin-accent);
+    color: #0b0d0c;
+    font-size: 0.62rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+/* Inline text link used inside dense cards and columns. */
+.admin-portal .admin-link {
+    display: inline-block;
+    padding: 0.35rem 0.5rem;
+    border-radius: 0.4rem;
+    color: var(--admin-accent);
+    font-weight: 700;
+    text-align: center;
+    transition: background-color 0.15s ease;
+}
+.admin-portal .admin-link:hover,
+.admin-portal .admin-link:focus-visible {
+    background-color: var(--admin-accent-soft);
+    text-decoration: underline;
+}
+
+/* Link that sits inside a sentence, e.g. inside an admin-note. */
+.admin-portal .admin-inline-link {
+    color: var(--admin-accent);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.admin-portal .admin-inline-link:hover,
+.admin-portal .admin-inline-link:focus-visible {
+    color: var(--gold-dark);
+}
+
+/* ---------- Sidebar counts ---------- */
+.admin-portal .sidebar-count {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.3rem;
+    height: 1.2rem;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    background-color: rgba(255, 255, 255, 0.16);
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 800;
+}
+.admin-portal .sidebar-link.active .sidebar-count {
+    background-color: var(--gold);
+    color: #17211d;
+}
+.admin-portal .sidebar-count.is-alert {
+    background-color: #f04438;
+    color: #fff;
+}
+
+/* ---------- Misc ---------- */
+.admin-portal .admin-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.admin-portal .admin-muted {
+    color: var(--admin-muted);
+}
+.admin-portal .admin-divider {
+    height: 1px;
+    background-color: var(--admin-border);
+    border: 0;
+    margin: 1rem 0;
+}
+/* Number that should not wobble as it updates. */
+.admin-portal .admin-tabular {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Score chip: a compact, colour-coded number. Reads as data, not a button. */
+.admin-portal .admin-score {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    padding: 0 0.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 800;
+    line-height: 1;
+}
+.admin-portal .admin-score-critical { background-color: var(--black); color: var(--white); }
+.admin-portal .admin-score-weak { background-color: var(--gold-dark); color: var(--white); }
+.admin-portal .admin-score-fair { background-color: var(--gold); color: var(--black); }
+.admin-portal .admin-score-strong { background-color: var(--gold-light); color: var(--black); }
+.admin-portal .admin-score-neutral { background-color: var(--gray-light); color: var(--text-muted); }
+.admin-portal .admin-score-lg {
+    min-width: 5rem;
+    height: 5rem;
+    border-radius: 999px;
+    font-size: 1.75rem;
+}
+
+/* Inline popover for a row action that opens a small form (e.g. "Add lead"). */
+.admin-portal .admin-details {
+    position: relative;
+    display: inline-block;
+}
+.admin-portal .admin-details > summary {
+    list-style: none;
+    cursor: pointer;
+}
+.admin-portal .admin-details > summary::-webkit-details-marker {
+    display: none;
+}
+.admin-portal .admin-details-panel {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.375rem);
+    width: 16rem;
+    z-index: 20;
+    background-color: var(--white);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius);
+    box-shadow: var(--shadow-3);
+    padding: 0.75rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-portal .admin-card-interactive,
+    .admin-portal .admin-stat,
+    .admin-portal .admin-action,
+    .admin-portal .admin-segment,
+    .admin-portal .kanban-card {
+        transition: none;
+    }
+    .admin-portal .admin-card-interactive:hover,
+    .admin-portal .admin-stat:hover,
+    .admin-portal .kanban-card:hover {
+        transform: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-portal .admin-stat-value {
+        font-size: 1.5rem;
+    }
+    .admin-portal .kanban-column {
+        max-height: none;
+    }
+}
 @layer components {
     /* The ONE surface recipe for panels, lists, forms */
     .admin-card {
@@ -481,17 +1456,23 @@ h1, h2, h3, h4, h5, h6 {
         border-radius: 0.5rem;
         font-size: 0.875rem;
         font-weight: 500;
-        color: #9ca3af;
+        color: rgba(255, 255, 255, 0.84);
         border-left: 3px solid transparent;
         transition: all 0.15s;
     }
+    .sidebar-section-label {
+        color: rgba(255, 255, 255, 0.62);
+        font-size: 0.625rem;
+        letter-spacing: 0.14em;
+    }
     .sidebar-link svg { width: 20px; height: 20px; flex-shrink: 0; }
-    .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.06); color: #ffffff; }
+    .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.12); color: #ffffff; }
     .sidebar-link.active {
-        background: linear-gradient(90deg, rgba(212, 175, 55, 0.18), rgba(212, 175, 55, 0.04));
-        color: #F4D03F;
+        background: #ffffff;
+        color: #17372f;
         border-left-color: var(--gold);
         font-weight: 600;
+        box-shadow: 0 3px 10px rgba(3, 7, 18, 0.12);
     }
 
     /* Topbar: white with the signature gold hairline (echoes the
@@ -500,6 +1481,274 @@ h1, h2, h3, h4, h5, h6 {
         background-color: var(--white);
         border-bottom: 2px solid var(--gold);
     }
+}
+
+.admin-portal {
+    --admin-border: #e1e5e2;
+    --admin-radius: 0.625rem;
+    --admin-muted: #5f6b76;
+    --admin-accent: #17372f;
+    --admin-accent-dark: #102b25;
+    --admin-accent-soft: #eef5f1;
+    background-color: #f3f5fa;
+}
+
+.admin-portal #admin-sidebar {
+    background-color: var(--admin-accent);
+}
+
+.admin-portal .admin-topbar {
+    border-bottom: 1px solid var(--gold);
+}
+
+.admin-portal .card,
+.admin-portal .admin-card {
+    border-color: var(--admin-border);
+    border-radius: var(--admin-radius);
+    box-shadow: 0 1px 3px rgba(17, 24, 39, 0.06);
+}
+
+.admin-portal .dashboard-stat-card {
+    position: relative;
+    overflow: hidden;
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.admin-portal .dashboard-stat-card::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 34%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--admin-accent-dark), var(--gold-light));
+    content: "";
+    transition: width 180ms ease;
+}
+
+.admin-portal .dashboard-stat-card:hover,
+.admin-portal .dashboard-stat-card:focus-visible {
+    border-color: var(--admin-accent);
+    box-shadow: 0 8px 18px rgba(23, 55, 47, 0.14);
+    transform: translateY(-2px);
+}
+
+.admin-portal .dashboard-stat-card:hover::before,
+.admin-portal .dashboard-stat-card:focus-visible::before {
+    width: 100%;
+}
+
+.admin-portal .dashboard-stat-card.is-featured {
+    border-color: var(--admin-accent);
+    background: linear-gradient(145deg, var(--admin-accent), var(--admin-accent-dark));
+}
+
+.admin-portal .dashboard-stat-card.is-featured::before {
+    display: none;
+}
+
+.admin-portal .dashboard-stat-card.is-featured .dashboard-stat-icon {
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.admin-portal .dashboard-stat-card.is-featured .dashboard-stat-icon svg,
+.admin-portal .dashboard-stat-card.is-featured .dashboard-stat-value,
+.admin-portal .dashboard-stat-card.is-featured .dashboard-stat-label,
+.admin-portal .dashboard-stat-card.is-featured .dashboard-stat-view {
+    color: #fff;
+}
+
+.admin-portal .dashboard-stat-card:focus-visible {
+    outline-color: var(--admin-accent);
+}
+
+.admin-dashboard .text-yellow-600,
+.admin-dashboard .text-yellow-700 {
+    color: var(--gold-dark);
+}
+
+.admin-dashboard .bg-yellow-50,
+.admin-dashboard .bg-yellow-100 {
+    background-color: #fffaf0;
+}
+
+.admin-dashboard .bg-yellow-500 {
+    background-color: var(--gold);
+}
+
+.admin-dashboard .border-yellow-300,
+.admin-dashboard .border-yellow-400 {
+    border-color: #e8d69b;
+}
+
+.admin-dashboard .dashboard-recent-row:hover {
+    background-color: #fffdf7;
+}
+
+.admin-dashboard .dashboard-table {
+    width: 100%;
+    min-width: 35rem;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.admin-dashboard .dashboard-table th {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid #edf0ed;
+    background-color: #fafbf9;
+    color: #69756f;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.admin-dashboard .dashboard-table td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid #f0f2ef;
+    vertical-align: middle;
+}
+
+.admin-dashboard .dashboard-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.admin-dashboard .dashboard-table-link {
+    display: block;
+    max-width: 22rem;
+    overflow: hidden;
+    color: #28352f;
+    font-size: 0.75rem;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-dashboard .dashboard-table-subtext {
+    display: block;
+    max-width: 22rem;
+    overflow: hidden;
+    margin-top: 0.15rem;
+    color: #929a94;
+    font-size: 0.65rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-dashboard .dashboard-score,
+.admin-dashboard .dashboard-status,
+.admin-dashboard .dashboard-enquiry-stage {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.25rem 0.55rem;
+    background-color: #f1f3f1;
+    color: #58645e;
+    font-size: 0.65rem;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+.admin-dashboard .dashboard-score,
+.admin-dashboard .dashboard-enquiry-stage.is-new {
+    background-color: #fff5d8;
+    color: #7a5c1e;
+}
+
+.admin-dashboard .dashboard-enquiry-row {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+    padding: 0.72rem 1rem;
+    text-decoration: none;
+    transition: background-color 150ms ease;
+}
+
+.admin-dashboard .dashboard-enquiry-row:hover {
+    background-color: #fffdf7;
+}
+
+.admin-dashboard .dashboard-enquiry-avatar {
+    display: inline-flex;
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 2rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: #fff5d8;
+    color: #7a5c1e;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.admin-dashboard .text-black,
+.admin-dashboard .text-gray-900 {
+    color: #29362f;
+}
+
+.admin-dashboard .text-gray-400 {
+    color: #748079;
+}
+
+.admin-dashboard .bg-black {
+    background-color: #30463c;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-portal .dashboard-stat-card,
+    .admin-portal .dashboard-stat-card::before {
+        transition: none;
+    }
+}
+
+.admin-portal .btn-primary,
+.admin-portal .admin-btn {
+    border-radius: var(--admin-radius);
+    background-color: var(--admin-accent);
+    color: #fff;
+    text-decoration: none;
+}
+
+.admin-portal .btn-primary:hover,
+.admin-portal .admin-btn:hover {
+    background-color: var(--admin-accent-dark);
+}
+
+.admin-portal .admin-btn-gold {
+    background-color: var(--gold);
+    color: var(--black);
+}
+
+.admin-portal .admin-btn-gold:hover {
+    background-color: var(--gold-light);
+    box-shadow: 0 4px 12px rgba(157, 123, 44, 0.2);
+}
+
+.admin-portal .btn-secondary,
+.admin-portal .admin-btn-ghost {
+    border-radius: var(--admin-radius);
+    border-color: var(--admin-border);
+    background-color: #fff;
+    color: #263238;
+}
+
+.admin-portal input:not([type="checkbox"]):not([type="radio"]),
+.admin-portal select,
+.admin-portal textarea {
+    border-color: #cbd5d1;
+    border-radius: 0.5rem;
+    background-color: #fff;
+    color: #17211d;
+}
+
+.admin-portal input:not([type="checkbox"]):not([type="radio"]):focus,
+.admin-portal select:focus,
+.admin-portal textarea:focus {
+    border-color: var(--gold-dark);
+    box-shadow: 0 0 0 3px rgba(205, 165, 62, 0.18);
+    outline: none;
 }
 
 /* Badge */

@@ -81,6 +81,10 @@
                 'business-website' => ['image' => 'images/services/crm-solutions.jpg', 'alt' => 'Business dashboard with customer and sales information'],
                 'ecommerce-starter' => ['image' => 'images/hero/scanner-analytics.jpg', 'alt' => 'Website analytics displayed on a laptop'],
                 'corporate-platform' => ['image' => 'images/services/network-design.jpg', 'alt' => 'Network equipment configured for a business'],
+                'crm-enterprise' => ['image' => 'images/home-services/crm-solutions.jpg', 'alt' => 'Enterprise CRM analytics dashboard'],
+                'crm-starter' => ['image' => 'images/services/crm-solutions.jpg', 'alt' => 'Customer relationship dashboard for a small business'],
+                'enterprise-network' => ['image' => 'images/services/network-design.jpg', 'alt' => 'Enterprise network equipment in a server rack'],
+                'office-network-setup' => ['image' => 'images/services/software-development.jpg', 'alt' => 'Office workstation ready for network setup'],
             ];
         @endphp
 
@@ -115,7 +119,7 @@
                             @endif
 
                             @if($meta)
-                                <img data-package-image="{{ $package->slug }}" src="{{ asset($meta['image']) }}" alt="{{ $meta['alt'] }}" class="service-package-card-image w-full h-32 object-cover bg-slate-100" loading="lazy">
+                                <img data-package-image="{{ $package->slug }}" data-scroll-reveal src="{{ asset($meta['image']) }}" alt="{{ $meta['alt'] }}" class="service-package-card-image w-full h-32 object-cover bg-slate-100" loading="lazy">
                             @else
                                 <div class="service-package-artwork" aria-hidden="true"></div>
                             @endif
@@ -149,7 +153,7 @@
                             @endif
 
                             @if($meta)
-                                <img data-package-image="{{ $package->slug }}" src="{{ asset($meta['image']) }}" alt="{{ $meta['alt'] }}" class="service-package-card-image w-full h-32 object-cover bg-slate-100" loading="lazy">
+                                <img data-package-image="{{ $package->slug }}" data-scroll-reveal src="{{ asset($meta['image']) }}" alt="{{ $meta['alt'] }}" class="service-package-card-image w-full h-32 object-cover bg-slate-100" loading="lazy">
                             @else
                                 <div class="service-package-artwork" aria-hidden="true"></div>
                             @endif
@@ -195,7 +199,7 @@
                             @endif
 
                             @if($meta)
-                                <img data-package-image="{{ $package->slug }}" src="{{ asset($meta['image']) }}" alt="{{ $meta['alt'] }}" class="service-package-card-image w-full h-40 object-cover" loading="lazy">
+                                <img data-package-image="{{ $package->slug }}" data-scroll-reveal src="{{ asset($meta['image']) }}" alt="{{ $meta['alt'] }}" class="service-package-card-image w-full h-40 object-cover" loading="lazy">
                             @else
                                 <div class="service-package-artwork service-package-artwork-tall" aria-hidden="true"></div>
                             @endif

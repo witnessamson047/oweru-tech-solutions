@@ -10,6 +10,9 @@
 # Local data & caches
 /database/database.sqlite
 /database/database.sqlite-journal
+/database/database.sqlite.bak*
+*.bak
+*.bak-*
 /.phpunit.result.cache
 
 # Laravel runtime files

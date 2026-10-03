@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\ServiceLine;
 use App\Models\ServicePackage;
+use App\Models\User;
 use Tests\TestCase;
 
 class PublicPagesTest extends TestCase
@@ -106,6 +107,39 @@ class PublicPagesTest extends TestCase
         $response = $this->get('/enquiry');
         $response->assertStatus(200);
         $response->assertSee('enquiry');
+    }
+
+    public function test_faq_page_returns_200(): void
+    {
+        // Regression: the FAQ template closed its @php block with @endsection,
+        // which is a fatal Blade parse error and a hard 500 for visitors.
+        $this->get('/faq')->assertOk();
+    }
+
+    /**
+     * The debug endpoints leak DB host, mailer and session config. They must
+     * never answer an anonymous request, not even in local/testing.
+     */
+    public function test_debug_routes_reject_anonymous_visitors(): void
+    {
+        // `auth` redirects guests to the login page rather than 401-ing.
+        $this->get('/debug/db')->assertRedirect();
+        $this->get('/debug/session')->assertRedirect();
+    }
+
+    public function test_debug_routes_reject_authenticated_non_admins(): void
+    {
+        $user = User::create([
+            'name' => 'Regular Client',
+            'email' => 'client@example.test',
+            'password' => 'password',
+            'role' => 'user',
+        ]);
+
+        // The admin middleware bounces non-admins to login; the point is that
+        // neither endpoint answers with the infrastructure payload.
+        $this->actingAs($user)->get('/debug/db')->assertRedirect();
+        $this->actingAs($user)->get('/debug/session')->assertRedirect();
     }
 
     public function test_service_page_shows_six_cards_and_view_more_button(): void

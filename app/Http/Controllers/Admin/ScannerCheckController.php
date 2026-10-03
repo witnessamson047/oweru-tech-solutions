@@ -3,13 +3,22 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Concerns\SortsListings;
 use App\Models\ScannerCheck;
 use Illuminate\Http\Request;
 
 class ScannerCheckController extends Controller
 {
+    use SortsListings;
+
     public function index(Request $request)
     {
+        $sort = $this->resolveSort($request, [
+            'name' => 'Check',
+            'area' => 'Area',
+            'weight' => 'Weight',
+        ], default: 'area', defaultDirection: 'asc');
+
         $query = ScannerCheck::withCount('results');
 
         if ($area = $request->input('area')) {
@@ -20,18 +29,43 @@ class ScannerCheckController extends Controller
             $query->where('enabled', $enabled === 'true');
         }
 
-        $checks = $query->orderBy('area')->orderBy('weight')->paginate(20);
+        if ($search = trim((string) $request->input('search'))) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('slug', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $this->applySort($query, $sort, ['name']);
+
+        // Break ties deterministically so pagination never shuffles rows.
+        $query->orderBy('weight');
+
+        $checks = $query->paginate($this->perPage($request, 20))->withQueryString();
 
         $areas = ScannerCheck::AREAS;
 
-        return view('admin.scanner-checks.index', compact('checks', 'areas'));
+        return view('admin.scanner-checks.index', [
+            'checks' => $checks,
+            'areas' => $areas,
+            'sort' => $sort,
+            'stats' => [
+                'total' => ScannerCheck::count(),
+                'enabled' => ScannerCheck::where('enabled', true)->count(),
+                'disabled' => ScannerCheck::where('enabled', false)->count(),
+            ],
+        ]);
     }
 
     public function create()
     {
         $areas = ScannerCheck::AREAS;
 
-        return view('admin.scanner-checks.create', compact('areas'));
+        return view('admin.scanner-checks.create', [
+            'scannerCheck' => new ScannerCheck(),
+            'areas' => $areas,
+        ]);
     }
 
     public function store(Request $request)

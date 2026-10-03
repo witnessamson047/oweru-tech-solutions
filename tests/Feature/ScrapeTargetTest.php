@@ -24,8 +24,8 @@ class ScrapeTargetTest extends TestCase
         $response = $this->actingAs($admin)->get(route('admin.scrape-targets.index'));
 
         $response->assertStatus(200);
-        $response->assertSee('Scrape Targets');
-        $response->assertSee('Add to Queue');
+        $response->assertSee('Auto-Scraper Queue');
+        $response->assertSee('Add to queue');
     }
 
     public function test_bulk_add_creates_targets(): void

@@ -1,118 +1,124 @@
 @extends('layouts.admin')
 
-@section('title', 'No-Website Leads — Oweru Admin')
+@section('title', 'No-Website Leads')
 @section('page-title', 'No-Website Leads')
-@section('page-subtitle', 'Businesses found near you that have no website — call them first')
+@section('page-subtitle', 'Businesses found with no website — the warmest “we’ll build you one” calls')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-    {{-- Page header --}}
-    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900">No-Website Leads</h1>
-            <p class="text-sm text-gray-500 mt-1">
-                Businesses discovered on OpenStreetMap that don't have a website yet —
-                every one is a potential “we'll build you one” conversation.
-            </p>
-        </div>
-        <a href="{{ route('admin.discovery.index') }}" class="btn-outline text-sm px-4 py-2.5">🔍 Run another discovery</a>
+@php
+    use App\Models\DiscoveryLead;
+@endphp
+
+<div class="space-y-5">
+
+    <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+        <x-admin.stat label="Total leads" :value="$stats['total']" icon="target" />
+        <x-admin.stat label="Not yet contacted" :value="$stats['new']" icon="bell"
+                      :href="route('admin.discovery.leads', ['status' => 'new'])" />
+        <x-admin.stat label="Contacted" :value="$stats['contacted']" icon="check-circle"
+                      :href="route('admin.discovery.leads', ['status' => 'contacted'])" />
     </div>
 
-    {{-- Stats --}}
-    <div class="grid grid-cols-3 gap-4 mb-6">
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-            <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Total leads</p>
-            <p class="text-xl font-extrabold text-gray-900 mt-1">{{ $stats['total'] }}</p>
-        </div>
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-            <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Not yet contacted</p>
-            <p class="text-xl font-extrabold text-green-600 mt-1">{{ $stats['new'] }}</p>
-        </div>
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-            <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Contacted</p>
-            <p class="text-xl font-extrabold text-blue-600 mt-1">{{ $stats['contacted'] }}</p>
-        </div>
-    </div>
+    <x-admin.note tone="info" title="Why these matter">
+        A business with no website is the easiest sale to open — there is nothing to
+        replace, only something to build. Mark a lead contacted so the team does not
+        call twice.
+    </x-admin.note>
 
-    {{-- List --}}
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
-            <h2 class="text-base font-bold text-gray-900">Outreach list</h2>
-            <form method="GET" class="flex flex-wrap gap-2">
-                <input type="text" name="search" placeholder="Search name or city…" value="{{ request('search') }}" class="rounded-lg border-gray-300 text-sm w-56">
-                <select name="status" class="rounded-lg border-gray-300 text-sm">
-                    <option value="">All</option>
-                    <option value="new" {{ request('status') === 'new' ? 'selected' : '' }}>Not yet contacted</option>
-                    <option value="contacted" {{ request('status') === 'contacted' ? 'selected' : '' }}>Contacted</option>
+    <x-admin.card :padded="false">
+        <x-slot:title>Outreach list</x-slot:title>
+        <x-slot:subtitle>{{ $leads->total() }} {{ Str::plural('lead', $leads->total()) }} matching</x-slot:subtitle>
+        <x-slot:actions>
+            <a href="{{ route('admin.discovery.index') }}" class="admin-btn-ghost">
+                <x-admin.icon name="search" class="w-4 h-4" /> Run discovery
+            </a>
+        </x-slot:actions>
+
+        <form method="GET" class="admin-filters" role="search">
+            <x-admin.search :value="request('search')" placeholder="Search name or city…" />
+
+            <div class="field">
+                <label for="filter-status">Status</label>
+                <select name="status" id="filter-status">
+                    <option value="">All leads</option>
+                    <option value="new" @selected(request('status') === 'new')>Not yet contacted</option>
+                    <option value="contacted" @selected(request('status') === 'contacted')>Contacted</option>
                 </select>
-                <button type="submit" class="btn-outline text-xs px-3 py-2">Filter</button>
-            </form>
-        </div>
+            </div>
 
-        <div class="overflow-x-auto">
-            <table class="admin-table min-w-full text-sm">
+            <div class="spacer"></div>
+            <div class="flex items-center gap-2">
+                <button type="submit" class="admin-btn">
+                    <x-admin.icon name="filter" class="w-4 h-4" /> Filter
+                </button>
+                @if (request()->query())
+                    <a href="{{ route('admin.discovery.leads') }}" class="admin-btn-ghost">Reset</a>
+                @endif
+            </div>
+        </form>
+
+        <div class="admin-table-wrap">
+            <table class="admin-table">
                 <thead>
                     <tr>
-                        <th class="px-6 py-3 text-left">Business</th>
-                        <th class="px-6 py-3 text-left">Location</th>
-                        <th class="px-6 py-3 text-left">Found</th>
-                        <th class="px-6 py-3 text-left">Status</th>
-                        <th class="px-6 py-3 text-right">Actions</th>
+                        <th>Business</th>
+                        <th>Location</th>
+                        <th>Found</th>
+                        <th>Status</th>
+                        <th class="col-actions">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-50">
-                    @forelse($leads as $lead)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4">
-                                <div class="text-sm font-medium text-gray-900">{{ $lead->business_name }}</div>
-                                <div class="text-[11px] text-gray-400">{{ $lead->category }}</div>
+                <tbody>
+                    @forelse ($leads as $lead)
+                        <tr>
+                            <td>
+                                <div class="font-semibold text-gray-900">{{ $lead->business_name }}</div>
+                                <div class="text-xs text-gray-500">{{ $lead->category }}</div>
                             </td>
-                            <td class="px-6 py-4 text-xs text-gray-500">
-                                {{ $lead->city }}
-                                @if($lead->lat && $lead->lon)
+                            <td>
+                                <div class="text-gray-700">{{ $lead->city }}</div>
+                                @if ($lead->lat && $lead->lon)
                                     <a href="https://www.google.com/maps?q={{ $lead->lat }},{{ $lead->lon }}"
-                                       target="_blank" rel="noopener noreferrer"
-                                       class="ml-1 text-yellow-600 hover:text-yellow-700">📍 map</a>
-                                    <div class="text-[11px] text-gray-400">{{ $lead->lat }}, {{ $lead->lon }}</div>
+                                       target="_blank" rel="noopener noreferrer" class="admin-inline-link text-xs">map</a>
+                                    <div class="text-xs text-gray-400">{{ $lead->lat }}, {{ $lead->lon }}</div>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 text-xs text-gray-500 whitespace-nowrap">
-                                {{ $lead->created_at->diffForHumans() }}
-                                <div class="text-[11px] text-gray-400">run #{{ $lead->discovery_run_id }}</div>
+                            <td class="whitespace-nowrap">
+                                <span class="text-gray-700">{{ $lead->created_at->diffForHumans() }}</span>
+                                <span class="block text-xs text-gray-400">run #{{ $lead->discovery_run_id }}</span>
                             </td>
-                            <td class="px-6 py-4">
-                                @if($lead->status === App\Models\DiscoveryLead::STATUS_CONTACTED)
-                                    <span class="badge badge-success text-[10px] uppercase">contacted</span>
-                                    <div class="text-[11px] text-gray-400 mt-1">{{ $lead->contacted_at?->diffForHumans() }}</div>
+                            <td>
+                                @if ($lead->status === DiscoveryLead::STATUS_CONTACTED)
+                                    <x-admin.badge variant="success">Contacted</x-admin.badge>
+                                    <div class="text-xs text-gray-400 mt-1">{{ $lead->contacted_at?->diffForHumans() }}</div>
                                 @else
-                                    <span class="badge badge-warning text-[10px] uppercase">new</span>
+                                    <x-admin.badge variant="warning">New</x-admin.badge>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 text-right">
-                                @if($lead->status === App\Models\DiscoveryLead::STATUS_NEW)
-                                    <form method="POST" action="{{ route('admin.discovery.leads.contacted', $lead) }}">
-                                        @csrf
-                                        <button type="submit" class="text-xs font-medium text-green-600 hover:text-green-700">✓ Mark contacted</button>
-                                    </form>
+                            <td class="col-actions">
+                                @if ($lead->status === DiscoveryLead::STATUS_NEW)
+                                    <div class="admin-actions">
+                                        <x-admin.action :action="route('admin.discovery.leads.contacted', $lead)" method="POST"
+                                                        icon="check" variant="primary" title="Mark this lead as contacted">
+                                            Contacted
+                                        </x-admin.action>
+                                    </div>
+                                @else
+                                    <span class="text-xs text-gray-400">—</span>
                                 @endif
                             </td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="5" class="px-6 py-10 text-center text-sm text-gray-400">
-                                No leads yet — run a discovery search on the Website Discovery page.
-                            </td>
-                        </tr>
+                        <x-admin.empty colspan="5" icon="target" title="No leads found"
+                                       text="Run a discovery search on the Website Discovery page — businesses without a website will appear here for outreach." />
                     @endforelse
                 </tbody>
             </table>
         </div>
 
-        <div class="px-6 py-4 border-t border-gray-100">
-            {{ $leads->links() }}
-        </div>
-    </div>
-
+        <x-admin.pagination :paginator="$leads" label="leads" />
+    </x-admin.card>
 </div>
+
 @endsection

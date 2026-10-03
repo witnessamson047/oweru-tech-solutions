@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Concerns\SortsListings;
 use App\Models\Report;
 use App\Models\Scan;
 use App\Support\LocalPath;
@@ -11,10 +12,38 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
-    public function index()
+    use SortsListings;
+
+    public function index(Request $request)
     {
-        $reports = Report::with('scan.website')->latest()->paginate(20);
-        return view('admin.reports.index', compact('reports'));
+        $sort = $this->resolveSort($request, [
+            'generated_at' => 'Generated',
+            'downloads' => 'Downloads',
+            'created_at' => 'Newest',
+        ], default: 'created_at', defaultDirection: 'desc');
+
+        $query = Report::with('scan.website');
+
+        if ($search = trim((string) $request->input('search'))) {
+            $query->whereHas('scan.website', function ($q) use ($search) {
+                $q->where('business_name', 'like', "%{$search}%");
+            });
+        }
+
+        $this->applySort($query, $sort);
+
+        $reports = $query->paginate($this->perPage($request, 20))->withQueryString();
+
+        return view('admin.reports.index', [
+            'reports' => $reports,
+            'sort' => $sort,
+            'stats' => [
+                'total' => Report::count(),
+                'downloads' => (int) Report::sum('downloads'),
+                'this_month' => Report::whereMonth('created_at', now()->month)
+                    ->whereYear('created_at', now()->year)->count(),
+            ],
+        ]);
     }
 
     public function generate(Scan $scan)

@@ -2,7 +2,51 @@
 
 **Project:** Oweru Tech Solutions — website health scanner + lead pipeline
 **Owner:** Witness (GitHub: witnessamson047)
-**Last updated:** 2026-09-25 (Steps 3+6 DONE: Website Discovery fully wired — 96 Dar websites queued + 91 no-website outreach leads captured live through the admin form; see top section)
+**Last updated:** 2026-10-02 (Admin design-system overhaul — every admin page rebuilt on a shared component kit; suite green at 181 passed / 645 assertions)
+
+## Admin design-system overhaul (NEW 2026-10-02) — one consistent inner-app look
+The admin panel was a patchwork of one-off markup with no shared components and no
+pagination/filter/sort/empty states. It now runs on a single kit and every admin
+page uses it. The public site keeps its navy/blue theme; the admin portal has its
+own black/white/gold + deep-green identity (`.admin-portal` tokens in
+`resources/css/app.css`: `--admin-accent #17372f`, `--gold #d8b75a`, danger/success/
+warn/info + soft variants, borders, grays).
+
+- **Reusable components** in `resources/views/components/admin/`: `icon` (single SVG
+  sprite — names centralized so no page hand-rolls an SVG), `card`, `stat`, `badge`,
+  `empty`, `pagination`, `sort`, `note`, `field` (label+control+error+hint),
+  `action` (link or CSRF form button — kills the hand-written delete forms),
+  `search`, `filters`.
+- **CSS kit** in `resources/css/app.css`: stat/filter/table/badge/form/pagination/
+  kanban/sidebar styles, hover/focus/reduced-motion, `.admin-score*` bands,
+  `.admin-details*`, `admin-btn`/`admin-btn-ghost`/`admin-btn-gold`, `admin-label`,
+  `admin-muted`, `admin-tabular`, `admin-checkbox`, `admin-hint`, `admin-error`,
+  `progress-bar`, `admin-inline-link`, `admin-avatar`.
+- **`app/Concerns/SortsListings.php`** — `resolveSort()`/`applySort()`/`perPage()`:
+  every list gets click-to-sort headers and a per-page control; controllers add
+  `->withQueryString()` so filters/sort survive paging.
+- **Rebuilt shell:** `resources/views/layouts/admin.blade.php` + cached nav/badge
+  counts in `AppServiceProvider`; pipeline rebuilt as a kanban
+  (`PipelineController`), dead pipeline JS removed from `resources/js/app.js`.
+- **Migrated ALL admin blades to the kit** — lists (enquiries, websites, scans,
+  reports, recommendations, scanner-checks, invoices, payments, scraped-businesses,
+  scrape-targets, discovery + leads, care-plans, packages, package-exclusions) and
+  details (websites, enquiries, scans, invoices, scraped-businesses) and forms
+  (websites, packages, scanner-checks, care-plans + recommendations, invoices,
+  package-exclusions, account/password). Shared `_form.blade.php` partials back the
+  create/edit pairs; deletes live OUTSIDE the update form (no nested forms).
+- **Routing/controller fixes:** dropped the nonexistent `admin.packages.show`;
+  added `admin.package-exclusions.*`; report generation is now POST; guarded the
+  debug routes with `app()->environment(['local','testing'])` + `['auth','admin']`;
+  fixed `ScannerCheckController::create()` passing an empty model (`$scannerCheck`).
+- **Public P0:** `pages/faq.blade.php` had `@endsection` instead of `@endphp` (fatal);
+  fixed.
+- **Tests/verification:** `tests/Feature/AdminPagesRenderTest.php` (renders every
+  admin page incl. all detail pages and both create/edit forms, asserts list paging,
+  filter preservation, sidebar routes registered, and that no page nests forms);
+  `tests/Feature/PublicPagesTest.php` (12). Five copy-sensitive assertions were
+  updated to the new copy. **Suite: 181 passed (645 assertions); `npm run build`
+  clean.**
 
 ## Website discovery via OpenStreetMap (NEW 2026-09-25) — Steps 1-3 DONE, live end-to-end
 Direction agreed: the client has zero technical exposure, so nobody should ever type a URL — staff

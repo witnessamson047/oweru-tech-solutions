@@ -22,7 +22,7 @@
         __('faq.groups.work') => __('faq.working_with_us'),
         __('faq.groups.payments') => __('faq.payments'),
     ];
-@endsection
+@endphp
 
 <section class="py-14 sm:py-16">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">

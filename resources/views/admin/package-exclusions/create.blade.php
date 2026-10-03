@@ -1,59 +1,61 @@
 @extends('layouts.admin')
 
-@section('title', $exclusion->exists ? 'Edit Exclusion' : 'Add Exclusion')
-@section('page-title', $exclusion->exists ? 'Edit Exclusion' : 'Add Exclusion')
-@section('page-subtitle', $exclusion->exists ? 'Update exclusion' : 'Add a new package exclusion')
+@section('title', 'Add Exclusion')
+@section('page-title', 'Add Package Exclusion')
+@section('page-subtitle', 'Add something that is not included in a standard package')
 
 @section('content')
 
-<div class="max-w-2xl">
-    <form method="POST" action="{{ $exclusion->exists ? route('admin.package-exclusions.update', $exclusion) : route('admin.package-exclusions.store') }}">
-        @csrf
-        @if($exclusion->exists) @method('PUT') @endif
+<form method="POST" action="{{ route('admin.package-exclusions.store') }}" class="max-w-3xl space-y-5">
+    @csrf
 
-        <div class="card">
-            <h3 class="font-bold text-gray-900 mb-4">Exclusion Details</h3>
+    <x-admin.note tone="info" title="Write it for the client">
+        This text is shown on the public packages page. Say it plainly — the goal is that
+        nobody is surprised on delivery day.
+    </x-admin.note>
 
-            <div class="space-y-4">
-                <div>
-                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description *</label>
-                    <input type="text" name="description" id="description" value="{{ old('description', $exclusion->description) }}"
-                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 text-sm"
-                        placeholder="e.g., Custom ERP integration">
-                    @error('description') <p class="text-black text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
+    <x-admin.card title="Exclusion details" icon="shield-off">
+        <div class="grid gap-5 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+                <x-admin.field name="description" label="Short description" required
+                               hint="One line, shown as the headline of the exclusion.">
+                    <input type="text" name="description" required maxlength="255"
+                           value="{{ old('description') }}"
+                           placeholder="e.g. Third-party licence fees">
+                </x-admin.field>
+            </div>
 
-                <div>
-                    <label for="details" class="block text-sm font-medium text-gray-700 mb-1">Details</label>
-                    <textarea name="details" id="details" rows="3"
-                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 text-sm"
-                        placeholder="Additional information about what's excluded...">{{ old('details', $exclusion->details) }}</textarea>
-                </div>
+            <div class="sm:col-span-2">
+                <x-admin.field name="details" label="Details"
+                               hint="Optional extra explanation shown under the description.">
+                    <textarea name="details" rows="3"
+                              placeholder="e.g. Font, hosting and plugin licences are billed separately by the vendor.">{{ old('details') }}</textarea>
+                </x-admin.field>
+            </div>
 
-                <div>
-                    <label for="sort_order" class="block text-sm font-medium text-gray-700 mb-1">Sort Order *</label>
-                    <input type="number" name="sort_order" id="sort_order" value="{{ old('sort_order', $exclusion->sort_order ?? 0) }}" min="0"
-                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 text-sm">
-                </div>
+            <x-admin.field name="sort_order" label="Sort order" required
+                           hint="Lower numbers appear first on the public page.">
+                <input type="number" name="sort_order" required min="0"
+                       value="{{ old('sort_order', 0) }}">
+            </x-admin.field>
 
-                <div class="flex items-center gap-3">
-                    <input type="checkbox" name="active" id="active" value="1"
-                        {{ old('active', $exclusion->active ?? true) ? 'checked' : '' }}
-                        class="h-4 w-4 text-yellow-600 border-gray-300 rounded">
-                    <label for="active" class="text-sm text-gray-700">Active</label>
-                </div>
+            <div class="flex items-end pb-2">
+                <label class="admin-checkbox">
+                    <input type="hidden" name="active" value="0">
+                    <input type="checkbox" name="active" value="1" @checked(old('active', true))>
+                    Active — show on the public packages page
+                </label>
             </div>
         </div>
+    </x-admin.card>
 
-        <div class="flex items-center gap-3 mt-4">
-            <button type="submit" class="btn-primary">
-                {{ $exclusion->exists ? 'Update Exclusion' : 'Create Exclusion' }}
-            </button>
-            @if($exclusion->exists)
-                <a href="{{ route('admin.package-exclusions.index') }}" class="btn-outline">Cancel</a>
-            @endif
-        </div>
-    </form>
-</div>
+    <div class="flex flex-wrap items-center gap-2">
+        <button type="submit" class="admin-btn">
+            <x-admin.icon name="check" class="w-4 h-4" />
+            Create exclusion
+        </button>
+        <a href="{{ route('admin.package-exclusions.index') }}" class="admin-btn-ghost">Cancel</a>
+    </div>
+</form>
 
 @endsection

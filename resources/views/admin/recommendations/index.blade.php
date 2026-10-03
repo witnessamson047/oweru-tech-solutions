@@ -2,145 +2,193 @@
 
 @section('title', 'Recommendations')
 @section('page-title', 'Recommendation Engine')
-@section('page-subtitle', 'Map scanner findings to Oweru service solutions')
+@section('page-subtitle', 'Map scanner findings to Oweru services you can sell')
 
 @section('content')
 
-{{-- Stats --}}
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-    <div class="card">
-        <div class="text-sm text-gray-500">Total Recommendations</div>
-        <div class="text-2xl font-bold text-gray-900">{{ $stats['total'] ?? 0 }}</div>
-    </div>
-    <div class="card">
-        <div class="text-sm text-gray-500">Active Mappings</div>
-        <div class="text-2xl font-bold text-yellow-600">{{ $stats['active'] ?? 0 }}</div>
-    </div>
-    <div class="card">
-        <div class="text-sm text-gray-500">Service Categories</div>
-        <div class="text-2xl font-bold text-yellow-600">{{ $stats['categories'] ?? 0 }}</div>
-    </div>
-</div>
+<div class="space-y-5">
 
-{{-- How It Works --}}
-<div class="card mb-6 bg-yellow-50 border-yellow-200">
-    <div class="flex items-start gap-3">
-        <svg class="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <div>
-            <h4 class="font-semibold text-yellow-900 text-sm">How the Recommendation Engine Works</h4>
-            <p class="text-xs text-yellow-700 mt-1">When a check fails during scanning, the system maps the finding to an appropriate Oweru technical service. This bridges the gap between diagnosis and sales by automatically suggesting relevant solutions.</p>
+    {{-- ---------- Summary ---------- --}}
+    <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <x-admin.stat label="Total mappings" :value="$stats['total']" icon="bulb"
+                      :href="route('admin.recommendations.index')" />
+        <x-admin.stat label="Active" :value="$stats['active']" icon="check-circle"
+                      :hint="$stats['total'] > 0 ? round(($stats['active'] / $stats['total']) * 100).'% of the library' : 'Nothing configured yet'"
+                      :href="route('admin.recommendations.index', ['status' => 'active'])" />
+        <x-admin.stat label="Service categories" :value="$stats['categories']" icon="target"
+                      :href="route('admin.recommendations.index')" />
+        <x-admin.stat label="Coverage" :value="$stats['active'] > 0 ? 'Live' : 'Setup'" icon="sparkles" featured
+                      :hint="$stats['active'] > 0 ? 'Scans attach pitches automatically' : 'Add a mapping to get started'" />
+    </div>
+
+    {{-- ---------- How it works ---------- --}}
+    <x-admin.note tone="info" title="How the recommendation engine works">
+        When a health scan fails a check, the engine looks for a mapping whose
+        <span class="font-semibold">check name matches exactly</span> and attaches the solution to the report.
+        That is the bridge between diagnosis and sales — the scanner finds the problem,
+        this table decides what to offer. Copy check names verbatim from
+        <a href="{{ route('admin.scanner-checks.index') }}" class="font-semibold underline">Scanner Checks</a>
+        or a mapping will never attach.
+    </x-admin.note>
+
+    {{-- ---------- Filters ---------- --}}
+    <x-admin.filters :reset="route('admin.recommendations.index')">
+        <x-admin.search :value="request('search')" placeholder="Search check, solution or service…" />
+
+        <div class="field">
+            <label for="filter-area">Area</label>
+            <select name="area" id="filter-area">
+                <option value="">All areas</option>
+                @foreach ($scannerAreas as $area)
+                    <option value="{{ $area }}" @selected(request('area') === $area)>{{ ucfirst($area) }}</option>
+                @endforeach
+            </select>
         </div>
-    </div>
-</div>
 
-{{-- Recommendation Table --}}
-<div class="card overflow-hidden">
-    <div class="flex items-center justify-between p-4 border-b border-gray-100">
-        <h3 class="font-bold text-gray-900">Finding → Solution Mappings</h3>
-        <button class="btn-primary text-sm" onclick="document.getElementById('add-modal').classList.remove('hidden')">
-            + Add Mapping
-        </button>
-    </div>
-    <div class="overflow-x-auto">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Failed Check</th>
-                    <th>Example Finding</th>
-                    <th>Business Consequence</th>
-                    <th>Recommended Solution</th>
-                    <th>Service Category</th>
-                    <th>Priority</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($recommendations as $rec)
+        <div class="field">
+            <label for="filter-service">Service</label>
+            <select name="service" id="filter-service">
+                <option value="">All services</option>
+                @foreach ($serviceTypes as $type)
+                    <option value="{{ $type }}" @selected(request('service') === $type)>{{ $type }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="field">
+            <label for="filter-priority">Priority</label>
+            <select name="priority" id="filter-priority">
+                <option value="">Any priority</option>
+                @foreach (['high' => 'High', 'medium' => 'Medium', 'low' => 'Low'] as $value => $label)
+                    <option value="{{ $value }}" @selected(request('priority') === $value)>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="field">
+            <label for="filter-status">Status</label>
+            <select name="status" id="filter-status">
+                <option value="">Any status</option>
+                <option value="active" @selected(request('status') === 'active')>Active only</option>
+                <option value="inactive" @selected(request('status') === 'inactive')>Inactive only</option>
+            </select>
+        </div>
+    </x-admin.filters>
+
+    {{-- ---------- Table ---------- --}}
+    <x-admin.card :padded="false">
+        <x-slot:title>Finding → solution mappings</x-slot:title>
+        <x-slot:subtitle>{{ $recommendations->total() }} {{ Str::plural('mapping', $recommendations->total()) }} configured</x-slot:subtitle>
+        <x-slot:actions>
+            <a href="{{ route('admin.recommendations.create') }}" class="admin-btn">
+                <x-admin.icon name="plus" class="w-4 h-4" />
+                Add mapping
+            </a>
+        </x-slot:actions>
+
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
                     <tr>
-                        <td>
-                            <div class="font-medium text-sm text-gray-900">{{ $rec->check_name }}</div>
-                            <span class="badge badge-gray text-[10px]">{{ $rec->area }}</span>
-                        </td>
-                        <td class="text-sm text-gray-600 max-w-[200px]">{{ Str::limit($rec->finding_example, 80) }}</td>
-                        <td class="text-sm text-gray-600 max-w-[200px]">{{ Str::limit($rec->consequence, 80) }}</td>
-                        <td class="text-sm text-gray-900 font-medium">{{ $rec->solution }}</td>
-                        <td>
-                            <span class="badge badge-info text-xs">{{ $rec->service_type }}</span>
-                        </td>
-                        <td>
-                            <span class="badge {{ $rec->priority === 'high' ? 'badge-danger' : ($rec->priority === 'medium' ? 'badge-warning' : 'badge-gray') }}">
-                                {{ ucfirst($rec->priority) }}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="flex gap-2">
-                                <a href="{{ route('admin.recommendations.edit', $rec) }}" class="text-yellow-600 hover:underline text-sm">Edit</a>
-                                <form method="POST" action="{{ route('admin.recommendations.destroy', $rec) }}">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-black hover:underline text-sm"
-                                        onclick="return confirm('Delete this mapping?')">Delete</button>
-                                </form>
-                            </div>
-                        </td>
+                        <th>
+                            <x-admin.sort column="check_name" label="Failed check"
+                                          :active-sort="$sort['column']" :active-direction="$sort['direction']" />
+                        </th>
+                        <th>What was found</th>
+                        <th>Why it matters</th>
+                        <th>
+                            <x-admin.sort column="service_type" label="Solution"
+                                          :active-sort="$sort['column']" :active-direction="$sort['direction']" />
+                        </th>
+                        <th>
+                            <x-admin.sort column="priority" label="Priority"
+                                          :active-sort="$sort['column']" :active-direction="$sort['direction']" />
+                        </th>
+                        <th class="col-actions">Actions</th>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" class="text-center text-gray-400 py-8">No recommendation mappings configured.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-</div>
+                </thead>
+                <tbody>
+                    @forelse ($recommendations as $rec)
+                        <tr>
+                            <td>
+                                <div class="font-semibold text-gray-900">{{ $rec->check_name }}</div>
+                                <div class="mt-1 flex items-center gap-1.5">
+                                    <x-admin.badge variant="neutral" :plain="true" class="!text-[10px] !px-1.5">
+                                        {{ ucfirst($rec->area) }}
+                                    </x-admin.badge>
+                                    @unless ($rec->active)
+                                        <x-admin.badge variant="warning" class="!text-[10px] !px-1.5">Inactive</x-admin.badge>
+                                    @endunless
+                                </div>
+                            </td>
+                            <td class="max-w-[15rem] text-gray-600">
+                                {{ Str::limit($rec->finding_example ?: '—', 70) }}
+                            </td>
+                            <td class="max-w-[15rem] text-gray-600">
+                                {{ Str::limit($rec->consequence ?: '—', 70) }}
+                            </td>
+                            <td>
+                                <div class="font-medium text-gray-900">{{ Str::limit($rec->solution, 60) }}</div>
+                                <div class="mt-1">
+                                    <x-admin.badge variant="info" :plain="true" class="!text-[10px] !px-1.5">
+                                        {{ $rec->service_type }}
+                                    </x-admin.badge>
+                                </div>
+                            </td>
+                            <td>
+                                <x-admin.badge :variant="['high' => 'danger', 'medium' => 'warning', 'low' => 'neutral'][$rec->priority] ?? 'neutral'">
+                                    {{ ucfirst($rec->priority) }}
+                                </x-admin.badge>
+                            </td>
+                            <td class="col-actions">
+                                <div class="admin-actions">
+                                    <x-admin.action :href="route('admin.recommendations.edit', $rec)" icon="pencil"
+                                                    title="Edit this mapping">Edit</x-admin.action>
+                                    <x-admin.action :action="route('admin.recommendations.destroy', $rec)"
+                                                    method="DELETE" variant="danger" icon="trash"
+                                                    :confirm="'Delete the mapping for '.$rec->check_name.'?'"
+                                                    title="Delete this mapping" />
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <x-admin.empty colspan="6" icon="bulb"
+                                       title="No mappings match these filters"
+                                       text="Try clearing the filters, or add a mapping so failed checks turn into sales pitches automatically.">
+                            <a href="{{ route('admin.recommendations.create') }}" class="admin-btn">
+                                <x-admin.icon name="plus" class="w-4 h-4" /> Add the first mapping
+                            </a>
+                        </x-admin.empty>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
-{{-- Default Mappings Reference --}}
-<div class="mt-6 card">
-    <h3 class="font-bold text-gray-900 mb-4">Default Mapping Reference</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-        <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-            <span class="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></span>
-            <div>
-                <p class="font-medium text-gray-900">Slow mobile performance</p>
-                <p class="text-xs text-gray-500">→ Performance optimization / Web development</p>
-            </div>
+        <x-admin.pagination :paginator="$recommendations" label="mappings" />
+    </x-admin.card>
+
+    {{-- ---------- Common mappings reference ---------- --}}
+    <x-admin.card title="Common finding → solution pairings" icon="sparkles"
+                  subtitle="Starting points if you are unsure what to map">
+        <div class="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+            @foreach ([
+                ['Slow mobile performance', 'Performance optimisation / Web development'],
+                ['Broken links', 'Website maintenance / Development'],
+                ['Missing contact path', 'Website redesign / Contact integration'],
+                ['Missing privacy or terms', 'Website improvement / Advisory'],
+                ['Poor mobile layout', 'Responsive web development'],
+                ['No payment or booking path', 'E-commerce / Booking integration'],
+            ] as [$problem, $solution])
+                <div class="admin-action !justify-start !items-start w-full !p-3 !rounded-lg cursor-default">
+                    <x-admin.icon name="warning" class="mt-0.5 shrink-0 text-gold-600" />
+                    <span class="min-w-0">
+                        <span class="block font-semibold text-gray-900">{{ $problem }}</span>
+                        <span class="block text-xs admin-muted">→ {{ $solution }}</span>
+                    </span>
+                </div>
+            @endforeach
         </div>
-        <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-            <span class="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></span>
-            <div>
-                <p class="font-medium text-gray-900">Broken links</p>
-                <p class="text-xs text-gray-500">→ Website maintenance / Development</p>
-            </div>
-        </div>
-        <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-            <span class="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></span>
-            <div>
-                <p class="font-medium text-gray-900">Missing contact path</p>
-                <p class="text-xs text-gray-500">→ Website redesign / Contact integration</p>
-            </div>
-        </div>
-        <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-            <span class="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></span>
-            <div>
-                <p class="font-medium text-gray-900">Missing privacy/terms</p>
-                <p class="text-xs text-gray-500">→ Website improvement / Advisory</p>
-            </div>
-        </div>
-        <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-            <span class="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></span>
-            <div>
-                <p class="font-medium text-gray-900">Poor mobile layout</p>
-                <p class="text-xs text-gray-500">→ Responsive web development</p>
-            </div>
-        </div>
-        <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-            <span class="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></span>
-            <div>
-                <p class="font-medium text-gray-900">No payment/booking path</p>
-                <p class="text-xs text-gray-500">→ E-commerce / Booking integration</p>
-            </div>
-        </div>
-    </div>
+    </x-admin.card>
 </div>
 
 @endsection

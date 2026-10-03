@@ -160,7 +160,7 @@ class DiscoveryTest extends TestCase
 
         $this->actingAs($admin)->get(route('admin.discovery.index'))
             ->assertSee('Dar es Salaam')
-            ->assertSee('completed');
+            ->assertSee('Completed');
     }
 
     public function test_admin_form_validates_city_and_category(): void
@@ -223,7 +223,7 @@ class DiscoveryTest extends TestCase
             ->assertOk()
             ->assertSee('No-Website Leads')
             ->assertSee('Safari Carnivour')
-            ->assertSee('Mark contacted');
+            ->assertSee('Mark this lead as contacted');
 
         $lead = DiscoveryLead::where('business_name', 'Safari Carnivour')->firstOrFail();
 

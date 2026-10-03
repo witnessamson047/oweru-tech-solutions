@@ -24,7 +24,7 @@ class PaymentController extends Controller
             });
         }
 
-        $payments = $query->orderBy('created_at', 'desc')->paginate(20);
+        $payments = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
 
         $stats = [
             'total' => Payment::count(),

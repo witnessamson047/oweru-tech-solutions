@@ -27,7 +27,7 @@ class DashboardScannerHealthTest extends TestCase
         $response = $this->get(route('admin.dashboard'));
 
         $response->assertStatus(200);
-        $response->assertSee('Scanner engine online');
+        $response->assertSee('Scanner online');
         $response->assertDontSee('Scanner engine offline');
     }
 
@@ -38,8 +38,8 @@ class DashboardScannerHealthTest extends TestCase
         $response = $this->get(route('admin.dashboard'));
 
         $response->assertStatus(200);
-        $response->assertSee('Scanner engine offline');
-        $response->assertDontSee('Scanner engine online');
+        $response->assertSee('Scanner offline');
+        $response->assertDontSee('Scanner online');
     }
 
     public function test_offline_dashboard_shows_scanner_log_tail(): void
@@ -49,6 +49,7 @@ class DashboardScannerHealthTest extends TestCase
         $response = $this->get(route('admin.dashboard'));
 
         $response->assertStatus(200);
-        $response->assertSee('scanner-service.log');
+        // The panel names the log file it tailed so staff know what to open.
+        $response->assertSee('scanner-service.log', escape: false);
     }
 }

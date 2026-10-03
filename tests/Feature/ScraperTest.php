@@ -149,7 +149,7 @@ class ScraperTest extends TestCase
         $response = $this->get(route('admin.scraped-businesses.show', $business));
 
         $response->assertStatus(200);
-        $response->assertSee('Preliminary Gaps', false);
+        $response->assertSee('Preliminary gaps', false);
         $response->assertSee('No HTTPS');
         // The gap must now be paired with the mapped Oweru service from the
         // recommendations table (SSL Certificate Valid -> SSL Setup & Configuration)

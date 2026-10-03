@@ -3,21 +3,32 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Concerns\SortsListings;
 use App\Models\Enquiry;
 use App\Models\User;
 use Illuminate\Http\Request;
 
 class EnquiryController extends Controller
 {
+    use SortsListings;
+
     public function index(Request $request)
     {
+        $sort = $this->resolveSort($request, [
+            'name' => 'Contact',
+            'business_name' => 'Business',
+            'stage' => 'Stage',
+            'created_at' => 'Newest',
+        ], default: 'created_at', defaultDirection: 'desc');
+
         $query = Enquiry::with(['package', 'owner']);
 
-        if ($search = $request->input('search')) {
+        if ($search = trim((string) $request->input('search'))) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('business_name', 'like', "%{$search}%");
+                  ->orWhere('business_name', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -29,16 +40,29 @@ class EnquiryController extends Controller
             $query->where('source', $source);
         }
 
-        $enquiries = $query->latest()->paginate(20);
+        if ($owner = $request->input('owner')) {
+            $query->where('owner_id', $owner);
+        }
+
+        $this->applySort($query, $sort, ['name', 'business_name', 'stage']);
+
+        $enquiries = $query->paginate($this->perPage($request, 20))->withQueryString();
 
         $stats = [
             'total' => Enquiry::count(),
             'new' => Enquiry::where('stage', 'new')->count(),
             'won' => Enquiry::where('stage', 'won')->count(),
-            'this_month' => Enquiry::whereMonth('created_at', now()->month)->count(),
+            'this_month' => Enquiry::whereMonth('created_at', now()->month)
+                ->whereYear('created_at', now()->year)->count(),
         ];
 
-        return view('admin.enquiries.index', compact('enquiries', 'stats'));
+        return view('admin.enquiries.index', [
+            'enquiries' => $enquiries,
+            'stats' => $stats,
+            'sort' => $sort,
+            'stages' => Enquiry::STAGES,
+            'owners' => User::whereIn('role', ['admin', 'manager'])->orderBy('name')->get(['id', 'name']),
+        ]);
     }
 
     public function show(Enquiry $enquiry)

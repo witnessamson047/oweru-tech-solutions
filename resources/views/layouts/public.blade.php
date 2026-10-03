@@ -47,15 +47,13 @@
                     <a href="{{ route('about') }}" class="text-sm font-medium {{ request()->routeIs('about') ? 'text-gray-900' : 'text-gray-600 hover:text-gray-900' }} transition-colors">{{ __('site.nav.about') }}</a>
                     <a href="{{ route('packages.index') }}" class="text-sm font-medium {{ request()->routeIs('packages.*') ? 'text-gray-900' : 'text-gray-600 hover:text-gray-900' }} transition-colors">{{ __('site.nav.services') }}</a>
                     <a href="{{ route('contact.create') }}" class="text-sm font-medium {{ request()->routeIs('contact.*') ? 'text-gray-900' : 'text-gray-600 hover:text-gray-900' }} transition-colors">{{ __('site.nav.contact') }}</a>
-                    {{-- Language switcher --}}
-                    <span class="inline-flex items-center rounded-lg border border-gray-200 p-0.5 text-xs font-semibold" role="group" aria-label="{{ __('site.nav.language') }}">
-                        <a href="{{ route('locale.switch', ['locale' => 'en']) }}"
-                           class="px-2 py-1 rounded-md transition-colors {{ app()->getLocale() === 'en' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-900' }}"
-                           {{ app()->getLocale() === 'en' ? "aria-current='true'" : '' }}>EN</a>
-                        <a href="{{ route('locale.switch', ['locale' => 'sw']) }}"
-                           class="px-2 py-1 rounded-md transition-colors {{ app()->getLocale() === 'sw' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-900' }}"
-                           {{ app()->getLocale() === 'sw' ? "aria-current='true'" : '' }}>SW</a>
-                    </span>
+                    <label class="inline-flex items-center">
+                        <span class="sr-only">{{ __('site.nav.language') }}</span>
+                        <select data-locale-switch aria-label="{{ __('site.nav.language') }}" class="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-700 focus:border-yellow-600 focus:ring-yellow-600">
+                            <option value="{{ route('locale.switch', ['locale' => 'en']) }}" {{ app()->getLocale() === 'en' ? 'selected' : '' }}>English</option>
+                            <option value="{{ route('locale.switch', ['locale' => 'sw']) }}" {{ app()->getLocale() === 'sw' ? 'selected' : '' }}>Kiswahili</option>
+                        </select>
+                    </label>
                     <span class="w-px h-5 bg-gray-200" aria-hidden="true"></span>
                     @auth
                         <a href="{{ route('admin.dashboard') }}" class="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">{{ __('site.nav.dashboard') }}</a>
@@ -90,13 +88,12 @@
                 <a href="{{ route('about') }}" class="block px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('about') ? 'bg-yellow-50 text-gray-900' : 'text-gray-700 hover:bg-gray-50' }}">{{ __('site.nav.about') }}</a>
                 <a href="{{ route('packages.index') }}" class="block px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('packages.*') ? 'bg-yellow-50 text-gray-900' : 'text-gray-700 hover:bg-gray-50' }}">{{ __('site.nav.services') }}</a>
                 <a href="{{ route('contact.create') }}" class="block px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('contact.*') ? 'bg-yellow-50 text-gray-900' : 'text-gray-700 hover:bg-gray-50' }}">{{ __('site.nav.contact') }}</a>
-                {{-- Language switcher --}}
-                <div class="flex items-center gap-2 pt-2 mt-2 border-t border-gray-100">
-                    <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ __('site.nav.language') }}</span>
-                    <a href="{{ route('locale.switch', ['locale' => 'en']) }}"
-                       class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors {{ app()->getLocale() === 'en' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600' }}">EN</a>
-                    <a href="{{ route('locale.switch', ['locale' => 'sw']) }}"
-                       class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors {{ app()->getLocale() === 'sw' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600' }}">SW</a>
+                <div class="flex items-center justify-between gap-3 pt-3 mt-2 border-t border-gray-100">
+                    <label for="mobile-locale-selector" class="text-xs font-medium text-gray-500">{{ __('site.nav.language') }}</label>
+                    <select id="mobile-locale-selector" data-locale-switch aria-label="{{ __('site.nav.language') }}" class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 focus:border-yellow-600 focus:ring-yellow-600">
+                        <option value="{{ route('locale.switch', ['locale' => 'en']) }}" {{ app()->getLocale() === 'en' ? 'selected' : '' }}>English</option>
+                        <option value="{{ route('locale.switch', ['locale' => 'sw']) }}" {{ app()->getLocale() === 'sw' ? 'selected' : '' }}>Kiswahili</option>
+                    </select>
                 </div>
                 <div class="pt-2">
                     @auth

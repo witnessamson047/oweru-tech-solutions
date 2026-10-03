@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Concerns\SortsListings;
 use App\Models\ServicePackage;
 use App\Models\ServiceLine;
 use Illuminate\Http\Request;
@@ -10,10 +11,63 @@ use Illuminate\Support\Str;
 
 class PackageController extends Controller
 {
-    public function index()
+    use SortsListings;
+
+    public function index(Request $request)
     {
-        $packages = ServicePackage::orderBy('group')->orderBy('sort_order')->get();
-        return view('admin.packages.index', compact('packages'));
+        $sort = $this->resolveSort($request, [
+            'name' => 'Package',
+            'price_tzs' => 'TZS price',
+            'price_usd' => 'USD price',
+            'delivery_days' => 'Delivery time',
+        ], default: 'price_tzs');
+
+        $query = ServicePackage::query()->with('serviceLine');
+
+        if ($search = trim((string) $request->query('search'))) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // The catalogue is browsed by audience first — that is how the public
+        // site presents it — so keep the group as the primary grouping.
+        if ($group = $request->query('group')) {
+            $query->where('group', $group);
+        }
+
+        if ($request->query('status') === 'active') {
+            $query->where('active', true);
+        } elseif ($request->query('status') === 'inactive') {
+            $query->where('active', false);
+        }
+
+        if ($request->boolean('featured')) {
+            $query->where('is_featured', true);
+        }
+
+        if ($line = $request->query('service_line')) {
+            $query->where('service_line_id', $line);
+        }
+
+        $this->applySort($query, $sort, ['name']);
+
+        $packages = $query->paginate($this->perPage($request, 20))->withQueryString();
+
+        $stats = [
+            'total' => ServicePackage::count(),
+            'active' => ServicePackage::where('active', true)->count(),
+            'featured' => ServicePackage::where('is_featured', true)->count(),
+        ];
+
+        return view('admin.packages.index', [
+            'packages' => $packages,
+            'stats' => $stats,
+            'sort' => $sort,
+            'groups' => ['individuals' => 'Individuals & Professionals', 'sme' => 'Small & Medium Enterprises', 'corporate' => 'Business & Corporate'],
+            'serviceLines' => ServiceLine::active()->get(),
+        ]);
     }
 
     public function create()

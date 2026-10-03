@@ -5,30 +5,41 @@
 @section('page-subtitle', 'Unable to load dashboard data')
 
 @section('content')
-<div class="flex flex-col items-center justify-center p-8 bg-yellow-50 border border-yellow-200 rounded-xl text-center">
-    <svg class="w-12 h-12 text-yellow-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-    </svg>
-    <h2 class="text-xl font-bold text-gray-900 mb-2">Unable to Load Dashboard</h2>
-    <p class="text-gray-600 mb-4 max-w-md">There was a problem connecting to the database. Please check your database configuration.</p>
-    <div class="bg-white p-4 rounded-lg border border-gray-200 text-left text-sm text-gray-700 mb-4 max-w-lg">
-        <p class="font-medium mb-1">Error Details:</p>
-        <p class="text-black font-mono text-xs break-all">{{ $error }}</p>
-    </div>
-    <div class="flex gap-3">
-        <a href="{{ route('home') }}" class="btn-outline border-gray-300 text-gray-700 px-4 py-2 text-sm">Go to Homepage</a>
-        @if(auth()->check())
-            <a href="{{ route('admin.dashboard') }}" class="btn-primary px-4 py-2 text-sm">Retry</a>
-        @endif
-    </div>
-    <div class="mt-6 text-xs text-gray-500">
-        <p><strong>Troubleshooting:</strong></p>
-        <ul class="mt-2 space-y-1">
-            <li>Check that your database server is running</li>
-            <li>Verify your .env file has correct DB credentials</li>
-            <li>Try: <code class="bg-gray-100 px-1 rounded">php artisan migrate</code></li>
-            <li>If using MySQL, ensure port 3306 is accessible</li>
+
+<div class="mx-auto max-w-2xl space-y-5">
+    <x-admin.card :padded="true">
+        <div class="flex flex-col items-center text-center">
+            <span class="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full" style="background-color: var(--admin-warn-soft); color: var(--admin-warn)">
+                <x-admin.icon name="warning" class="h-7 w-7" />
+            </span>
+            <h2 class="text-xl font-bold text-gray-900">Unable to load the dashboard</h2>
+            <p class="mt-1 max-w-md text-sm text-gray-600">
+                There was a problem connecting to the database. Check your database configuration
+                and try again.
+            </p>
+
+            <div class="mt-4 w-full rounded-lg border text-left" style="border-color: var(--admin-border); background-color: var(--gray-light)">
+                <p class="admin-label px-4 pt-3">Error details</p>
+                <pre class="overflow-x-auto whitespace-pre-wrap px-4 pb-3 font-mono text-xs text-gray-800">{{ $error }}</pre>
+            </div>
+
+            <div class="mt-5 flex flex-wrap items-center justify-center gap-2">
+                <x-admin.action :href="route('home')" icon="external">Go to homepage</x-admin.action>
+                @if (auth()->check())
+                    <x-admin.action :href="route('admin.dashboard')" variant="primary" icon="refresh">Retry</x-admin.action>
+                @endif
+            </div>
+        </div>
+    </x-admin.card>
+
+    <x-admin.note tone="warn" title="Troubleshooting">
+        <ul class="list-inside list-disc space-y-1">
+            <li>Check that your database server is running.</li>
+            <li>Verify your <code class="rounded bg-gray-100 px-1">.env</code> file has the correct DB credentials.</li>
+            <li>Run <code class="rounded bg-gray-100 px-1">php artisan migrate</code> if the schema is missing.</li>
+            <li>If using MySQL, ensure port 3306 is accessible.</li>
         </ul>
-    </div>
+    </x-admin.note>
 </div>
+
 @endsection

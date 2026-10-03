@@ -3,15 +3,46 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Concerns\SortsListings;
 use App\Models\PackageExclusion;
 use Illuminate\Http\Request;
 
 class PackageExclusionController extends Controller
 {
-    public function index()
+    use SortsListings;
+
+    public function index(Request $request)
     {
-        $exclusions = PackageExclusion::orderBy('sort_order')->get();
-        return view('admin.package-exclusions.index', compact('exclusions'));
+        $sort = $this->resolveSort($request, [
+            'sort_order' => 'Order',
+            'description' => 'Description',
+        ], default: 'sort_order', defaultDirection: 'asc');
+
+        $query = PackageExclusion::query();
+
+        if ($search = trim((string) $request->query('search'))) {
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'like', "%{$search}%")
+                    ->orWhere('details', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->query('status') === 'active') {
+            $query->where('active', true);
+        } elseif ($request->query('status') === 'inactive') {
+            $query->where('active', false);
+        }
+
+        $this->applySort($query, $sort);
+
+        $exclusions = $query->paginate($this->perPage($request, 25))->withQueryString();
+
+        $stats = [
+            'total' => PackageExclusion::count(),
+            'active' => PackageExclusion::where('active', true)->count(),
+        ];
+
+        return view('admin.package-exclusions.index', compact('exclusions', 'stats', 'sort'));
     }
 
     public function create()

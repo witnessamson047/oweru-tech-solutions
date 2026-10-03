@@ -6,99 +6,151 @@
 
 @section('content')
 
-<div class="space-y-5 sm:space-y-6">
-    {{-- Welcome Banner --}}
-    <div class="bg-black rounded-xl p-4 sm:p-6">
-        <div class="flex items-center gap-4 sm:gap-6">
-            <div class="flex-1">
-                <h2 class="text-xl font-bold text-white mb-1">Welcome to Oweru Admin</h2>
-                <p class="text-sm text-gray-400">Manage your clients, scans, and pipeline all in one place.</p>
-
-                <div class="mt-3 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium {{ ($scannerHealth['online'] ?? false) ? 'bg-green-500/10 text-green-400 border border-green-500/30' : 'bg-red-500/10 text-red-400 border border-red-500/30' }}"
-                    title="Scanner engine: {{ config('services.scanner.url', 'http://localhost:5000') }} (checked {{ \Illuminate\Support\Carbon::parse($scannerHealth['checked_at'] ?? now())->diffForHumans() }})">
-                    <span class="relative flex h-2 w-2">
-                        @if($scannerHealth['online'] ?? false)
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        @endif
-                        <span class="relative inline-flex rounded-full h-2 w-2 {{ ($scannerHealth['online'] ?? false) ? 'bg-green-400' : 'bg-red-500' }}"></span>
-                    </span>
-                    @if($scannerHealth['online'] ?? false)
-                        Scanner engine online
-                    @else
-                        Scanner engine offline — start it with C:\python312\python.exe scanner\scanner.py
-                    @endif
-                </div>
-
-                @if(!($scannerHealth['online'] ?? false) && !empty($scannerHealth['log_tail']))
-                    <div class="mt-3 max-w-2xl rounded-lg border border-red-500/30 bg-black/60 overflow-hidden">
-                        <div class="flex items-center justify-between px-3 py-1.5 border-b border-red-500/20">
-                            <span class="text-[11px] uppercase tracking-wider text-red-400/80">scanner-service.log — last {{ count($scannerHealth['log_tail']) }} lines</span>
-                            <span class="text-[11px] text-gray-500">newest last</span>
-                        </div>
-                        <pre class="px-3 py-2 text-[11px] leading-relaxed text-gray-300 max-h-48 overflow-y-auto whitespace-pre-wrap font-mono">{{ implode("\n", $scannerHealth['log_tail']) }}</pre>
-                    </div>
-                @endif
-
-                {{-- Quick actions --}}
-                <div class="mt-4 flex flex-wrap items-center gap-2">
-                    <a href="{{ route('admin.scraped-businesses.index') }}" class="admin-btn-gold w-full sm:w-auto px-3 py-1.5 text-xs">🔍 Business Scraper</a>
-                    <a href="{{ route('admin.discovery.index') }}" class="inline-flex items-center justify-center rounded-lg border border-gray-600 w-full sm:w-auto px-3 py-1.5 text-xs font-semibold text-gray-300 transition hover:border-yellow-500 hover:text-yellow-400">🗺 Website Discovery</a>
-                    <a href="{{ route('admin.scrape-targets.index') }}" class="inline-flex items-center justify-center rounded-lg border border-gray-600 w-full sm:w-auto px-3 py-1.5 text-xs font-semibold text-gray-300 transition hover:border-yellow-500 hover:text-yellow-400">⏱ Auto-Scraper Queue</a>
-                    <a href="{{ route('admin.websites.index') }}" class="inline-flex items-center justify-center rounded-lg border border-gray-600 w-full sm:w-auto px-3 py-1.5 text-xs font-semibold text-gray-300 transition hover:border-yellow-500 hover:text-yellow-400">🌐 Websites & Health Scans</a>
-                </div>
-            </div>
-            <div class="w-20 h-20 bg-yellow-500/10 rounded-xl flex items-center justify-center flex-shrink-0 hidden sm:flex">
-                <svg class="w-10 h-10 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-            </div>
+<div class="admin-dashboard space-y-4 sm:space-y-6">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-green-800">Workspace overview</p>
+            <h2 class="mt-1 text-xl font-bold text-gray-900 sm:text-2xl">Welcome back, {{ \Illuminate\Support\Str::before(auth()->user()->name ?? 'Admin', ' ') }}</h2>
+            <p class="mt-1 text-xs text-gray-500 sm:text-sm">Your enquiries, websites, and scans at a glance.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+            <span class="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold {{ ($scannerHealth['online'] ?? false) ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700' }}"
+                title="Scanner engine: {{ config('services.scanner.url', 'http://localhost:5000') }} (checked {{ \Illuminate\Support\Carbon::parse($scannerHealth['checked_at'] ?? now())->diffForHumans() }})">
+                <span class="h-2 w-2 rounded-full {{ ($scannerHealth['online'] ?? false) ? 'bg-green-500' : 'bg-red-500' }}"></span>
+                {{ ($scannerHealth['online'] ?? false) ? 'Scanner online' : 'Scanner offline' }}
+            </span>
+            <a href="{{ route('admin.websites.create') }}" class="admin-btn-gold px-3 py-2 text-xs">+ Add website</a>
+            <a href="{{ route('admin.enquiries.index') }}" class="admin-btn-ghost px-3 py-2 text-xs">View enquiries</a>
         </div>
     </div>
 
+    @if(!($scannerHealth['online'] ?? false) && !empty($scannerHealth['log']['lines']))
+        <x-admin.card padded="false" class="overflow-hidden border-red-200">
+            <x-slot:title>Scanner engine offline</x-slot:title>
+            <x-slot:subtitle>
+                Health scans and scraping are paused until the Python engine is back.
+                Start it with <span class="font-mono">start.bat</span>, then reload this page.
+            </x-slot:subtitle>
+            <x-slot:actions>
+                <span class="admin-badge admin-badge-danger is-plain font-mono !text-[11px]">{{ $scannerHealth['log']['source'] }}</span>
+            </x-slot:actions>
+            <pre class="max-h-48 overflow-y-auto whitespace-pre-wrap bg-red-50 px-4 py-3 text-[11px] leading-relaxed text-gray-700">{{ implode("\n", $scannerHealth['log']['lines']) }}</pre>
+        </x-admin.card>
+    @endif
+
     {{-- Key Stats — one clean row --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         @foreach([
-            ['label' => 'Total Enquiries', 'value' => $stats['total_enquiries'] ?? 0, 'sub' => 'All time',
+            ['label' => 'Enquiries', 'value' => $stats['total_enquiries'] ?? 0, 'sub' => 'All time',
              'icon' => 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', 'href' => route('admin.enquiries.index')],
-            ['label' => 'New Enquiries', 'value' => $stats['new_enquiries'] ?? 0, 'sub' => 'This month',
-             'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'href' => route('admin.enquiries.index')],
-            ['label' => 'Health Scans', 'value' => $stats['total_scans'] ?? 0, 'sub' => 'Total performed',
-             'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'href' => route('admin.scans.index')],
             ['label' => 'Websites', 'value' => $stats['websites'] ?? 0, 'sub' => 'Tracked sites',
              'icon' => 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9', 'href' => route('admin.websites.index')],
+            ['label' => 'Health Scans', 'value' => $stats['total_scans'] ?? 0, 'sub' => 'Total performed',
+             'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'href' => route('admin.scans.index')],
+            ['label' => 'New this month', 'value' => $stats['new_enquiries'] ?? 0, 'sub' => 'New enquiries',
+             'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'href' => route('admin.enquiries.index')],
         ] as $stat)
-            <a href="{{ $stat['href'] }}" class="admin-card group p-5 block">
-                <div class="flex items-start justify-between mb-3">
-                    <div class="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
-                        <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <a href="{{ $stat['href'] }}" class="dashboard-stat-card admin-card group block p-3 sm:p-5 {{ $loop->last ? 'is-featured' : '' }}">
+                <div class="mb-2 flex items-start justify-between sm:mb-3">
+                    <div class="dashboard-stat-icon flex h-9 w-9 items-center justify-center rounded-lg bg-yellow-50 sm:h-10 sm:w-10">
+                        <svg class="h-4 w-4 text-yellow-700 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $stat['icon'] }}"/>
                         </svg>
                     </div>
-                    <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">View</span>
+                    <span class="dashboard-stat-view hidden text-[11px] font-semibold uppercase tracking-wider text-gray-400 sm:inline">View</span>
                 </div>
-                <div class="text-2xl font-bold text-black">{{ number_format($stat['value']) }}</div>
-                <div class="text-xs text-gray-500 mt-1">{{ $stat['label'] }} · {{ $stat['sub'] }}</div>
+                <div class="dashboard-stat-value text-xl font-bold text-black sm:text-2xl">{{ number_format($stat['value']) }}</div>
+                <div class="dashboard-stat-label mt-1 text-[11px] leading-snug text-gray-600 sm:text-xs">{{ $stat['label'] }} · {{ $stat['sub'] }}</div>
             </a>
         @endforeach
     </div>
 
+    {{-- Recent scans + new enquiries --}}
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
+        <section class="admin-card overflow-hidden lg:col-span-2">
+            <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-4 py-3 sm:px-5">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-900">Recent scans</h3>
+                    <p class="mt-0.5 text-[11px] text-gray-500">Latest completed website checks</p>
+                </div>
+                <a href="{{ route('admin.scans.index') }}" class="whitespace-nowrap text-xs font-semibold text-yellow-700 hover:text-green-900">See all</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="dashboard-table">
+                    <thead>
+                        <tr>
+                            <th>Website</th>
+                            <th>Score</th>
+                            <th>Status</th>
+                            <th>Scanned</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($recentScans ?? [] as $scan)
+                            <tr class="dashboard-recent-row">
+                                <td>
+                                    <a href="{{ route('admin.scans.show', $scan) }}" class="dashboard-table-link">
+                                        {{ $scan->website->business_name ?? $scan->url }}
+                                    </a>
+                                    <span class="dashboard-table-subtext">{{ $scan->url }}</span>
+                                </td>
+                                <td><span class="dashboard-score">{{ $scan->score ?? '-' }}</span></td>
+                                <td><span class="dashboard-status">{{ $scan->band ?? 'Completed' }}</span></td>
+                                <td class="whitespace-nowrap text-xs text-gray-500">{{ $scan->created_at->diffForHumans(short: true) }}</td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="4" class="py-8 text-center text-sm text-gray-500">No completed scans yet.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <aside class="admin-card overflow-hidden">
+            <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-4 py-3 sm:px-5">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-900">New enquiries</h3>
+                    <p class="mt-0.5 text-[11px] text-gray-500">Recent people to follow up</p>
+                </div>
+                <a href="{{ route('admin.enquiries.index') }}" class="whitespace-nowrap text-xs font-semibold text-yellow-700 hover:text-green-900">See all</a>
+            </div>
+            <div class="divide-y divide-gray-100">
+                @forelse($recentEnquiries ?? [] as $enquiry)
+                    <a href="{{ route('admin.enquiries.show', $enquiry) }}" class="dashboard-enquiry-row">
+                        <span class="dashboard-enquiry-avatar">{{ strtoupper(substr($enquiry->name ?: 'C', 0, 1)) }}</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-xs font-semibold text-gray-900">{{ $enquiry->business_name ?: $enquiry->name }}</span>
+                            <span class="mt-0.5 block truncate text-[10px] text-gray-500">{{ $enquiry->package_name ?? $enquiry->email }}</span>
+                        </span>
+                        <span class="dashboard-enquiry-stage {{ $enquiry->stage === 'new' ? 'is-new' : '' }}">{{ str_replace('_', ' ', ucfirst($enquiry->stage)) }}</span>
+                    </a>
+                @empty
+                    <div class="px-4 py-8 text-center text-sm text-gray-500">No enquiries yet.</div>
+                @endforelse
+            </div>
+        </aside>
+    </div>
+
     {{-- Secondary Stats --}}
-    @if(($showAllStats ?? true) && ($stats['scored_websites'] > 0 || $stats['prospects'] > 0 || $stats['priority_prospects'] > 0))
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        @foreach([
+    @php
+        $secondaryStats = collect([
             ['label' => 'Scored', 'value' => $stats['scored_websites'] ?? 0, 'bar' => ($stats['scored_websites'] ?? 0) * 2],
             ['label' => 'Prospects', 'value' => $stats['prospects'] ?? 0, 'bar' => ($stats['prospects'] ?? 0) * 3],
             ['label' => 'Priority', 'value' => $stats['priority_prospects'] ?? 0, 'bar' => ($stats['priority_prospects'] ?? 0) * 5],
             ['label' => 'Excluded', 'value' => $stats['excluded_websites'] ?? 0, 'bar' => ($stats['excluded_websites'] ?? 0) * 10],
-        ] as $stat)
-            <div class="admin-card p-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ $stat['label'] }}</span>
-                    <div class="w-1.5 h-1.5 rounded-full bg-yellow-500"></div>
+        ])->filter(fn ($stat) => $stat['value'] > 0);
+    @endphp
+    @if(($showAllStats ?? true) && $secondaryStats->isNotEmpty())
+    <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+        @foreach($secondaryStats as $stat)
+            <div class="admin-card p-3 sm:p-4">
+                <div class="mb-2 flex items-center justify-between">
+                    <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-500 sm:text-xs">{{ $stat['label'] }}</span>
+                    <div class="h-1.5 w-1.5 rounded-full bg-yellow-600"></div>
                 </div>
-                <div class="text-xl font-bold text-black">{{ number_format($stat['value']) }}</div>
-                <div class="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-yellow-500 rounded-full transition-all" style="width: {{ min(100, $stat['bar']) }}%"></div>
+                <div class="text-lg font-bold text-gray-900 sm:text-xl">{{ number_format($stat['value']) }}</div>
+                <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-100">
+                    <div class="h-full rounded-full bg-yellow-600 transition-all" style="width: {{ min(100, $stat['bar']) }}%"></div>
                 </div>
             </div>
         @endforeach
@@ -107,7 +159,7 @@
 
     {{-- Score Distribution + Priority Prospects --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="admin-card p-5">
+        <div class="admin-card p-4 sm:p-5 {{ ($lowScoreScans ?? collect())->isEmpty() ? 'lg:col-span-2' : '' }}">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,7 +187,8 @@
             </div>
         </div>
 
-        <div class="admin-card p-5">
+        @if(($lowScoreScans ?? collect())->isNotEmpty())
+        <div class="admin-card p-4 sm:p-5">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,6 +220,7 @@
                 @endforelse
             </div>
         </div>
+        @endif
     </div>
 
     {{-- Sectors + Pipeline --}}
@@ -259,7 +313,7 @@
             <a href="{{ route('admin.scraped-businesses.index') }}" class="text-xs text-yellow-700 hover:text-black">All Businesses →</a>
         </div>
         <div class="divide-y divide-gray-100">
-            @forelse($watchEvents ?? [] as $event)
+            @forelse(($watchEvents ?? collect())->take(4) as $event)
                 @php $biz = $event->business; @endphp
                 <a href="{{ $biz ? route('admin.scraped-businesses.show', $biz) : '#' }}" class="block px-5 py-3">
                     <div class="flex items-center gap-2 sm:gap-3">
@@ -288,68 +342,6 @@
                     <p class="text-gray-500 text-sm">No watchdog events yet — changes appear here as the 24/7 scraper re-visits targets.</p>
                 </div>
             @endforelse
-        </div>
-    </div>
-
-    {{-- Recent Enquiries + Recent Scans --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="admin-card overflow-hidden">
-            <div class="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
-                <h3 class="font-semibold text-black">Recent Enquiries</h3>
-                <a href="{{ route('admin.enquiries.index') }}" class="text-xs text-yellow-700 hover:text-black">See All →</a>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <tbody class="divide-y divide-gray-100">
-                        @forelse($recentEnquiries ?? [] as $enquiry)
-                            <tr class="">
-                                <td class="px-5 py-3">
-                                    <div class="font-medium text-black text-sm">{{ $enquiry->business_name }}</div>
-                                    <div class="text-xs text-gray-500">{{ $enquiry->name }}</div>
-                                </td>
-                                <td class="px-5 py-3 text-sm text-gray-600">{{ $enquiry->package_name ?? '-' }}</td>
-                                <td class="px-5 py-3">
-                                    <span class="px-2 py-0.5 rounded text-xs font-medium {{ $enquiry->stage === 'new' ? 'bg-yellow-100 text-yellow-800' : ($enquiry->stage === 'qualified' ? 'bg-yellow-50 text-yellow-700' : 'bg-gray-100 text-gray-600') }}">
-                                        {{ str_replace('_', ' ', ucfirst($enquiry->stage)) }}
-                                    </span>
-                                </td>
-                                <td class="px-5 py-3 text-xs text-gray-400 whitespace-nowrap">{{ $enquiry->created_at->diffForHumans() }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="px-5 py-8 text-center text-gray-500 text-sm">No enquiries yet</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="admin-card overflow-hidden">
-            <div class="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
-                <h3 class="font-semibold text-black">Recent Scans</h3>
-                <a href="{{ route('admin.scans.index') }}" class="text-xs text-yellow-700 hover:text-black">See All →</a>
-            </div>
-            <div class="divide-y divide-gray-100">
-                @forelse($recentScans ?? [] as $scan)
-                    <a href="{{ route('admin.scans.show', $scan) }}" class="block px-5 py-3">
-                        <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold {{ $scan->score < 40 ? 'bg-black text-white' : ($scan->score < 60 ? 'bg-yellow-700 text-white' : ($scan->score < 80 ? 'bg-yellow-500 text-black' : 'bg-yellow-300 text-black')) }}">
-                                {{ $scan->score ?? '-' }}
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="text-sm font-medium text-black truncate">{{ $scan->website->business_name ?? $scan->url }}</div>
-                                <div class="text-xs text-gray-500 truncate">{{ $scan->url }}</div>
-                            </div>
-                            <span class="text-xs px-2 py-0.5 rounded {{ ($scan->score ?? 0) >= 80 ? 'bg-yellow-100 text-yellow-800' : (($scan->score ?? 0) >= 60 ? 'bg-yellow-50 text-yellow-700' : 'bg-gray-100 text-gray-600') }}">
-                                {{ $scan->band ?? '-' }}
-                            </span>
-                        </div>
-                    </a>
-                @empty
-                    <div class="px-5 py-8 text-center text-gray-500 text-sm">No scans yet</div>
-                @endforelse
-            </div>
         </div>
     </div>
 

@@ -1,144 +1,159 @@
 @extends('layouts.admin')
 
-@section('title', 'Auto-Scraper Queue — Oweru Admin')
+@section('title', 'Auto-Scraper Queue')
 @section('page-title', 'Auto-Scraper Queue')
-@section('page-subtitle', '24/7 automatic scraping — the scheduler processes due targets every 5 minutes')
+@section('page-subtitle', 'URLs scraped automatically, 24/7, and refreshed on a rolling schedule')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-    {{-- Page header --}}
-    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900">Scrape Targets</h1>
-            <p class="text-sm text-gray-500 mt-1">URLs queued here are scraped automatically, 24/7, and refreshed every {{ config('owers.scraper.refresh_days') }} days to keep data current. Same responsible-scraping rules as the manual scraper.</p>
-        </div>
-        <form method="POST" action="{{ route('admin.scrape-targets.check-all') }}"
-              onsubmit="this.querySelector('button').disabled = true; this.querySelector('button').textContent = 'Queued…';">
+@php
+    use App\Models\ScrapeTarget;
+@endphp
+
+<div class="space-y-5">
+
+    <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+        <x-admin.stat label="Active targets" :value="$stats['active']" icon="globe" />
+        <x-admin.stat label="Paused" :value="$stats['paused']" icon="pause" />
+        <x-admin.stat label="Due now" :value="$stats['due']" icon="refresh" />
+    </div>
+
+    <x-admin.note tone="info" title="Responsible scraping">
+        Targets are scraped automatically every 5 minutes and refreshed every
+        {{ config('owers.scraper.refresh_days') }} days to keep data current. The same rules
+        as the manual scraper apply: robots.txt is respected, requests are rate-limited,
+        and the scraper identifies itself honestly.
+    </x-admin.note>
+
+    <x-admin.card title="Queue websites for automatic scraping" icon="plus"
+                  subtitle="Paste addresses one per line, or separated by spaces or commas — https:// is optional.">
+        <form method="POST" action="{{ route('admin.scrape-targets.store') }}" class="space-y-3">
             @csrf
-            <button type="submit" class="btn-accent text-sm px-5 py-2.5" title="Re-scrape every active target now — refreshes contacts, services, reviews and gaps, and feeds the watchdog">
-                🐕 Check All Now
-            </button>
+            <x-admin.field name="urls" label="Addresses" required
+                           hint="Just type or paste the addresses — https:// is added automatically. Separate with new lines, spaces or commas.">
+                <textarea name="urls" rows="4" required
+                    placeholder="One address per line — https:// is optional:&#10;abc.co.tz&#10;www.xyzhotel.com, modewjifoundation.org"
+                    class="font-mono text-sm">{{ old('urls') }}</textarea>
+            </x-admin.field>
+
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <p class="text-xs text-gray-400 max-w-xl">
+                    <strong>Same site?</strong> www.abc.co.tz and abc.co.tz are treated as one site
+                    (queued once). Different endings like abc.co.tz and abc.com are different websites —
+                    both are kept.
+                </p>
+                <button type="submit" class="admin-btn">
+                    <x-admin.icon name="plus" class="w-4 h-4" /> Add to queue
+                </button>
+            </div>
         </form>
-    </div>
+    </x-admin.card>
 
-    {{-- Stats --}}
-    <div class="grid grid-cols-3 gap-4 mb-6">
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-            <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Active</p>
-            <p class="text-xl font-extrabold text-gray-900 mt-1">{{ $stats['active'] }}</p>
-        </div>
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-            <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Paused</p>
-            <p class="text-xl font-extrabold text-yellow-600 mt-1">{{ $stats['paused'] }}</p>
-        </div>
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-            <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Due Now</p>
-            <p class="text-xl font-extrabold text-green-600 mt-1">{{ $stats['due'] }}</p>
-        </div>
-    </div>
-
-    {{-- Bulk add --}}
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-8">
-        <h2 class="text-base font-bold text-gray-900 mb-1">Queue websites for automatic scraping</h2>
-        <p class="text-xs text-gray-500 mb-4">Paste URLs — one per line, or separated by spaces/commas. They'll be scraped automatically by the background scheduler.</p>
-
-        <form method="POST" action="{{ route('admin.scrape-targets.store') }}">
-            @csrf
-            <textarea name="urls" rows="4" required
-                placeholder="One address per line — https:// is optional:&#10;abc.co.tz&#10;www.xyzhotel.com, modewjifoundation.org"
-                class="w-full rounded-lg border-gray-300 text-sm focus:border-yellow-500 focus:ring-yellow-500">{{ old('urls') }}</textarea>
-            <p class="text-xs text-gray-400 mt-1">Just type or paste the addresses — https:// is added automatically. Separate with new lines, spaces or commas.</p>
-            <p class="text-xs text-gray-400 mt-1"><strong>Same site?</strong> www.abc.co.tz and abc.co.tz are treated as ONE site (queued once). Different endings like abc.co.tz and abc.com are DIFFERENT websites — both are kept.</p>
-            <button type="submit" class="btn-accent text-sm mt-3">＋ Add to Queue</button>
-        </form>
-    </div>
-
-    {{-- List --}}
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
-            <h2 class="text-base font-bold text-gray-900">Queue</h2>
-            <form method="GET" class="flex gap-2">
-                <input type="text" name="search" placeholder="Search URL…" value="{{ request('search') }}" class="rounded-lg border-gray-300 text-sm w-56">
-                <select name="status" class="rounded-lg border-gray-300 text-sm">
-                    <option value="">All</option>
-                    <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Active</option>
-                    <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Paused</option>
-                </select>
-                <button type="submit" class="btn-outline text-xs px-3 py-2">Filter</button>
+    <x-admin.card :padded="false">
+        <x-slot:title>Queue</x-slot:title>
+        <x-slot:subtitle>{{ $targets->total() }} {{ Str::plural('target', $targets->total()) }} in the queue</x-slot:subtitle>
+        <x-slot:actions>
+            <form method="POST" action="{{ route('admin.scrape-targets.check-all') }}">
+                @csrf
+                <button type="submit" class="admin-btn-gold"
+                        title="Re-scrape every active target now — refreshes contacts, services, reviews and gaps">
+                    <x-admin.icon name="refresh" class="w-4 h-4" /> Check all now
+                </button>
             </form>
-        </div>
+        </x-slot:actions>
 
-        <div class="overflow-x-auto">
-            <table class="admin-table min-w-full text-sm">
+        <form method="GET" class="admin-filters" role="search">
+            <x-admin.search :value="request('search')" placeholder="Search URL…" />
+
+            <div class="field">
+                <label for="filter-status">Status</label>
+                <select name="status" id="filter-status">
+                    <option value="">All targets</option>
+                    <option value="1" @selected(request('status') === '1')>Active</option>
+                    <option value="0" @selected(request('status') === '0')>Paused</option>
+                </select>
+            </div>
+
+            <div class="spacer"></div>
+            <div class="flex items-center gap-2">
+                <button type="submit" class="admin-btn">
+                    <x-admin.icon name="filter" class="w-4 h-4" /> Filter
+                </button>
+                @if (request()->query())
+                    <a href="{{ route('admin.scrape-targets.index') }}" class="admin-btn-ghost">Reset</a>
+                @endif
+            </div>
+        </form>
+
+        <div class="admin-table-wrap">
+            <table class="admin-table">
                 <thead>
                     <tr>
-                        <th class="px-6 py-3 text-left">URL</th>
-                        <th class="px-6 py-3 text-left">Status</th>
-                        <th class="px-6 py-3 text-left">Last Scraped</th>
-                        <th class="px-6 py-3 text-right">Actions</th>
+                        <th>URL</th>
+                        <th>Status</th>
+                        <th>Last scraped</th>
+                        <th class="col-actions">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-50">
-                    @forelse($targets as $target)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4">
-                                <a href="{{ $target->url }}" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-gray-900 hover:text-yellow-600">{{ $target->url }}</a>
-                                @if($target->business)
+                <tbody>
+                    @forelse ($targets as $target)
+                        <tr>
+                            <td>
+                                <a href="{{ $target->url }}" target="_blank" rel="noopener noreferrer"
+                                   class="admin-inline-link break-all">{{ $target->url }}</a>
+                                @if ($target->business)
                                     <div class="text-xs text-gray-500 mt-0.5">
-                                        → <a href="{{ route('admin.scraped-businesses.show', $target->business) }}" class="text-yellow-600 hover:text-yellow-700">{{ $target->business->business_name ?: 'view record' }}</a>
+                                        →
+                                        <a href="{{ route('admin.scraped-businesses.show', $target->business) }}" class="admin-inline-link">
+                                            {{ $target->business->business_name ?: 'view record' }}
+                                        </a>
                                     </div>
                                 @endif
-                                @if($target->last_error)
-                                    <div class="text-xs text-red-600 mt-0.5">Last error: {{ \Illuminate\Support\Str::limit($target->last_error, 90) }}</div>
+                                @if ($target->last_error)
+                                    <div class="text-xs mt-0.5" style="color: var(--admin-danger)">
+                                        Last error: {{ Str::limit($target->last_error, 90) }}
+                                    </div>
                                 @endif
                             </td>
-                            <td class="px-6 py-4">
-                                <span class="badge {{ $target->status === App\Models\ScrapeTarget::STATUS_ACTIVE ? 'badge-success' : ($target->status === App\Models\ScrapeTarget::STATUS_PAUSED ? 'badge-warning' : 'badge-gray') }} text-[10px] uppercase">{{ $target->status_label }}</span>
-                                <div class="text-[11px] text-gray-400 mt-1">{{ $target->scrape_count }} scrape(s)</div>
+                            <td>
+                                <x-admin.badge :variant="$target->status === ScrapeTarget::STATUS_ACTIVE ? 'success' : ($target->status === ScrapeTarget::STATUS_PAUSED ? 'warning' : 'neutral')">
+                                    {{ $target->status_label }}
+                                </x-admin.badge>
+                                <div class="text-xs text-gray-400 mt-1">{{ $target->scrape_count }} {{ Str::plural('scrape', $target->scrape_count) }}</div>
                             </td>
-                            <td class="px-6 py-4 text-xs text-gray-500">
-                                {{ $target->last_scraped_at?->diffForHumans() ?? 'never' }}
+                            <td>
+                                <span class="text-gray-700">{{ $target->last_scraped_at?->diffForHumans() ?? 'never' }}</span>
+                                @if ($target->last_scraped_at)
+                                    <span class="block text-xs text-gray-400">{{ $target->last_scraped_at->format('j M Y H:i') }}</span>
+                                @endif
                             </td>
-                            <td class="px-6 py-4">
-                                <div class="flex items-center justify-end gap-2 flex-wrap">
-                                    <form method="POST" action="{{ route('admin.scrape-targets.run-now', $target) }}">
-                                        @csrf
-                                        <button type="submit" class="text-xs font-medium text-yellow-600 hover:text-yellow-700">Run Now</button>
-                                    </form>
-                                    @if($target->status === App\Models\ScrapeTarget::STATUS_ACTIVE)
-                                        <form method="POST" action="{{ route('admin.scrape-targets.pause', $target) }}">
-                                            @csrf
-                                            <button type="submit" class="text-xs font-medium text-gray-600 hover:text-gray-900">Pause</button>
-                                        </form>
+                            <td class="col-actions">
+                                <div class="admin-actions">
+                                    <x-admin.action :action="route('admin.scrape-targets.run-now', $target)" method="POST"
+                                                    icon="refresh" title="Queue a scrape right now">Run</x-admin.action>
+                                    @if ($target->status === ScrapeTarget::STATUS_ACTIVE)
+                                        <x-admin.action :action="route('admin.scrape-targets.pause', $target)" method="POST"
+                                                        icon="pause" title="Pause automatic scraping">Pause</x-admin.action>
                                     @else
-                                        <form method="POST" action="{{ route('admin.scrape-targets.resume', $target) }}">
-                                            @csrf
-                                            <button type="submit" class="text-xs font-medium text-green-600 hover:text-green-700">Resume</button>
-                                        </form>
+                                        <x-admin.action :action="route('admin.scrape-targets.resume', $target)" method="POST"
+                                                        icon="play" title="Resume automatic scraping">Resume</x-admin.action>
                                     @endif
-                                    <form method="POST" action="{{ route('admin.scrape-targets.destroy', $target) }}" onsubmit="return confirm('Remove this target from the auto-scraper queue?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-xs font-medium text-red-600 hover:text-red-700">Remove</button>
-                                    </form>
+                                    <x-admin.action :action="route('admin.scrape-targets.destroy', $target)" method="DELETE"
+                                                    icon="trash" variant="danger" title="Remove from the queue"
+                                                    :confirm="'Remove this target from the auto-scraper queue?'" />
                                 </div>
                             </td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="4" class="px-6 py-12 text-center text-sm text-gray-400">
-                                Queue is empty — paste URLs above and they'll be scraped automatically.
-                            </td>
-                        </tr>
+                        <x-admin.empty colspan="4" icon="globe" title="The queue is empty"
+                                       text="Paste URLs above and they will be scraped automatically — no web address needed beyond the site itself." />
                     @endforelse
                 </tbody>
             </table>
         </div>
 
-        <div class="px-6 py-4 border-t border-gray-100">
-            {{ $targets->links() }}
-        </div>
-    </div>
+        <x-admin.pagination :paginator="$targets" label="targets" />
+    </x-admin.card>
 </div>
+
 @endsection

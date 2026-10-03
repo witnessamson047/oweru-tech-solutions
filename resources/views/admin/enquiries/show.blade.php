@@ -6,208 +6,201 @@
 
 @section('content')
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+@php
+    use App\Models\Invoice;
 
-    {{-- Main Details --}}
-    <div class="lg:col-span-2 space-y-6">
+    $stageVariant = fn ($stage) => match ($stage) {
+        'qualified' => 'info',
+        'diagnostic_paid' => 'warning',
+        'proposal_sent' => 'gold',
+        'won' => 'success',
+        'lost' => 'danger',
+        default => 'neutral',
+    };
+    $invoiceVariant = fn ($status) => match ($status) {
+        Invoice::STATUS_PAID => 'success',
+        Invoice::STATUS_PART_PAID => 'info',
+        Invoice::STATUS_ISSUED => 'warning',
+        Invoice::STATUS_CANCELLED => 'danger',
+        default => 'neutral',
+    };
+@endphp
 
-        {{-- Contact Info --}}
-        <div class="card">
-            <h3 class="font-bold text-gray-900 mb-4">Contact Information</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                    <span class="text-gray-500">Name:</span>
-                    <span class="font-medium text-gray-900 ml-2">{{ $enquiry->name }}</span>
-                </div>
-                <div>
-                    <span class="text-gray-500">Business:</span>
-                    <span class="font-medium text-gray-900 ml-2">{{ $enquiry->business_name }}</span>
-                </div>
-                <div>
-                    <span class="text-gray-500">Email:</span>
-                    <a href="mailto:{{ $enquiry->email }}" class="font-medium text-yellow-600 ml-2">{{ $enquiry->email }}</a>
-                </div>
-                <div>
-                    <span class="text-gray-500">Phone:</span>
-                    <a href="tel:{{ $enquiry->phone }}" class="font-medium text-yellow-600 ml-2">{{ $enquiry->phone }}</a>
-                </div>
-                <div>
-                    <span class="text-gray-500">Country:</span>
-                    <span class="font-medium text-gray-900 ml-2">{{ $enquiry->country }}</span>
-                </div>
-                <div>
-                    <span class="text-gray-500">Source:</span>
-                    <span class="badge badge-info">{{ ucfirst($enquiry->source ?? 'direct') }}</span>
-                </div>
-            </div>
-        </div>
+<div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
 
-        {{-- Project Details --}}
-        <div class="card">
-            <h3 class="font-bold text-gray-900 mb-4">Project Details</h3>
-            <div class="space-y-3 text-sm">
-                <div>
-                    <span class="text-gray-500">Package Interest:</span>
-                    <span class="font-medium text-gray-900 ml-2">{{ $enquiry->package_name ?? 'Not specified' }}</span>
-                </div>
-                <div>
-                    <span class="text-gray-500">Budget Range:</span>
-                    <span class="font-medium text-gray-900 ml-2">{{ str_replace('_', ' ', ucfirst($enquiry->budget_range ?? '')) }}</span>
-                </div>
-                <div>
-                    <span class="text-gray-500">Required Date:</span>
-                    <span class="font-medium text-gray-900 ml-2">{{ $enquiry->required_date ? \Carbon\Carbon::parse($enquiry->required_date)->format('d M Y') : 'Not specified' }}</span>
-                </div>
-                <div>
-                    <span class="text-gray-500">Current Cost/Impact:</span>
-                    <span class="font-medium text-gray-900 ml-2">{{ $enquiry->current_cost ?: 'Not specified' }}</span>
-                </div>
-            </div>
-        </div>
+    <div class="lg:col-span-2 space-y-5">
 
-        {{-- Problem Description --}}
-        <div class="card">
-            <h3 class="font-bold text-gray-900 mb-4">Problem Description</h3>
-            <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{{ $enquiry->problem_description }}</p>
-        </div>
+        <x-admin.card title="Contact information" icon="inbox">
+            <dl class="grid grid-cols-1 gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+                <div>
+                    <dt class="admin-label">Name</dt>
+                    <dd class="mt-1 font-semibold text-gray-900">{{ $enquiry->name }}</dd>
+                </div>
+                <div>
+                    <dt class="admin-label">Business</dt>
+                    <dd class="mt-1 font-semibold text-gray-900">{{ $enquiry->business_name }}</dd>
+                </div>
+                <div>
+                    <dt class="admin-label">Email</dt>
+                    <dd class="mt-1"><a href="mailto:{{ $enquiry->email }}" class="admin-inline-link">{{ $enquiry->email }}</a></dd>
+                </div>
+                <div>
+                    <dt class="admin-label">Phone</dt>
+                    <dd class="mt-1"><a href="tel:{{ $enquiry->phone }}" class="admin-inline-link">{{ $enquiry->phone }}</a></dd>
+                </div>
+                <div>
+                    <dt class="admin-label">Country</dt>
+                    <dd class="mt-1 font-semibold text-gray-900">{{ $enquiry->country }}</dd>
+                </div>
+                <div>
+                    <dt class="admin-label">Source</dt>
+                    <dd class="mt-1"><x-admin.badge variant="info">{{ ucfirst($enquiry->source ?? 'direct') }}</x-admin.badge></dd>
+                </div>
+            </dl>
+        </x-admin.card>
 
-        {{-- Invoices --}}
-        <div class="card">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="font-bold text-gray-900">Invoices</h3>
-                <a href="{{ route('admin.invoices.create', ['enquiry' => $enquiry->id]) }}" class="text-xs font-medium text-yellow-600 hover:text-yellow-700">＋ New Invoice</a>
-            </div>
-            @if($enquiry->invoices->count())
+        <x-admin.card title="Project details" icon="checklist">
+            <dl class="space-y-3 text-sm">
+                <div class="flex flex-wrap justify-between gap-2">
+                    <dt class="text-gray-500">Package interest</dt>
+                    <dd class="font-semibold text-gray-900">{{ $enquiry->package_name ?? 'Not specified' }}</dd>
+                </div>
+                <div class="flex flex-wrap justify-between gap-2">
+                    <dt class="text-gray-500">Budget range</dt>
+                    <dd class="font-semibold text-gray-900">{{ $enquiry->budget_range ? str_replace('_', ' ', ucfirst($enquiry->budget_range)) : 'Not specified' }}</dd>
+                </div>
+                <div class="flex flex-wrap justify-between gap-2">
+                    <dt class="text-gray-500">Required date</dt>
+                    <dd class="font-semibold text-gray-900">{{ $enquiry->required_date ? \Carbon\Carbon::parse($enquiry->required_date)->format('d M Y') : 'Not specified' }}</dd>
+                </div>
+                <div class="flex flex-wrap justify-between gap-2">
+                    <dt class="text-gray-500">Current cost / impact</dt>
+                    <dd class="font-semibold text-gray-900">{{ $enquiry->current_cost ?: 'Not specified' }}</dd>
+                </div>
+            </dl>
+        </x-admin.card>
+
+        <x-admin.card title="Problem description" icon="document-text">
+            <p class="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{{ $enquiry->problem_description }}</p>
+        </x-admin.card>
+
+        <x-admin.card :padded="true">
+            <x-slot:title>Invoices</x-slot:title>
+            <x-slot:subtitle>Deposit invoicing for this enquiry</x-slot:subtitle>
+            <x-slot:actions>
+                <a href="{{ route('admin.invoices.create', ['enquiry' => $enquiry->id]) }}" class="admin-btn-ghost">
+                    <x-admin.icon name="plus" class="w-4 h-4" /> New invoice
+                </a>
+            </x-slot:actions>
+
+            @if ($enquiry->invoices->count())
                 <div class="space-y-3">
-                    @foreach($enquiry->invoices as $invoice)
-                        <div class="border border-gray-100 rounded-xl p-4">
+                    @foreach ($enquiry->invoices as $invoice)
+                        <div class="rounded-xl border border-gray-100 p-4">
                             <div class="flex items-center justify-between gap-2">
-                                <a href="{{ route('admin.invoices.show', $invoice) }}" class="font-mono text-xs font-bold text-gray-900 hover:text-yellow-600">{{ $invoice->number }}</a>
-                                <span class="badge {{ $invoice->status === \App\Models\Invoice::STATUS_PAID ? 'badge-success' : ($invoice->status === \App\Models\Invoice::STATUS_PART_PAID ? 'badge-info' : 'badge-gray') }} text-[10px] uppercase">{{ $invoice->status_label }}</span>
+                                <a href="{{ route('admin.invoices.show', $invoice) }}" class="admin-inline-link font-mono text-xs">{{ $invoice->number }}</a>
+                                <x-admin.badge :variant="$invoiceVariant($invoice->status)">{{ $invoice->status_label }}</x-admin.badge>
                             </div>
-                            <div class="mt-2 grid grid-cols-3 gap-2 text-xs">
-                                <div><span class="text-gray-500">Total:</span> <span class="font-semibold">TZS {{ number_format($invoice->total) }}</span></div>
-                                <div><span class="text-gray-500">Deposit ({{ $invoice->deposit_percent }}%):</span> <span class="font-semibold">TZS {{ number_format($invoice->deposit_due) }}</span></div>
-                                <div><span class="text-gray-500">Paid:</span> <span class="font-semibold text-green-600">TZS {{ number_format($invoice->amount_paid) }}</span></div>
+                            <div class="mt-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-3">
+                                <div><span class="text-gray-500">Total:</span> <span class="font-semibold admin-tabular">TZS {{ number_format($invoice->total) }}</span></div>
+                                <div><span class="text-gray-500">Deposit ({{ $invoice->deposit_percent }}%):</span> <span class="font-semibold admin-tabular">TZS {{ number_format($invoice->deposit_due) }}</span></div>
+                                <div><span class="text-gray-500">Paid:</span> <span class="font-semibold admin-tabular" style="color: var(--admin-success)">TZS {{ number_format($invoice->amount_paid) }}</span></div>
                             </div>
-                            <div class="mt-2 flex items-center gap-3 text-xs">
-                                <a href="{{ route('admin.invoices.pdf', $invoice) }}" class="text-gray-600 hover:text-gray-900">PDF</a>
-                                @if($invoice->receipt_path)
-                                    <a href="{{ route('admin.invoices.receipt', $invoice) }}" class="text-green-600 hover:text-green-700">Receipt</a>
+                            <div class="mt-3 flex items-center gap-3 text-xs">
+                                <a href="{{ route('admin.invoices.pdf', $invoice) }}" class="admin-muted hover:underline">PDF</a>
+                                @if ($invoice->receipt_path)
+                                    <a href="{{ route('admin.invoices.receipt', $invoice) }}" class="admin-inline-link">Receipt</a>
                                 @endif
                             </div>
                         </div>
                     @endforeach
                 </div>
             @else
-                <p class="text-xs text-gray-400">
-                    No invoice yet. One is created automatically when the stage moves to <strong>proposal_sent</strong>
-                    ({{ config('owers.invoice.deposit_percent') }}% deposit required before work starts), or
-                    <a href="{{ route('admin.invoices.create', ['enquiry' => $enquiry->id]) }}" class="text-yellow-600 hover:text-yellow-700">create one now</a>.
+                <p class="text-sm text-gray-400">
+                    No invoice yet. One is created automatically when the stage moves to
+                    <strong>proposal_sent</strong> ({{ config('owers.invoice.deposit_percent') }}% deposit required
+                    before work starts), or
+                    <a href="{{ route('admin.invoices.create', ['enquiry' => $enquiry->id]) }}" class="admin-inline-link">create one now</a>.
                 </p>
             @endif
-        </div>
+        </x-admin.card>
 
-        {{-- Notes --}}
-        <div class="card">
-            <h3 class="font-bold text-gray-900 mb-4">Internal Notes</h3>
-            <form method="POST" action="{{ route('admin.enquiries.notes', $enquiry) }}">
+        <x-admin.card title="Internal notes" icon="document-text"
+                      subtitle="Only staff can see these.">
+            <form method="POST" action="{{ route('admin.enquiries.notes', $enquiry) }}" class="space-y-3">
                 @csrf
-                <textarea name="notes" rows="3"
-                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-yellow-500"
-                    placeholder="Add internal notes...">{{ $enquiry->notes }}</textarea>
-                <button type="submit" class="btn-primary text-sm mt-2">Save Notes</button>
+                <x-admin.field name="notes" label="Notes">
+                    <textarea name="notes" rows="4" placeholder="Add internal notes…">{{ $enquiry->notes }}</textarea>
+                </x-admin.field>
+                <div class="flex justify-end">
+                    <button type="submit" class="admin-btn">Save notes</button>
+                </div>
             </form>
-        </div>
+        </x-admin.card>
     </div>
 
-    {{-- Sidebar --}}
-    <div class="space-y-6">
+    <div class="space-y-5">
 
-        {{-- Stage Management --}}
-        <div class="card">
-            <h3 class="font-bold text-gray-900 mb-4">Pipeline Stage</h3>
-            <div class="mb-4">
-                <span class="badge stage-{{ $enquiry->stage === 'diagnostic_paid' ? 'diagnostic' : $enquiry->stage }} text-base px-4 py-1.5">
-                    {{ str_replace('_', ' ', ucfirst($enquiry->stage)) }}
-                </span>
-            </div>
-            <form method="POST" action="{{ route('admin.enquiries.stage', $enquiry) }}">
+        <x-admin.card title="Pipeline stage" icon="pipeline">
+            <x-admin.badge :variant="$stageVariant($enquiry->stage)" class="mb-4 text-sm">
+                {{ str_replace('_', ' ', ucfirst($enquiry->stage)) }}
+            </x-admin.badge>
+
+            <form method="POST" action="{{ route('admin.enquiries.stage', $enquiry) }}" class="space-y-2">
                 @csrf
                 @method('PATCH')
-                <div class="space-y-2">
-                    @foreach(['new', 'qualified', 'diagnostic_paid', 'proposal_sent', 'won', 'lost'] as $stage)
-                        <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
-                            <input type="radio" name="stage" value="{{ $stage }}" {{ $enquiry->stage === $stage ? 'checked' : '' }}
-                                class="text-yellow-600 focus:ring-yellow-500">
-                            <span class="text-sm text-gray-700">{{ str_replace('_', ' ', ucfirst($stage)) }}</span>
-                            @if($enquiry->stage === $stage)
-                                <span class="ml-auto text-xs text-yellow-600">Current</span>
-                            @endif
-                        </label>
-                    @endforeach
-                </div>
-                <button type="submit" class="btn-primary text-sm w-full justify-center mt-3">Update Stage</button>
+                @foreach (['new', 'qualified', 'diagnostic_paid', 'proposal_sent', 'won', 'lost'] as $stage)
+                    <label class="flex cursor-pointer items-center gap-2 rounded-lg p-2 transition hover:bg-gray-50">
+                        <input type="radio" name="stage" value="{{ $stage }}" @checked($enquiry->stage === $stage)>
+                        <span class="text-sm text-gray-700">{{ str_replace('_', ' ', ucfirst($stage)) }}</span>
+                        @if ($enquiry->stage === $stage)
+                            <span class="ml-auto text-xs font-semibold" style="color: var(--gold-dark)">Current</span>
+                        @endif
+                    </label>
+                @endforeach
+                <button type="submit" class="admin-btn w-full justify-center">Update stage</button>
             </form>
-        </div>
+        </x-admin.card>
 
-        {{-- Owner --}}
-        <div class="card">
-            <h3 class="font-bold text-gray-900 mb-3">Assigned Owner</h3>
-            <form method="POST" action="{{ route('admin.enquiries.owner', $enquiry) }}">
+        <x-admin.card title="Assigned owner" icon="user">
+            <form method="POST" action="{{ route('admin.enquiries.owner', $enquiry) }}" class="space-y-3">
                 @csrf
                 @method('PATCH')
-                <select name="owner_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                    <option value="">Unassigned</option>
-                    @foreach($staff as $user)
-                        <option value="{{ $user->id }}" {{ $enquiry->owner_id === $user->id ? 'selected' : '' }}>
-                            {{ $user->name }}
-                        </option>
-                    @endforeach
-                </select>
-                <button type="submit" class="btn-outline text-sm w-full justify-center mt-2">Assign</button>
+                <x-admin.field name="owner_id" label="Owner">
+                    <select name="owner_id">
+                        <option value="">Unassigned</option>
+                        @foreach ($staff as $user)
+                            <option value="{{ $user->id }}" @selected($enquiry->owner_id === $user->id)>{{ $user->name }}</option>
+                        @endforeach
+                    </select>
+                </x-admin.field>
+                <button type="submit" class="admin-btn-ghost w-full justify-center">Assign</button>
             </form>
-        </div>
+        </x-admin.card>
 
-        {{-- Timestamps --}}
-        <div class="card">
-            <h3 class="font-bold text-gray-900 mb-3">Timeline</h3>
-            <div class="space-y-2 text-xs text-gray-500">
-                <div class="flex justify-between">
-                    <span>Created</span>
-                    <span>{{ $enquiry->created_at->diffForHumans() }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Last Updated</span>
-                    <span>{{ $enquiry->updated_at->diffForHumans() }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Stage Changed</span>
-                    <span>{{ $enquiry->last_stage_changed_at ? \Carbon\Carbon::parse($enquiry->last_stage_changed_at)->diffForHumans() : '-' }}</span>
-                </div>
-            </div>
-        </div>
+        <x-admin.card title="Timeline" icon="clock">
+            <dl class="space-y-2 text-xs text-gray-500">
+                <div class="flex justify-between"><dt>Created</dt><dd>{{ $enquiry->created_at->diffForHumans() }}</dd></div>
+                <div class="flex justify-between"><dt>Last updated</dt><dd>{{ $enquiry->updated_at->diffForHumans() }}</dd></div>
+                <div class="flex justify-between"><dt>Stage changed</dt><dd>{{ $enquiry->last_stage_changed_at ? \Carbon\Carbon::parse($enquiry->last_stage_changed_at)->diffForHumans() : '—' }}</dd></div>
+            </dl>
+        </x-admin.card>
 
-        {{-- Actions --}}
-        <div class="card">
-            <h3 class="font-bold text-gray-900 mb-3">Actions</h3>
+        <x-admin.card title="Actions" icon="play">
             <div class="space-y-2">
-                <a href="mailto:{{ $enquiry->email }}" class="btn-outline text-sm w-full justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                    Send Email
+                <a href="mailto:{{ $enquiry->email }}" class="admin-btn-ghost w-full justify-center">
+                    <x-admin.icon name="mail" class="w-4 h-4" /> Send email
                 </a>
-                <a href="tel:{{ $enquiry->phone }}" class="btn-outline text-sm w-full justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                    Call
+                <a href="tel:{{ $enquiry->phone }}" class="admin-btn-ghost w-full justify-center">
+                    <x-admin.icon name="phone" class="w-4 h-4" /> Call
                 </a>
-                @if($enquiry->source === 'scanner' && $enquiry->scan)
-                    <a href="{{ route('admin.scans.show', $enquiry->scan) }}" class="btn-outline text-sm w-full justify-center">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        View Scan Results
+                @if ($enquiry->source === 'scanner' && $enquiry->scan)
+                    <a href="{{ route('admin.scans.show', $enquiry->scan) }}" class="admin-btn-ghost w-full justify-center">
+                        <x-admin.icon name="scan" class="w-4 h-4" /> View scan results
                     </a>
                 @endif
             </div>
-        </div>
+        </x-admin.card>
     </div>
 </div>
 

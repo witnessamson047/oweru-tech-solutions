@@ -40,8 +40,10 @@ class InvoiceController extends Controller
 
         $stats = [
             'total_value' => (float) Invoice::notCancelled()->sum('total'),
-            'collected' => (float) Invoice::notCancelled()->get()->sum(fn ($i) => $i->amount_paid),
-            'outstanding' => (float) Invoice::notCancelled()->get()->sum(fn ($i) => $i->balance_due),
+            // Sum in SQL. Collecting every invoice into a collection to add two
+            // columns grows linearly with the ledger and blocks on large data.
+            'collected' => (float) Invoice::notCancelled()->sum('amount_paid'),
+            'outstanding' => (float) Invoice::notCancelled()->sum('balance_due'),
             'awaiting_deposit' => Invoice::notCancelled()->whereIn('status', [Invoice::STATUS_ISSUED, Invoice::STATUS_PART_PAID])->count(),
             'paid' => Invoice::where('status', Invoice::STATUS_PAID)->count(),
         ];

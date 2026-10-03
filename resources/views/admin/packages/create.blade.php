@@ -6,87 +6,24 @@
 
 @section('content')
 
-<div class="max-w-3xl">
-    <form method="POST" action="{{ route('admin.packages.store') }}" class="card space-y-5">
-        @csrf
+<form method="POST" action="{{ route('admin.packages.store') }}" class="space-y-5">
+    @csrf
 
-        <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Package Name *</label>
-            <input type="text" name="name" value="{{ old('name') }}" required
-                placeholder="e.g. E-Commerce Starter"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-            @error('name')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
-        </div>
+    <x-admin.note tone="info" title="Packages are what you quote">
+        A package bundles a scope of work into a fix: the price, the delivery time and the
+        audience. Keep the description outcome-focused — clients buy the result, not the task list.
+    </x-admin.note>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Customer Group *</label>
-                <select name="group" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                    @foreach($groups as $key => $label)
-                        <option value="{{ $key }}" {{ old('group') === $key ? 'selected' : '' }}>{{ $label }}</option>
-                    @endforeach
-                </select>
-                @error('group')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Service Line</label>
-                <select name="service_line_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                    <option value="">— None —</option>
-                    @foreach($serviceLines as $line)
-                        <option value="{{ $line->id }}" {{ old('service_line_id') == $line->id ? 'selected' : '' }}>
-                            {{ $line->icon }} {{ $line->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
+    <x-admin.card title="Package details" icon="package">
+        @include('admin.packages._form')
+    </x-admin.card>
 
-        <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Description</label>
-            <textarea name="description" rows="4"
-                placeholder="What does the client get with this package?"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">{{ old('description') }}</textarea>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Price TZS *</label>
-                <input type="number" name="price_tzs" value="{{ old('price_tzs') }}" required min="0" step="1"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                @error('price_tzs')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Price USD *</label>
-                <input type="number" name="price_usd" value="{{ old('price_usd') }}" required min="0" step="0.01"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                @error('price_usd')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Delivery (days) *</label>
-                <input type="number" name="delivery_days" value="{{ old('delivery_days', 7) }}" required min="1"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                @error('delivery_days')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
-            </div>
-        </div>
-
-        <div class="flex gap-6">
-            <label class="flex items-center gap-2 text-sm text-gray-700">
-                <input type="hidden" name="is_featured" value="0">
-                <input type="checkbox" name="is_featured" value="1" {{ old('is_featured') ? 'checked' : '' }}>
-                Featured (Recommended badge)
-            </label>
-            <label class="flex items-center gap-2 text-sm text-gray-700">
-                <input type="hidden" name="active" value="0">
-                <input type="checkbox" name="active" value="1" {{ old('active', true) ? 'checked' : '' }}>
-                Active (visible on public site)
-            </label>
-        </div>
-
-        <div class="flex gap-3 pt-2 border-t border-gray-100">
-            <button type="submit" class="btn-primary text-sm">Create Package</button>
-            <a href="{{ route('admin.packages.index') }}" class="btn-outline text-sm">Cancel</a>
-        </div>
-    </form>
-</div>
+    <div class="flex flex-wrap items-center gap-2">
+        <button type="submit" class="admin-btn">
+            <x-admin.icon name="check" class="w-4 h-4" /> Create package
+        </button>
+        <a href="{{ route('admin.packages.index') }}" class="admin-btn-ghost">Cancel</a>
+    </div>
+</form>
 
 @endsection
