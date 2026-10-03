@@ -13,6 +13,8 @@
 /database/database.sqlite.bak*
 *.bak
 *.bak-*
+# Stale early-dev SQLite DB accidentally committed at the repo root
+/oweru_tech_solutions
 /.phpunit.result.cache
 
 # Laravel runtime files
