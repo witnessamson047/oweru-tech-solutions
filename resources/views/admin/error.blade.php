@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard - Error')
-@section('page-title', 'Dashboard')
-@section('page-subtitle', 'Unable to load dashboard data')
+@section('title', $title ?? 'Error')
+@section('page-title', $pageTitle ?? 'Error')
+@section('page-subtitle', 'Unable to load data')
 
 @section('content')
 
@@ -12,7 +12,7 @@
             <span class="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full" style="background-color: var(--admin-warn-soft); color: var(--admin-warn)">
                 <x-admin.icon name="warning" class="h-7 w-7" />
             </span>
-            <h2 class="text-xl font-bold text-gray-900">Unable to load the dashboard</h2>
+            <h2 class="text-xl font-bold text-gray-900">{{ $heading ?? 'Unable to load this page' }}</h2>
             <p class="mt-1 max-w-md text-sm text-gray-600">
                 There was a problem connecting to the database. Check your database configuration
                 and try again.
@@ -26,7 +26,7 @@
             <div class="mt-5 flex flex-wrap items-center justify-center gap-2">
                 <x-admin.action :href="route('home')" icon="external">Go to homepage</x-admin.action>
                 @if (auth()->check())
-                    <x-admin.action :href="route('admin.dashboard')" variant="primary" icon="refresh">Retry</x-admin.action>
+                    <x-admin.action :href="url()->current()" variant="primary" icon="refresh">Retry</x-admin.action>
                 @endif
             </div>
         </div>

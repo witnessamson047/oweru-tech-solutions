@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Enquiry;
 use App\Models\Invoice;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
 class PipelineController extends Controller
@@ -22,6 +23,24 @@ class PipelineController extends Controller
     private const COLUMN_LIMIT = 12;
 
     public function index(Request $request)
+    {
+        try {
+            return $this->renderIndex($request);
+        } catch (\Exception $e) {
+            Log::error('Pipeline error: ' . $e->getMessage(), [
+                'exception' => get_class($e),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            // Graceful fallback: a DB outage (or a missing migration) must
+            // show staff a friendly page, not a raw Laravel crash.
+            return view('admin.error', [
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    private function renderIndex(Request $request)
     {
         $search = trim((string) $request->query('search'));
         $owner = $request->query('owner');

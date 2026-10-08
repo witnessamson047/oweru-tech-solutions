@@ -116,7 +116,7 @@ class DashboardController extends Controller
             ]);
 
             // Return a graceful error view instead of crashing
-            return view('admin.dashboard.error', [
+            return view('admin.error', [
                 'error' => $e->getMessage(),
             ]);
         }
